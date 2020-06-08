@@ -38,5 +38,5 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Go build
-        run: go build -v ./cmd/goduck
+        run: go build -v ./cmd/premo
 
