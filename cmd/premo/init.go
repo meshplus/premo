@@ -15,18 +15,19 @@ import (
 )
 
 const (
-	ConfigPath = "../../config"
+	ScriptsPath = "../../scripts"
+	ConfigPath  = "../../config"
 )
 
-func initCMD() *cli.Command {
+func getInitCMD() *cli.Command {
 	return &cli.Command{
 		Name:   "init",
 		Usage:  "init config home for premo",
-		Action: initialize,
+		Action: Initialize,
 	}
 }
 
-func initialize(ctx *cli.Context) error {
+func Initialize(ctx *cli.Context) error {
 	repoRoot := ctx.String("repo")
 	if repoRoot == "" {
 		root, err := repo.PathRoot()
@@ -44,6 +45,7 @@ func initialize(ctx *cli.Context) error {
 			return nil
 		}
 	}
+	scriptBox := packr.NewBox(ScriptsPath)
 	configBox := packr.NewBox(ConfigPath)
 
 	var walkFn = func(s string, file packd.File) error {
@@ -56,6 +58,10 @@ func initialize(ctx *cli.Context) error {
 			}
 		}
 		return ioutil.WriteFile(p, []byte(file.String()), 0644)
+	}
+
+	if err := scriptBox.Walk(walkFn); err != nil {
+		return err
 	}
 
 	if err := configBox.Walk(walkFn); err != nil {
