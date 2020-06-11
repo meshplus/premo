@@ -40,6 +40,11 @@ test-coverage:
 	@$(GO) test -short -coverprofile cover.out -covermode=atomic ${TEST_PKGS}
 	@cat cover.out >> coverage.txt
 
+
+## make tester: Run integration test
+tester:
+	cd tester && $(GO) test -v -run TestTester
+
 ## make install: Go install the project
 install:
 	$(GO) install -ldflags '${GO_LDFLAGS}' ./cmd/${APP_NAME}

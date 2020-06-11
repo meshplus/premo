@@ -13,7 +13,7 @@ function printHelp() {
   echo "  run_bitxhub.sh <OPT>"
   echo "    <OPT> - one of 'up', 'down', 'restart'"
   echo "      - 'up' - bring up the bitxhub network"
-  echo "      - 'down' - clear the bitxhub network"
+  echo "      - 'down' - shut down the bitxhub network"
   echo "  run_bitxhub.sh -h (print this message)"
 }
 
@@ -37,7 +37,6 @@ function prepare() {
     git clone https://github.com/meshplus/bitxhub.git
   fi
 
-  print_blue "===> Build bitxhub node"
   cd bitxhub
   git checkout -f master && git reset --hard HEAD
   git pull
@@ -46,7 +45,8 @@ function prepare() {
     git checkout "${VERSION}"
   fi
 
-  make prepare && make build
+  print_blue "===> Build bitxhub node"
+  make prepare && make install
   cd internal/plugins && make plugins
 }
 
@@ -61,7 +61,7 @@ function bitxhub_up() {
       cp -r "${CURRENT_PATH}"/bitxhub/internal/plugins/build/solo.so nodeSolo/plugins
     fi
     echo "Start bitxhub solo node"
-    nohup "${CURRENT_PATH}"/bitxhub/bin/bitxhub --repo="${CURRENT_PATH}"/bitxhub_config/nodeSolo start &
+    nohup bitxhub --repo="${CURRENT_PATH}"/bitxhub_config/nodeSolo start >/dev/null 2>&1 &
     echo $! >>"${CURRENT_PATH}"/bitxhub_config/bitxhub.pid
   fi
 
@@ -72,7 +72,7 @@ function bitxhub_up() {
         cp -r "${CURRENT_PATH}"/bitxhub/internal/plugins/build/raft.so node${i}/plugins
       fi
       echo "Start bitxhub node${i}"
-      nohup "${CURRENT_PATH}"/bitxhub/bin/bitxhub --repo="${CURRENT_PATH}"/bitxhub_config/node${i} start &
+      nohup bitxhub --repo="${CURRENT_PATH}"/bitxhub_config/node${i} start >/dev/null 2>&1 &
       echo $! >>"${CURRENT_PATH}"/bitxhub_config/bitxhub.pid
     done
   fi

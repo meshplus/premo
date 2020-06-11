@@ -19,7 +19,7 @@ const (
 	ConfigPath  = "../../config"
 )
 
-func getInitCMD() *cli.Command {
+func initCMD() *cli.Command {
 	return &cli.Command{
 		Name:   "init",
 		Usage:  "init config home for premo",
