@@ -2,3 +2,16 @@
 .DS_Store
 .vscode
 a_repo-packr.go
+
+scripts/pier/
+scripts/goduck/
+
+scripts/.pier-fabric/
+scripts/fabric_rule.wasm
+scripts/pier-client-fabric/
+
+scripts/.pier-ethereum/
+scripts/ethereum_rule.wasm
+scripts/pier-client-ethereum/
+
+scripts/nohup.out
