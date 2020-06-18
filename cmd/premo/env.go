@@ -24,12 +24,12 @@ func createEnvCMD() *cli.Command {
 					&cli.StringFlag{
 						Name:  "source_appchain",
 						Value: constant.FABRIC,
-						Usage: "bring up the source appchain network, one of the constant.FABRIC or constant.ETHEREUM",
+						Usage: "bring up the source appchain network, one of the FABRIC or ETHEREUM",
 					},
 					&cli.StringFlag{
 						Name:  "target_appchain",
 						Value: constant.ETHEREUM,
-						Usage: "bring up the target appchain network, one of the constant.FABRIC or constant.ETHEREUM",
+						Usage: "bring up the target appchain network, one of the FABRIC or ETHEREUM",
 					},
 					&cli.UintFlag{
 						Name:  "bitxhub_num",
@@ -85,7 +85,7 @@ func runAppchain(appchain, repo string) error {
 	case constant.ETHEREUM:
 		args = append(args, "run_appchain.sh", "up", constant.ETHEREUM)
 	default:
-		return fmt.Errorf("appchain must be one of the constant.FABRIC or constant.ETHEREUM")
+		return fmt.Errorf("appchain must be one of the FABRIC or ETHEREUM")
 	}
 
 	err := exec.ExecCmd(args, repo)
@@ -103,7 +103,7 @@ func runPier(appchain, repo string) error {
 	case constant.ETHEREUM:
 		args = append(args, "run_pier.sh", "up", constant.ETHEREUM)
 	default:
-		return fmt.Errorf("pier mode must be one of the constant.FABRIC or constant.ETHEREUM")
+		return fmt.Errorf("pier mode must be one of the FABRIC or ETHEREUM")
 	}
 
 	err := exec.ExecCmd(args, repo)
