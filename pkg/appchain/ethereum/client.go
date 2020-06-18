@@ -77,7 +77,7 @@ func (client *EthClient) Deploy(codePath string) (string, string, error) {
 	return "", "", nil
 }
 
-func (client *EthClient) Invoke(abiPath, dstAddr, function, argAbi string) (string, error) {
+func (client *EthClient) Invoke(abiPath string, dstAddr string, function string, args ...string) (string, error) {
 
 	file, err := ioutil.ReadFile(abiPath)
 	if err != nil {
@@ -98,10 +98,9 @@ func (client *EthClient) Invoke(abiPath, dstAddr, function, argAbi string) (stri
 
 	// prepare for invoke parameters
 	var argx []interface{}
-	if len(argAbi) != 0 {
-		argSplits := strings.Split(argAbi, ",")
+	if len(args) != 0 {
 		var argArr [][]byte
-		for _, arg := range argSplits {
+		for _, arg := range args {
 			argArr = append(argArr, []byte(arg))
 		}
 
