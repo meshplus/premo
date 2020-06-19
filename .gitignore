@@ -9,9 +9,11 @@ scripts/goduck/
 scripts/.pier-fabric/
 scripts/fabric_rule.wasm
 scripts/pier-client-fabric/
+scripts/pier-fabric.pid
 
 scripts/.pier-ethereum/
 scripts/ethereum_rule.wasm
 scripts/pier-client-ethereum/
+scripts/pier-ethereum.pid
 
 scripts/nohup.out

@@ -3,7 +3,7 @@ set -e
 source x.sh
 
 CURRENT_PATH=$(pwd)
-FABRIC_CONFIG_PATH=../tester/test_data/fabric
+FABRIC_CONFIG_PATH=~/.goduck
 PIER_CLIENT_FABRIC_VERSION=master
 PIER_CLIENT_ETHEREUM_VERSION=master
 GODUCK_VERSION=master
@@ -59,10 +59,11 @@ function prepare() {
       --validators "0xf2d66e2c27e93ff083ee3999acb678a36bb349bb" \
       --appchainType "fabric" \
       --appchainIP "127.0.0.1"
-    # copy appchain crypto-config and config.yaml
+    # copy appchain crypto-config and modify config.yaml
     cd "${CURRENT_PATH}"
-    cp -r "${FABRIC_CONFIG_PATH}"/crypto-config ${PIER_ROOT}
-    cp "${FABRIC_CONFIG_PATH}"/config.yaml ${PIER_ROOT}
+    cp -r "${FABRIC_CONFIG_PATH}"/crypto-config "${PIER_ROOT}"/fabric
+    x_replace "s?10.1.16.48?localhost?g" "${PIER_ROOT}"/fabric/config.yaml
+
     if [ ! -d pier-client-fabric ]; then
         print_blue "===> Cloning meshplus/pier-client-fabric repo and checkout ${PIER_CLIENT_FABRIC_VERSION}"
         git clone https://github.com/meshplus/pier-client-fabric.git
