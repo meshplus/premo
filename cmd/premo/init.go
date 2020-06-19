@@ -10,7 +10,7 @@ import (
 	"github.com/coreos/etcd/pkg/fileutil"
 	"github.com/gobuffalo/packd"
 	"github.com/gobuffalo/packr"
-	"github.com/meshplus/premo/repo"
+	"github.com/meshplus/premo/internal/repo"
 	"github.com/urfave/cli/v2"
 )
 
@@ -19,12 +19,10 @@ const (
 	ConfigPath  = "../../config"
 )
 
-func initCMD() *cli.Command {
-	return &cli.Command{
-		Name:   "init",
-		Usage:  "init config home for premo",
-		Action: Initialize,
-	}
+var initCMD = &cli.Command{
+	Name:   "init",
+	Usage:  "init config home for premo",
+	Action: Initialize,
 }
 
 func Initialize(ctx *cli.Context) error {

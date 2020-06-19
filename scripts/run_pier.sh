@@ -3,10 +3,9 @@ set -e
 source x.sh
 
 CURRENT_PATH=$(pwd)
-FABRIC_CONFIG_PATH=../tester/test_data/fabric
+GODUCK_REPO_PATH=~/.goduck
 PIER_CLIENT_FABRIC_VERSION=master
 PIER_CLIENT_ETHEREUM_VERSION=master
-GODUCK_VERSION=master
 VERSION=master
 
 function printHelp() {
@@ -17,7 +16,7 @@ function printHelp() {
   echo "      - 'down' - clear a new pier"
   echo "    -t <mode> - pier type (default \"fabric\")"
   echo "    -v <version> - pier code version (default \"master\")"
-  echo "    -r <pier_root> - pier repo path (default \".pier-fabric\")"
+  echo "    -r <pier_root> - pier repo path (default \".pier_fabric\")"
   echo "    -b <bitxhub_addr> - bitxhub addr(default \"localhost:60011\")"
   echo "  run_pier.sh -h (print this message)"
 }
@@ -26,30 +25,39 @@ function prepare() {
   cd "${CURRENT_PATH}"
   if ! type goduck >/dev/null 2>&1; then
     print_blue "===> Install goduck"
-    go get github.com/meshplus/goduck &&
-      cd goduck && git checkout ${GODUCK_VERSION}
-    make install
+    go get github.com/meshplus/goduck/cmd/goduck
   fi
-  
+
+  if [ ! -d "$HOME/.goduck" ]; then
+    goduck init
+  fi
+
+  if [ -f "${CURRENT_PATH}/pier-${MODE}.pid" ]; then
+    print_red "pier-${MODE} is already running in the background service"
+    cat "${CURRENT_PATH}/pier-${MODE}.pid"
+    exit 0
+  fi
+
   cd "${CURRENT_PATH}"
   if [ ! -d pier ]; then
     print_blue "===> Cloning meshplus/pier repo and checkout ${PIER_VERSION}"
     git clone https://github.com/meshplus/pier.git
   fi
-  cd pier && git pull && git checkout ${VERSION}
+  cd pier && git checkout -f master && git reset --hard HEAD
+  git pull && git checkout ${VERSION}
 
   print_blue "===> Compiling meshplus/pier"
   cd "${CURRENT_PATH}"/pier
   make install
-  
+
   if [ "$MODE" == "fabric" ]; then
     print_blue "===> Generate fabric pier configure"
     # generate config for fabric pier
     cd "${CURRENT_PATH}"
-    if [ ! -d .pier-fabric ]; then
-      mkdir .pier-fabric
+    if [ ! -d .pier_fabric ]; then
+      mkdir .pier_fabric
     fi
-    cd "${PIER_ROOT}"
+
     goduck pier config \
       --mode "relay" \
       --bitxhub "localhost:60011" \
@@ -57,34 +65,40 @@ function prepare() {
       --validators "0x8374bb1e41d4a4bb4ac465e74caa37d242825efc" \
       --validators "0x759801eab44c9a9bbc3e09cb7f1f85ac57298708" \
       --validators "0xf2d66e2c27e93ff083ee3999acb678a36bb349bb" \
-      --appchainType "fabric" \
-      --appchainIP "127.0.0.1"
-    # copy appchain crypto-config and config.yaml
-    cd "${CURRENT_PATH}"
-    cp -r "${FABRIC_CONFIG_PATH}"/crypto-config ${PIER_ROOT}
-    cp "${FABRIC_CONFIG_PATH}"/config.yaml ${PIER_ROOT}
-    if [ ! -d pier-client-fabric ]; then
-        print_blue "===> Cloning meshplus/pier-client-fabric repo and checkout ${PIER_CLIENT_FABRIC_VERSION}"
-        git clone https://github.com/meshplus/pier-client-fabric.git
+      --appchain-type "fabric" \
+      --appchain-IP "127.0.0.1" \
+      --target "${PIER_ROOT}"
+    # copy appchain crypto-config and modify config.yaml
+    if [ ! -d "${GODUCK_REPO_PATH}"/crypto-config ]; then
+      print_red "crypto-config not found, please start fabric network first"
+      exit 1
     fi
-    cd pier-client-fabric && git pull && git checkout ${PIER_CLIENT_FABRIC_VERSION}
+    cp -r "${GODUCK_REPO_PATH}"/crypto-config "${PIER_ROOT}"/fabric
+
+    if [ ! -d pier-client-fabric ]; then
+      print_blue "===> Cloning meshplus/pier-client-fabric repo and checkout ${PIER_CLIENT_FABRIC_VERSION}"
+      git clone https://github.com/meshplus/pier-client-fabric.git
+    fi
+    cd pier-client-fabric && git checkout -f master && git reset --hard HEAD
+    git pull && git checkout ${PIER_CLIENT_FABRIC_VERSION}
     print_blue "===> Compiling meshplus/pier-client-fabric"
     cd "${CURRENT_PATH}"/pier-client-fabric
     make fabric1.4
-    
+
     cd "${CURRENT_PATH}"
     if [ ! -f fabric_rule.wasm ]; then
-        print_blue "===> Downloading fabric_rule.wasm"
-        wget https://github.com/meshplus/bitxhub/blob/master/scripts/quick_start/fabric_rule.wasm
+      print_blue "===> Downloading fabric_rule.wasm"
+      wget https://github.com/meshplus/bitxhub/blob/master/scripts/quick_start/fabric_rule.wasm
     fi
   fi
 
   if [ "$MODE" == "ethereum" ]; then
     print_blue "===> Generate ethereum pier configure"
     # generate config for ethereum pier
+    PIER_ROOT="${CURRENT_PATH}"/.pier_ethereum
     cd "${CURRENT_PATH}"
-    if [ ! -d ${PIER_ROOT} ]; then
-      mkdir ${PIER_ROOT}
+    if [ ! -d ".pier_ethereum" ]; then
+      mkdir .pier_ethereum
     fi
     cd "${PIER_ROOT}"
     goduck pier config \
@@ -94,29 +108,30 @@ function prepare() {
       --validators "0x8374bb1e41d4a4bb4ac465e74caa37d242825efc" \
       --validators "0x759801eab44c9a9bbc3e09cb7f1f85ac57298708" \
       --validators "0xf2d66e2c27e93ff083ee3999acb678a36bb349bb" \
-      --appchainType "ether" \
-      --appchainIP "127.0.0.1"
-
+      --appchain-type "ethereum" \
+      --appchain-IP "127.0.0.1" \
+      --target "${PIER_ROOT}"
     cd "${CURRENT_PATH}"
     if [ ! -d pier-client-ethereum ]; then
-        print_blue "===> Cloning meshplus/pier-client-ethereum repo and checkout ${PIER_CLIENT_ETHEREUM_VERSION}"
-        git clone https://github.com/meshplus/pier-client-ethereum.git
+      print_blue "===> Cloning meshplus/pier-client-ethereum repo and checkout ${PIER_CLIENT_ETHEREUM_VERSION}"
+      git clone https://github.com/meshplus/pier-client-ethereum.git
     fi
-    cd pier-client-ethereum && git pull && git checkout ${PIER_CLIENT_ETHEREUM_VERSION}
+    cd pier-client-ethereum && git checkout -f master && git reset --hard HEAD
+    git pull && git checkout ${PIER_CLIENT_ETHEREUM_VERSION}
     print_blue "===> Compiling meshplus/pier-client-ethereum"
     cd "${CURRENT_PATH}"/pier-client-ethereum
     make eth
     cd "${CURRENT_PATH}"
     if [ ! -f ethereum_rule.wasm ]; then
-        print_blue "===> Downloading ethereum_rule.wasm"
-        wget https://github.com/meshplus/pier-client-ethereum/blob/master/config/validating.wasm
-        mv validating.wasm ethereum_rule.wasm
+      print_blue "===> Downloading ethereum_rule.wasm"
+      wget https://github.com/meshplus/pier-client-ethereum/blob/master/config/validating.wasm
+      mv validating.wasm ethereum_rule.wasm
     fi
   fi
 }
 
-function appchain_register(){
-    pier --repo "${PIER_ROOT}" appchain register \
+function appchain_register() {
+  pier --repo "${PIER_ROOT}" appchain register \
     --name $1 \
     --type $2 \
     --desc $3 \
@@ -124,9 +139,9 @@ function appchain_register(){
     --validators "${PIER_ROOT}/$5"
 }
 
-function rule_deploy(){
-    print_blue "===> deploy path: ${CURRENT_PATH}/$1_rule.wasm"
-    pier --repo "${PIER_ROOT}" rule deploy --path "${CURRENT_PATH}/$1_rule.wasm"
+function rule_deploy() {
+  print_blue "===> deploy path: ${CURRENT_PATH}/$1_rule.wasm"
+  pier --repo "${PIER_ROOT}" rule deploy --path "${CURRENT_PATH}/$1_rule.wasm"
 }
 
 function pier_up() {
@@ -135,7 +150,7 @@ function pier_up() {
   cd "${CURRENT_PATH}"
   mkdir -p "${PIER_ROOT}"/plugins
   print_blue "===> pier_root: $PIER_ROOT, bitxhub_addr: $BITXHUB_ADDR"
-  
+
   if [ "$MODE" == "fabric" ]; then
     print_blue "===> Copy fabric plugins"
     cp "${CURRENT_PATH}"/pier-client-fabric/build/fabric-client-1.4.so "${PIER_ROOT}"/plugins/
@@ -151,13 +166,13 @@ function pier_up() {
     print_blue "===> Copy ethereum plugins"
     cp "${CURRENT_PATH}"/pier-client-ethereum/build/eth-client.so "${PIER_ROOT}"/plugins/
     print_blue "===> Register pier(ethereum) to bitxhub"
-    appchain_register chainB ether chainB-description 1.0 ether/ether.validators
+    appchain_register chainB ether chainB-description 1.0 ethereum/ether.validators
     print_blue "===> Deploy rule in bitxhub"
     rule_deploy ethereum
     cd "${CURRENT_PATH}"
-    export CONFIG_PATH="${PIER_ROOT}"/ether
+    export CONFIG_PATH="${PIER_ROOT}"/ethereum
   fi
-  
+
   print_blue "===> Start pier..."
   nohup pier --repo "${PIER_ROOT}" start >/dev/null 2>&1 &
   echo $! >>"${CURRENT_PATH}/pier-${MODE}.pid"
@@ -180,7 +195,7 @@ function pier_down() {
   fi
 }
 
-PIER_ROOT="${CURRENT_PATH}"/.pier-fabric
+PIER_ROOT="${CURRENT_PATH}"/.pier_fabric
 BITXHUB_ADDR="localhost:60011"
 MODE="fabric"
 

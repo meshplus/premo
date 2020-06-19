@@ -21,7 +21,17 @@ function prepare() {
   cd "${CURRENT_PATH}"
   if ! type goduck >/dev/null 2>&1; then
     print_blue "===> Install goduck"
-    go get github.com/meshplus/goduck
+    go get github.com/meshplus/goduck/cmd/goduck
+  fi
+
+  if [ ! -d "$HOME/.goduck" ]; then
+      goduck init
+  fi
+
+  if [ -f "${CURRENT_PATH}"/bitxhub_config/bitxhub.pid ]; then
+      print_red "bitxhub is already running in the background service"
+      cat "${CURRENT_PATH}"/bitxhub_config/bitxhub.pid
+      exit 0
   fi
 
   if [ "$MODE" == "solo" ]; then
