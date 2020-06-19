@@ -30,9 +30,9 @@ type FabricClient struct {
 func New(configPath string) (*FabricClient, error) {
 	fabricConfig, err := UnmarshalConfig(configPath)
 	if err != nil {
+		fmt.Print("UnmarshalConfig fail:", err)
 		return nil, fmt.Errorf("Unmarshal config for appchain fabric: %w", err)
 	}
-
 	contractMeta := &ContractMeta{
 		EventFilter: fabricConfig.EventFilter,
 		Username:    fabricConfig.Username,
@@ -40,17 +40,18 @@ func New(configPath string) (*FabricClient, error) {
 		ChannelID:   fabricConfig.ChannelId,
 		ORG:         fabricConfig.Org,
 	}
-
 	configProvider := config.FromFile(filepath.Join(configPath, "config.yaml"))
 	sdk, err := fabsdk.New(configProvider)
 	if err != nil {
-		return nil, fmt.Errorf("create sdk fail: %s", err)
+		fmt.Print("fabsdk.New fail:", err)
+		return nil, fmt.Errorf("create sdk fail: %s", err.Error())
 	}
 
 	channelProvider := sdk.ChannelContext(contractMeta.ChannelID, fabsdk.WithUser(contractMeta.Username), fabsdk.WithOrg(contractMeta.ORG))
 
 	channelClient, err := channel.New(channelProvider)
 	if err != nil {
+		fmt.Print("channel.New fail:", err)
 		return nil, fmt.Errorf("create channel fabcli fail: %s", err.Error())
 	}
 
@@ -62,6 +63,8 @@ func New(configPath string) (*FabricClient, error) {
 }
 
 // Invoke .
+// ret is the Payload.
+// you can use response.ChaincodeStatus to check Chaincode status.
 func (client *FabricClient) Invoke(chaincodeID, funcName string, invokeArgs ...[]byte) (string, error) {
 	response, err := client.Client.Execute(channel.Request{
 		ChaincodeID: chaincodeID,
@@ -74,7 +77,5 @@ func (client *FabricClient) Invoke(chaincodeID, funcName string, invokeArgs ...[
 		return "", err
 	}
 	ret := string(response.Payload)
-	fmt.Println("Chaincode status: ", response.ChaincodeStatus)
-	fmt.Println("Payload: ", ret)
 	return ret, nil
 }
