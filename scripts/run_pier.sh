@@ -3,10 +3,9 @@ set -e
 source x.sh
 
 CURRENT_PATH=$(pwd)
-FABRIC_CONFIG_PATH=~/.goduck
+GODUCK_REPO_PATH=~/.goduck
 PIER_CLIENT_FABRIC_VERSION=master
 PIER_CLIENT_ETHEREUM_VERSION=master
-GODUCK_VERSION=master
 VERSION=master
 
 function printHelp() {
@@ -17,7 +16,7 @@ function printHelp() {
   echo "      - 'down' - clear a new pier"
   echo "    -t <mode> - pier type (default \"fabric\")"
   echo "    -v <version> - pier code version (default \"master\")"
-  echo "    -r <pier_root> - pier repo path (default \".pier-fabric\")"
+  echo "    -r <pier_root> - pier repo path (default \".pier_fabric\")"
   echo "    -b <bitxhub_addr> - bitxhub addr(default \"localhost:60011\")"
   echo "  run_pier.sh -h (print this message)"
 }
@@ -26,17 +25,20 @@ function prepare() {
   cd "${CURRENT_PATH}"
   if ! type goduck >/dev/null 2>&1; then
     print_blue "===> Install goduck"
-    go get github.com/meshplus/goduck &&
-      cd goduck && git checkout ${GODUCK_VERSION}
-    make install
+    go get github.com/meshplus/goduck/cmd/goduck
   fi
-  
+
+  if [ ! -d "$HOME/.goduck" ]; then
+      goduck init
+  fi
+
   cd "${CURRENT_PATH}"
   if [ ! -d pier ]; then
     print_blue "===> Cloning meshplus/pier repo and checkout ${PIER_VERSION}"
     git clone https://github.com/meshplus/pier.git
   fi
-  cd pier && git pull && git checkout ${VERSION}
+  cd pier && git checkout -f master && git reset --hard HEAD
+  git pull && git checkout ${VERSION}
 
   print_blue "===> Compiling meshplus/pier"
   cd "${CURRENT_PATH}"/pier
@@ -46,10 +48,10 @@ function prepare() {
     print_blue "===> Generate fabric pier configure"
     # generate config for fabric pier
     cd "${CURRENT_PATH}"
-    if [ ! -d .pier-fabric ]; then
-      mkdir .pier-fabric
+    if [ ! -d .pier_fabric ]; then
+      mkdir .pier_fabric
     fi
-    cd "${PIER_ROOT}"
+
     goduck pier config \
       --mode "relay" \
       --bitxhub "localhost:60011" \
@@ -58,17 +60,22 @@ function prepare() {
       --validators "0x759801eab44c9a9bbc3e09cb7f1f85ac57298708" \
       --validators "0xf2d66e2c27e93ff083ee3999acb678a36bb349bb" \
       --appchainType "fabric" \
-      --appchainIP "127.0.0.1"
+      --appchainIP "127.0.0.1" \
+      --target "${PIER_ROOT}"
     # copy appchain crypto-config and modify config.yaml
-    cd "${CURRENT_PATH}"
-    cp -r "${FABRIC_CONFIG_PATH}"/crypto-config "${PIER_ROOT}"/fabric
-    x_replace "s?10.1.16.48?localhost?g" "${PIER_ROOT}"/fabric/config.yaml
+    if [ ! -d "${GODUCK_REPO_PATH}"/crypto-config ]; then
+        print_red "crypto-config not found, please start fabric network first"
+        exit 1
+    fi
+    cp -r "${GODUCK_REPO_PATH}"/crypto-config "${PIER_ROOT}"/fabric
+    x_replace "s/10.1.16.48/localhost/g" "${PIER_ROOT}"/fabric/config.yaml
 
     if [ ! -d pier-client-fabric ]; then
         print_blue "===> Cloning meshplus/pier-client-fabric repo and checkout ${PIER_CLIENT_FABRIC_VERSION}"
         git clone https://github.com/meshplus/pier-client-fabric.git
     fi
-    cd pier-client-fabric && git pull && git checkout ${PIER_CLIENT_FABRIC_VERSION}
+    cd pier-client-fabric && git checkout -f master && git reset --hard HEAD
+    git pull && git checkout ${PIER_CLIENT_FABRIC_VERSION}
     print_blue "===> Compiling meshplus/pier-client-fabric"
     cd "${CURRENT_PATH}"/pier-client-fabric
     make fabric1.4
@@ -84,8 +91,9 @@ function prepare() {
     print_blue "===> Generate ethereum pier configure"
     # generate config for ethereum pier
     cd "${CURRENT_PATH}"
-    if [ ! -d ${PIER_ROOT} ]; then
-      mkdir ${PIER_ROOT}
+    PIER_ROOT="${CUREENT_PATH}"/.pier_ethereum
+    if [ ! -d ".pier_ethereum" ]; then
+      mkdir
     fi
     cd "${PIER_ROOT}"
     goduck pier config \
@@ -96,14 +104,15 @@ function prepare() {
       --validators "0x759801eab44c9a9bbc3e09cb7f1f85ac57298708" \
       --validators "0xf2d66e2c27e93ff083ee3999acb678a36bb349bb" \
       --appchainType "ether" \
-      --appchainIP "127.0.0.1"
-
+      --appchainIP "127.0.0.1" \
+      --target "${PIER_ROOT}"
     cd "${CURRENT_PATH}"
     if [ ! -d pier-client-ethereum ]; then
         print_blue "===> Cloning meshplus/pier-client-ethereum repo and checkout ${PIER_CLIENT_ETHEREUM_VERSION}"
         git clone https://github.com/meshplus/pier-client-ethereum.git
     fi
-    cd pier-client-ethereum && git pull && git checkout ${PIER_CLIENT_ETHEREUM_VERSION}
+    cd pier-client-ethereum && git checkout -f master && git reset --hard HEAD
+    git pull && git checkout ${PIER_CLIENT_ETHEREUM_VERSION}
     print_blue "===> Compiling meshplus/pier-client-ethereum"
     cd "${CURRENT_PATH}"/pier-client-ethereum
     make eth
@@ -181,7 +190,7 @@ function pier_down() {
   fi
 }
 
-PIER_ROOT="${CURRENT_PATH}"/.pier-fabric
+PIER_ROOT="${CURRENT_PATH}"/.pier_fabric
 BITXHUB_ADDR="localhost:60011"
 MODE="fabric"
 

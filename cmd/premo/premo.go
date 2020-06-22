@@ -30,6 +30,7 @@ func main() {
 		getVersionCMD(),
 		initCMD(),
 		createEnvCMD(),
+		testCMD(),
 	}
 
 	err := app.Run(os.Args)

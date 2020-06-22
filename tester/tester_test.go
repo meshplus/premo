@@ -1,106 +1,50 @@
 package tester
 
 import (
-	"fmt"
-	"strconv"
+	"path/filepath"
 	"testing"
 
-	"github.com/meshplus/premo/pkg/constant"
+	"github.com/meshplus/bitxhub-kit/key"
+	"github.com/meshplus/premo/pkg/appchain/ethereum"
+	"github.com/meshplus/premo/pkg/appchain/fabric"
+	"go.etcd.io/etcd/pkg/fileutil"
 
-	"github.com/meshplus/premo/pkg/exec"
+	"github.com/meshplus/premo/internal/repo"
+	"github.com/stretchr/testify/require"
+
 	"github.com/stretchr/testify/suite"
 )
 
 func TestTester(t *testing.T) {
-	//pathRoot, err := repo.PathRoot()
-	//require.Nil(t, err)
-	//
-	//err = setupAppchain(constant.FABRIC, pathRoot)
-	//require.Nil(t, err)
-	//
-	//err = setupAppchain(constant.ETHEREUM, pathRoot)
-	//require.Nil(t, err)
-	//
-	//err = setupBitxhub(4, pathRoot, "master")
-	//require.Nil(t, err)
-	//
-	//err = setupPier(constant.ETHEREUM, pathRoot)
-	//require.Nil(t, err)
-	//
-	//err = setupPier(constant.FABRIC, pathRoot)
-	//require.Nil(t, err)
+	repoRoot, err := repo.PathRoot()
+	require.Nil(t, err)
 
-	suite.Run(t, &Interchain{ethRepo: "test_data/ethereum"})
-}
-
-func setupBitxhub(num int, repoRoot, version string) error {
-	if err := runBitXHub(num, repoRoot, version); err != nil {
-		return err
-	}
-	return nil
-}
-
-func setupPier(appchain, repoRoot string) error {
-	if err := runPier(appchain, repoRoot); err != nil {
-		return err
-	}
-	return nil
-}
-
-func setupAppchain(appchain, repoRoot string) error {
-	if err := runAppchain(appchain, repoRoot); err != nil {
-		return err
-	}
-	return nil
-}
-
-func runAppchain(appchain, repo string) error {
-	args := make([]string, 0)
-	switch appchain {
-	case constant.FABRIC:
-		args = append(args, "run_appchain.sh", "up", constant.FABRIC)
-	case constant.ETHEREUM:
-		args = append(args, "run_appchain.sh", "up", constant.ETHEREUM)
-	default:
-		return fmt.Errorf("appchain must be one of the FABRIC or ETHEREUM")
-	}
-	err := exec.ExecCmd(args, repo)
-	if err != nil {
-		return fmt.Errorf("execute run_appchain.sh error:%w", err)
-	}
-	return nil
-}
-
-func runPier(appchain, repo string) error {
-	args := make([]string, 0)
-	switch appchain {
-	case constant.FABRIC:
-		args = append(args, "run_pier.sh", "up", constant.FABRIC)
-	case constant.ETHEREUM:
-		args = append(args, "run_pier.sh", "up", constant.ETHEREUM)
-	default:
-		return fmt.Errorf("pier mode must be one of the FABRIC or ETHEREUM")
+	transferContractAddr := "0x668a209Dc6562707469374B8235e37b8eC25db08"
+	ethAccountKeyPath := filepath.Join(repoRoot, ".pier_ethereum", "eth", "account.key")
+	require.True(t, fileutil.Exist(ethAccountKeyPath))
+	ethClient, err := ethereum.New("http://localhost:8545", ethAccountKeyPath)
+	require.Nil(t, err)
+	ethLoadKey, err := key.LoadKey(filepath.Join(repoRoot, ".pier_ethereum", "key.json"))
+	require.Nil(t, err)
+	ethClientHelper := &EthClientHelper{
+		EthClient:    ethClient,
+		abiPath:      "test_data/ethereum/transfer.abi",
+		contractAddr: transferContractAddr,
+		appchainId:   ethLoadKey.Address.Hex(),
 	}
 
-	err := exec.ExecCmd(args, repo)
-	if err != nil {
-		return fmt.Errorf("execute run_pier.sh error:%w", err)
+	fabricLoadKey, err := key.LoadKey(filepath.Join(repoRoot, ".pier_fabric", "key.json"))
+	require.Nil(t, err)
+	fabricClient, err := fabric.New(filepath.Join(repoRoot, ".pier_fabric", "fabric"))
+	require.Nil(t, err)
+	fabricClientHelper := &FabricClientHelper{
+		FabricClient: fabricClient,
+		appchainId:   fabricLoadKey.Address.Hex(),
 	}
-	return nil
-}
 
-func runBitXHub(num int, repo, version string) error {
-	var mode string
-	if num > 1 {
-		mode = "cluster"
-	} else {
-		mode = "solo"
-	}
-	args := make([]string, 0)
-	args = append(args, "run_bitxhub.sh", "up", mode, strconv.Itoa(num), version)
-	err := exec.ExecCmd(args, repo)
-	if err != nil {
-		return fmt.Errorf("execute run_bitxhub.sh error:%w", err)
-	}
-	return nil
+	suite.Run(t, &Interchain{
+		repoRoot:     repoRoot,
+		ethClient:    ethClientHelper,
+		fabricClient: fabricClientHelper,
+	})
 }
