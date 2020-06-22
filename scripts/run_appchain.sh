@@ -16,10 +16,13 @@ function printHelp() {
 }
 
 function prepare() {
-  cd "${CURRENT_PATH}"
   if ! type goduck >/dev/null 2>&1; then
     print_blue "===> Install goduck"
-    go get github.com/meshplus/goduck
+    go get github.com/meshplus/goduck/cmd/goduck
+  fi
+
+  if [ ! -d "$HOME/.goduck" ]; then
+      goduck init
   fi
 }
 
@@ -41,11 +44,11 @@ function appchain_down() {
 
   if [ "$MODE" == "ethereum" ]; then
     print_blue "===> Stop ethereum appchain"
-    goduck pier stop --chain ethereum --type docker
+    goduck pier stop --chain ethereum
   fi
   if [ "$MODE" == "fabric" ]; then
     print_blue "===> Start fabric appchain"
-    goduck pier stop --chain fabric --type docker
+    goduck pier stop --chain fabric
   fi
 }
 

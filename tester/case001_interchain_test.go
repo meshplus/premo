@@ -1,48 +1,27 @@
 package tester
 
 import (
-	"io/ioutil"
-	"path/filepath"
 	"strconv"
 	"time"
 
-	"github.com/meshplus/premo/pkg/appchain/fabric"
+	"github.com/meshplus/bitxhub-kit/log"
 
-	"github.com/tidwall/gjson"
-
-	"github.com/meshplus/premo/pkg/appchain/ethereum"
 	"github.com/stretchr/testify/suite"
 )
 
+var logger = log.NewWithModule("interchain_test")
+
 type Interchain struct {
 	suite.Suite
-	ethRepo          string
-	ethAppchainId    string
-	fabricAppchainId string
-	ethClient        *EthClient
-	fabricClient     *FabricClient
+	repoRoot string
+
+	ethClient    *EthClientHelper
+	fabricClient *FabricClientHelper
 }
 
 func (suite *Interchain) SetupSuite() {
-	suite.NotNil(suite.ethRepo)
+	suite.NotNil(suite.repoRoot)
 
-	contractAddrData, err := ioutil.ReadFile("test_data/ethereum/address.json")
-	suite.Nil(err)
-	result := gjson.GetBytes(contractAddrData, "transfer")
-	contractAddr := result.String()
-
-	ethClient, err := ethereum.New("http://localhost:8545", filepath.Join(suite.ethRepo, "account.key"))
-	suite.Nil(err)
-
-	suite.ethClient = &EthClient{
-		EthClient:    ethClient,
-		abiPath:      "test_data/ethereum/transfer.abi",
-		contractAddr: contractAddr,
-	}
-
-	fabricClient, err := fabric.New("test_data/fabric")
-	suite.Nil(err)
-	suite.fabricClient = &FabricClient{fabricClient}
 }
 
 func (suite *Interchain) TestEth2Fabric() {
@@ -52,21 +31,24 @@ func (suite *Interchain) TestEth2Fabric() {
 	beforeBalance, err := suite.ethClient.GetBalance(username)
 	suite.Nil(err)
 
+	logger.Infof("before Aline's eth balance:%s", beforeBalance)
 	fabricBeforeBalance, err := suite.fabricClient.GetBalance(username)
 	suite.Nil(err)
+	logger.Infof("before Aline's fabric balance:%s", fabricBeforeBalance)
 
-	err = suite.ethClient.InterchainTransfer(suite.fabricAppchainId, username, username, amount)
+	err = suite.ethClient.InterchainTransfer(suite.fabricClient.appchainId, username, username, amount)
 	suite.Nil(err)
 	afterBalance, err := suite.ethClient.GetBalance(username)
+	logger.Infof("after Aline's eth balance:%s", afterBalance)
 	suite.Assert(amount, beforeBalance, afterBalance)
 
 	time.Sleep(5 * time.Second)
 
 	fabricAfterBalance, err := suite.fabricClient.GetBalance(username)
+	logger.Infof("after Aline's fabric balance:%s", fabricBeforeBalance)
 	suite.Nil(err)
 
 	suite.Assert(amount, fabricAfterBalance, fabricBeforeBalance)
-
 }
 
 func (suite *Interchain) TestFabric2Eth() {
@@ -79,7 +61,7 @@ func (suite *Interchain) TestFabric2Eth() {
 	beforeBalance, err := suite.ethClient.GetBalance(username)
 	suite.Nil(err)
 
-	err = suite.fabricClient.InterchainTransfer(suite.ethAppchainId, suite.ethClient.contractAddr, username, username, amount)
+	err = suite.fabricClient.InterchainTransfer(suite.ethClient.appchainId, suite.ethClient.contractAddr, username, username, amount)
 	suite.Nil(err)
 
 	fabricAfterBalance, err := suite.fabricClient.GetBalance(username)
@@ -91,14 +73,6 @@ func (suite *Interchain) TestFabric2Eth() {
 	suite.Assert(amount, beforeBalance, afterBalance)
 
 	suite.Assert(amount, fabricAfterBalance, fabricBeforeBalance)
-}
-
-func (suite *Interchain) TestEth2Eth() {
-
-}
-
-func (suite *Interchain) TestFabric2Fabric() {
-
 }
 
 func (suite *Interchain) Assert(expected, before, after string) {
