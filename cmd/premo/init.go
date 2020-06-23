@@ -19,12 +19,10 @@ const (
 	ConfigPath  = "../../config"
 )
 
-func initCMD() *cli.Command {
-	return &cli.Command{
-		Name:   "init",
-		Usage:  "init config home for premo",
-		Action: Initialize,
-	}
+var initCMD = &cli.Command{
+	Name:   "init",
+	Usage:  "init config home for premo",
+	Action: Initialize,
 }
 
 func Initialize(ctx *cli.Context) error {

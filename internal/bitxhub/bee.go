@@ -8,14 +8,13 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-kit/key"
-	"github.com/meshplus/premo/internal/repo"
-
-	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/types"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
+	"github.com/meshplus/premo/internal/repo"
 	"github.com/wonderivan/logger"
 )
 
@@ -238,25 +237,60 @@ func (bee *bee) sendTransferTx(to types.Address) error {
 
 func (bee *bee) sendInterchainTx(i uint64) error {
 	atomic.AddInt64(&sender, 1)
-
 	ibtp := mockIBTP(i, bee.xfrom.String(), bee.xfrom.String())
 	b, err := ibtp.Marshal()
 	if err != nil {
 		return err
 	}
 
-	receipt, err := bee.client.InvokeContract(pb.TransactionData_BVM, rpcx.InterchainContractAddr,
-		"HandleIBTP", rpcx.Bytes(b))
+	args := make([]*pb.Arg, 0)
+	args = append(args, rpcx.Bytes(b))
+
+	pl := &pb.InvokePayload{
+		Method: "HandleIBTP",
+		Args:   args,
+	}
+
+	data, err := pl.Marshal()
 	if err != nil {
 		return err
 	}
 
-	if receipt.Status.String() == "FAILED" {
-		logger.Error(string(receipt.Ret))
+	td := &pb.TransactionData{
+		Type:    pb.TransactionData_INVOKE,
+		VmType:  pb.TransactionData_BVM,
+		Payload: data,
+	}
+
+	tx := &pb.Transaction{
+		From:      bee.xfrom,
+		To:        rpcx.InterchainContractAddr,
+		Data:      td,
+		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Int63(),
+	}
+
+	if err := tx.Sign(bee.privKey); err != nil {
 		return err
 	}
 
-	atomic.AddInt64(&counter, 1)
+	hash, err := bee.client.SendTransaction(tx)
+	if err != nil {
+		return err
+	}
+
+	go func(hash string) {
+		receipt, err := bee.client.GetReceipt(hash)
+		if err != nil {
+			logger.Error(err)
+			return
+		}
+		if receipt.Status.String() == "FAILED" {
+			logger.Error(string(receipt.Ret))
+			return
+		}
+		atomic.AddInt64(&counter, 1)
+	}(hash)
 
 	return nil
 }

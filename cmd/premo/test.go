@@ -11,69 +11,69 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func testCMD() *cli.Command {
-	return &cli.Command{
-		Name:  "test",
-		Usage: "test bitxhub function",
-		Flags: []cli.Flag{
-			&cli.IntFlag{
-				Name:    "concurrent",
-				Aliases: []string{"c"},
-				Value:   100,
-				Usage:   "concurrent number",
-			},
-			&cli.IntFlag{
-				Name:    "tps",
-				Aliases: []string{"t"},
-				Value:   500,
-				Usage:   "all tx number",
-			},
-			&cli.IntFlag{
-				Name:    "duration",
-				Aliases: []string{"d"},
-				Value:   60,
-				Usage:   "test duration",
-			},
-			&cli.StringFlag{
-				Name:  "type",
-				Usage: "Specific tx type: interchain, data, transfer",
-				Value: "transfer",
-			},
+var testCMD = &cli.Command{
+	Name:  "test",
+	Usage: "test bitxhub function",
+	Flags: []cli.Flag{
+		&cli.IntFlag{
+			Name:    "concurrent",
+			Aliases: []string{"c"},
+			Value:   100,
+			Usage:   "concurrent number",
 		},
-		Action: func(ctx *cli.Context) error {
-			box := packr.NewBox(ConfigPath)
-			val, err := box.Find("fabric.validators")
-			if err != nil {
-				return err
-			}
-			contract, err := box.Find("rule.wasm")
-			if err != nil {
-				return err
-			}
-			config := &bitxhub.Config{
-				Concurrent: ctx.Int("concurrent"),
-				TPS:        ctx.Int("tps"),
-				Duration:   ctx.Int("duration"),
-				Type:       ctx.String("type"),
-				Validator:  string(val),
-				Rule:       contract,
-			}
-
-			broker, err := bitxhub.New(config)
-			if err != nil {
-				return err
-			}
-
-			handleShutdown(broker)
-
-			err = broker.Start(config.Type)
-			if err != nil {
-				return err
-			}
-
-			return nil
+		&cli.IntFlag{
+			Name:    "tps",
+			Aliases: []string{"t"},
+			Value:   500,
+			Usage:   "all tx number",
 		},
+		&cli.IntFlag{
+			Name:    "duration",
+			Aliases: []string{"d"},
+			Value:   60,
+			Usage:   "test duration",
+		},
+		&cli.StringFlag{
+			Name:  "type",
+			Usage: "Specific tx type: interchain, data, transfer",
+			Value: "transfer",
+		},
+	},
+	Action: benchmark,
+}
+
+func benchmark(ctx *cli.Context) error {
+	box := packr.NewBox(ConfigPath)
+	val, err := box.Find("fabric.validators")
+	if err != nil {
+		return err
 	}
+	contract, err := box.Find("rule.wasm")
+	if err != nil {
+		return err
+	}
+	config := &bitxhub.Config{
+		Concurrent: ctx.Int("concurrent"),
+		TPS:        ctx.Int("tps"),
+		Duration:   ctx.Int("duration"),
+		Type:       ctx.String("type"),
+		Validator:  string(val),
+		Rule:       contract,
+	}
+
+	broker, err := bitxhub.New(config)
+	if err != nil {
+		return err
+	}
+
+	handleShutdown(broker)
+
+	err = broker.Start(config.Type)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func handleShutdown(node *bitxhub.Broker) {

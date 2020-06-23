@@ -27,10 +27,12 @@ func main() {
 	}
 
 	app.Commands = []*cli.Command{
-		getVersionCMD(),
-		initCMD(),
-		createEnvCMD(),
-		testCMD(),
+		initCMD,
+		versionCMD,
+		testCMD,
+		pierCMD,
+		bitxhubCMD,
+		interchainCMD,
 	}
 
 	err := app.Run(os.Args)
