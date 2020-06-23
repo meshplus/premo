@@ -40,7 +40,7 @@ func ExecuteShell(repoRoot string, args ...string) error {
 	if result.ExitCode != 0 {
 		return fmt.Errorf("execute shell error:%s", result.Stderr)
 	}
-
+	return nil
 }
 func (et ExecTask) Execute() (ExecResult, error) {
 	argsSt := ""
