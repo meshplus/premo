@@ -28,6 +28,12 @@ function prepare() {
       goduck init
   fi
 
+  if [ -f "${CURRENT_PATH}"/bitxhub_config/bitxhub.pid ]; then
+      print_red "bitxhub is already running in the background service"
+      cat "${CURRENT_PATH}"/bitxhub_config/bitxhub.pid
+      exit 0
+  fi
+
   if [ "$MODE" == "solo" ]; then
     print_blue "===> Generate bitxhub solo configure"
     goduck bitxhub config --mode solo --target "${CURRENT_PATH}"/bitxhub_config

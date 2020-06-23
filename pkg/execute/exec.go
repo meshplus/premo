@@ -25,6 +25,23 @@ type ExecResult struct {
 	ExitCode int
 }
 
+func ExecuteShell(repoRoot string, args ...string) error {
+	task := ExecTask{
+		Command:      "/bin/bash",
+		Args:         args,
+		Repo:         repoRoot,
+		StreamStdio:  true,
+		PrintCommand: true,
+	}
+	result, err := task.Execute()
+	if err != nil {
+		return fmt.Errorf("execute shell error:%w", err)
+	}
+	if result.ExitCode != 0 {
+		return fmt.Errorf("execute shell error:%s", result.Stderr)
+	}
+
+}
 func (et ExecTask) Execute() (ExecResult, error) {
 	argsSt := ""
 	if len(et.Args) > 0 {
@@ -82,7 +99,6 @@ func (et ExecTask) Execute() (ExecResult, error) {
 
 	cmd.Stdout = stdoutWriters
 	cmd.Stderr = stderrWriters
-
 	startErr := cmd.Start()
 
 	if startErr != nil {
@@ -93,7 +109,6 @@ func (et ExecTask) Execute() (ExecResult, error) {
 	execErr := cmd.Wait()
 	if execErr != nil {
 		if exitError, ok := execErr.(*exec.ExitError); ok {
-
 			exitCode = exitError.ExitCode()
 		}
 	}

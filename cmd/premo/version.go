@@ -2,16 +2,15 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/meshplus/premo"
 	"github.com/urfave/cli/v2"
 )
 
-func getVersionCMD() *cli.Command {
-	return &cli.Command{
-		Name:   "version",
-		Usage:  "Premo version",
-		Action: version,
-	}
+var versionCMD = &cli.Command{
+	Name:   "version",
+	Usage:  "Premo version",
+	Action: version,
 }
 
 func version(ctx *cli.Context) error {
