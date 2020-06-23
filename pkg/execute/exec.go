@@ -15,8 +15,7 @@ type ExecTask struct {
 	Env     []string
 	Repo    string
 
-	StreamStdio bool
-
+	StreamStdio  bool
 	PrintCommand bool
 }
 

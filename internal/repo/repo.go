@@ -40,7 +40,7 @@ func PathRootWithDefault(path string) (string, error) {
 	}
 
 	if !fileutil.Exist(path) {
-		return "", fmt.Errorf("please run `premo --repo=%s init` first", path)
+		return "", fmt.Errorf("please run `premo init` first")
 	}
 
 	return path, nil
