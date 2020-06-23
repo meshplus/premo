@@ -168,11 +168,10 @@ func (bee *bee) sendBVMTx(i uint64) error {
 func (bee *bee) prepareChain(typ, name, validators, version, desc string, contract []byte) error {
 	bee.client.SetPrivateKey(bee.xprivKey)
 	// register chain
-	receipt, err := bee.client.InvokeContract(pb.TransactionData_BVM, rpcx.InterchainContractAddr,
-		"Register", rpcx.String(validators), rpcx.Int32(1),
-		rpcx.String(typ), rpcx.String(name), rpcx.String(desc), rpcx.String(version))
+	receipt, err := bee.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "Register", rpcx.String(validators),
+		rpcx.Int32(1), rpcx.String(typ), rpcx.String(name), rpcx.String(desc), rpcx.String(version), rpcx.String(""))
 	if err != nil {
-		return fmt.Errorf("invoke bvm contract: %w", err)
+		return fmt.Errorf("register appchain error: %w", err)
 	}
 	appchain := &rpcx.Appchain{}
 	if err := json.Unmarshal(receipt.Ret, appchain); err != nil {
@@ -181,21 +180,21 @@ func (bee *bee) prepareChain(typ, name, validators, version, desc string, contra
 	ID := appchain.ID
 
 	// Audit chain
-	_, err = bee.client.InvokeContract(pb.TransactionData_BVM, rpcx.InterchainContractAddr,
+	_, err = bee.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr,
 		"Audit", rpcx.String(ID), rpcx.Int32(1), rpcx.String(""))
 	if err != nil {
-		return err
+		return fmt.Errorf("audit appchain error:%w", err)
 	}
 
 	// deploy rule
 	contractAddr, err := bee.client.DeployContract(contract)
 	if err != nil {
-		return err
+		return fmt.Errorf("deploy contract error:%w", err)
 	}
 
 	_, err = bee.client.InvokeContract(pb.TransactionData_BVM, ValidationContractAddr, "RegisterRule", rpcx.String(ID), rpcx.String(contractAddr.String()))
 	if err != nil {
-		return err
+		return fmt.Errorf("register rule error:%w", err)
 	}
 	return nil
 }

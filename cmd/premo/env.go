@@ -58,7 +58,7 @@ func createInterchainNetwork(ctx *cli.Context) error {
 	version := ctx.String("bitxhub_version")
 	pierVersion := ctx.String("pier_version")
 
-	repo, err := repo.PathRoot()
+	repo, err := repo.PathRootWithDefault("")
 	if err != nil {
 		return fmt.Errorf("please 'premo init' first")
 	}
