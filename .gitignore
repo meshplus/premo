@@ -5,13 +5,15 @@ a_repo-packr.go
 
 scripts/pier/
 scripts/goduck/
+scripts/bitxhub/
+scripts/bitxhub_config/
 
-scripts/.pier-fabric/
+scripts/.pier_fabric/
 scripts/fabric_rule.wasm
 scripts/pier-client-fabric/
 scripts/pier-fabric.pid
 
-scripts/.pier-ethereum/
+scripts/.pier_ethereum/
 scripts/ethereum_rule.wasm
 scripts/pier-client-ethereum/
 scripts/pier-ethereum.pid

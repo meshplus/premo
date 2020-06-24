@@ -65,8 +65,8 @@ function prepare() {
       --validators "0x8374bb1e41d4a4bb4ac465e74caa37d242825efc" \
       --validators "0x759801eab44c9a9bbc3e09cb7f1f85ac57298708" \
       --validators "0xf2d66e2c27e93ff083ee3999acb678a36bb349bb" \
-      --appchainType "fabric" \
-      --appchainIP "127.0.0.1" \
+      --appchain-type "fabric" \
+      --appchain-IP "127.0.0.1" \
       --target "${PIER_ROOT}"
     # copy appchain crypto-config and modify config.yaml
     if [ ! -d "${GODUCK_REPO_PATH}"/crypto-config ]; then
@@ -74,7 +74,6 @@ function prepare() {
       exit 1
     fi
     cp -r "${GODUCK_REPO_PATH}"/crypto-config "${PIER_ROOT}"/fabric
-    x_replace "s/10.1.16.48/localhost/g" "${PIER_ROOT}"/fabric/config.yaml
 
     if [ ! -d pier-client-fabric ]; then
       print_blue "===> Cloning meshplus/pier-client-fabric repo and checkout ${PIER_CLIENT_FABRIC_VERSION}"
@@ -96,8 +95,8 @@ function prepare() {
   if [ "$MODE" == "ethereum" ]; then
     print_blue "===> Generate ethereum pier configure"
     # generate config for ethereum pier
+    PIER_ROOT="${CURRENT_PATH}"/.pier_ethereum
     cd "${CURRENT_PATH}"
-    PIER_ROOT="${CUREENT_PATH}"/.pier_ethereum
     if [ ! -d ".pier_ethereum" ]; then
       mkdir .pier_ethereum
     fi
@@ -109,8 +108,8 @@ function prepare() {
       --validators "0x8374bb1e41d4a4bb4ac465e74caa37d242825efc" \
       --validators "0x759801eab44c9a9bbc3e09cb7f1f85ac57298708" \
       --validators "0xf2d66e2c27e93ff083ee3999acb678a36bb349bb" \
-      --appchainType "ether" \
-      --appchainIP "127.0.0.1" \
+      --appchain-type "ethereum" \
+      --appchain-IP "127.0.0.1" \
       --target "${PIER_ROOT}"
     cd "${CURRENT_PATH}"
     if [ ! -d pier-client-ethereum ]; then
@@ -167,11 +166,11 @@ function pier_up() {
     print_blue "===> Copy ethereum plugins"
     cp "${CURRENT_PATH}"/pier-client-ethereum/build/eth-client.so "${PIER_ROOT}"/plugins/
     print_blue "===> Register pier(ethereum) to bitxhub"
-    appchain_register chainB ether chainB-description 1.0 ether/ether.validators
+    appchain_register chainB ether chainB-description 1.0 ethereum/ether.validators
     print_blue "===> Deploy rule in bitxhub"
     rule_deploy ethereum
     cd "${CURRENT_PATH}"
-    export CONFIG_PATH="${PIER_ROOT}"/ether
+    export CONFIG_PATH="${PIER_ROOT}"/ethereum
   fi
 
   print_blue "===> Start pier..."
