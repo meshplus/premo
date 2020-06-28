@@ -103,7 +103,7 @@ func (bee *bee) start(typ string) error {
 			}
 			return nil
 		case <-ticker.C:
-			bee.count++
+			atomic.AddUint64(&bee.count, 1)
 			switch typ {
 			case "interchain":
 				if err := bee.sendInterchainTx(bee.count); err != nil {

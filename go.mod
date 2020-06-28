@@ -42,7 +42,6 @@ require (
 	github.com/status-im/keycard-go v0.0.0-20200402102358-957c09536969 // indirect
 	github.com/stretchr/testify v1.4.0
 	github.com/tyler-smith/go-bip39 v1.0.2 // indirect
-	github.com/urfave/cli v1.22.1
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/wonderivan/logger v1.0.0
 	go.etcd.io/bbolt v1.3.3 // indirect
