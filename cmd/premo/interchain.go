@@ -9,7 +9,7 @@ import (
 )
 
 var interchainCMD = &cli.Command{
-	Name:  "up",
+	Name:  "interchain",
 	Usage: "Bring up the interchain network",
 	Flags: []cli.Flag{
 		&cli.StringFlag{

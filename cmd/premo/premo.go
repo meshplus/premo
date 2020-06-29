@@ -32,6 +32,7 @@ func main() {
 		testCMD,
 		pierCMD,
 		bitxhubCMD,
+		appchainCMD,
 		interchainCMD,
 	}
 

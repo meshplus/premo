@@ -1,4 +1,4 @@
-package execute
+package exec
 
 import (
 	"bytes"
@@ -25,6 +25,7 @@ type ExecResult struct {
 	ExitCode int
 }
 
+// ExecuteShell executes the shell script that the scripts's name is the first element of args list
 func ExecuteShell(repoRoot string, args ...string) error {
 	task := ExecTask{
 		Command:      "/bin/bash",

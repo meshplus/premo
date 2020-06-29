@@ -5,7 +5,7 @@ import (
 
 	"github.com/meshplus/premo/internal/repo"
 	"github.com/meshplus/premo/pkg/constant"
-	"github.com/meshplus/premo/pkg/execute"
+	"github.com/meshplus/premo/pkg/exec"
 	"github.com/urfave/cli/v2"
 )
 
@@ -52,7 +52,7 @@ func stopAppchain(ctx *cli.Context) error {
 	args := make([]string, 0)
 	args = append(args, "run_appchain.sh", "down", appchain)
 
-	err = execute.ExecuteShell(repoRoot, args...)
+	err = exec.ExecuteShell(repoRoot, args...)
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func runAppchain(appchain, repoRoot string) error {
 	args := make([]string, 0)
 	args = append(args, "run_appchain.sh", "up", appchain)
 
-	err := execute.ExecuteShell(repoRoot, args...)
+	err := exec.ExecuteShell(repoRoot, args...)
 	if err != nil {
 		return err
 	}
