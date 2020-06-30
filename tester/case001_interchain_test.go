@@ -1,8 +1,13 @@
 package tester
 
 import (
+	"fmt"
 	"strconv"
 	"time"
+
+	"github.com/Rican7/retry"
+	"github.com/Rican7/retry/backoff"
+	"github.com/Rican7/retry/strategy"
 
 	"github.com/meshplus/bitxhub-kit/log"
 
@@ -28,27 +33,53 @@ func (suite *Interchain) TestEth2Fabric() {
 	username := "Alice"
 	amount := "1"
 
-	beforeBalance, err := suite.ethClient.GetBalance(username)
+	ethBeforeBalance, err := suite.ethClient.GetBalance(username)
 	suite.Nil(err)
 
-	logger.Infof("before Aline's eth balance:%s", beforeBalance)
+	logger.Infof("before Aline's eth balance:%s", ethBeforeBalance)
 	fabricBeforeBalance, err := suite.fabricClient.GetBalance(username)
 	suite.Nil(err)
 	logger.Infof("before Aline's fabric balance:%s", fabricBeforeBalance)
 
 	err = suite.ethClient.InterchainTransfer(suite.fabricClient.appchainId, username, username, amount)
 	suite.Nil(err)
-	afterBalance, err := suite.ethClient.GetBalance(username)
-	logger.Infof("after Aline's eth balance:%s", afterBalance)
-	suite.Assert(amount, beforeBalance, afterBalance)
 
-	time.Sleep(5 * time.Second)
+	var fabricAfterBalance, ethAfterBalance string
+	err = retry.Retry(func(attempt uint) error {
+		ethAfterBalance, err = suite.ethClient.GetBalance(username)
+		if err != nil {
+			return err
+		}
+		err = AssertBalance(amount, ethBeforeBalance, ethAfterBalance)
+		if err != nil {
+			return err
+		}
 
-	fabricAfterBalance, err := suite.fabricClient.GetBalance(username)
-	logger.Infof("after Aline's fabric balance:%s", fabricBeforeBalance)
+		return nil
+	},
+		strategy.Limit(5),
+		strategy.Backoff(backoff.Fibonacci(1*time.Second)),
+	)
 	suite.Nil(err)
+	logger.Infof("after Aline's eth balance:%s", ethAfterBalance)
 
-	suite.Assert(amount, fabricAfterBalance, fabricBeforeBalance)
+	err = retry.Retry(func(attempt uint) error {
+		fabricAfterBalance, err = suite.fabricClient.GetBalance(username)
+		if err != nil {
+			return err
+		}
+		err = AssertBalance(amount, fabricBeforeBalance, fabricAfterBalance)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	},
+		strategy.Limit(5),
+		strategy.Backoff(backoff.Fibonacci(1*time.Second)),
+	)
+	suite.Nil(err)
+	logger.Infof("after Aline's fabric balance:%s", fabricAfterBalance)
 }
 
 func (suite *Interchain) TestFabric2Eth() {
@@ -57,32 +88,68 @@ func (suite *Interchain) TestFabric2Eth() {
 
 	fabricBeforeBalance, err := suite.fabricClient.GetBalance(username)
 	suite.Nil(err)
+	logger.Infof("before Aline's fabric balance:%s", fabricBeforeBalance)
 
-	beforeBalance, err := suite.ethClient.GetBalance(username)
+	ethBeforeBalance, err := suite.ethClient.GetBalance(username)
 	suite.Nil(err)
+	logger.Infof("before Aline's eth balance:%s", ethBeforeBalance)
 
 	err = suite.fabricClient.InterchainTransfer(suite.ethClient.appchainId, suite.ethClient.contractAddr, username, username, amount)
 	suite.Nil(err)
 
-	fabricAfterBalance, err := suite.fabricClient.GetBalance(username)
+	var fabricAfterBalance, ethAfterBalance string
+	err = retry.Retry(func(attempt uint) error {
+		fabricAfterBalance, err = suite.fabricClient.GetBalance(username)
+		if err != nil {
+			return err
+		}
+		err = AssertBalance(amount, fabricBeforeBalance, fabricAfterBalance)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	},
+		strategy.Limit(5),
+		strategy.Backoff(backoff.Fibonacci(1*time.Second)),
+	)
 	suite.Nil(err)
+	logger.Infof("after Aline's fabric balance:%s", fabricAfterBalance)
 
-	time.Sleep(5 * time.Second)
+	err = retry.Retry(func(attempt uint) error {
+		ethAfterBalance, err = suite.ethClient.GetBalance(username)
+		if err != nil {
+			return err
+		}
+		err = AssertBalance(amount, ethBeforeBalance, ethAfterBalance)
+		if err != nil {
+			return err
+		}
 
-	afterBalance, err := suite.ethClient.GetBalance(username)
-	suite.Assert(amount, beforeBalance, afterBalance)
-
-	suite.Assert(amount, fabricAfterBalance, fabricBeforeBalance)
+		return nil
+	},
+		strategy.Limit(5),
+		strategy.Backoff(backoff.Fibonacci(1*time.Second)),
+	)
+	suite.Nil(err)
+	logger.Infof("after Aline's eth balance:%s", ethAfterBalance)
 }
 
-func (suite *Interchain) Assert(expected, before, after string) {
+func AssertBalance(expected, before, after string) error {
 	beforeI, err := strconv.Atoi(before)
-	suite.Nil(err)
+	if err != nil {
+		return err
+	}
 	afterI, err := strconv.Atoi(after)
-	suite.Nil(err)
-
+	if err != nil {
+		return err
+	}
 	expectedI, err := strconv.Atoi(expected)
-	suite.Nil(err)
-
-	suite.Equal(expectedI, beforeI-afterI)
+	if err != nil {
+		return err
+	}
+	if expectedI != beforeI-afterI {
+		return fmt.Errorf("not equal, expected:%d, actual:%d", expectedI, beforeI-afterI)
+	}
+	return nil
 }

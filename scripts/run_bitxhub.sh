@@ -28,19 +28,19 @@ function prepare() {
       goduck init
   fi
 
-  if [ -f "${CURRENT_PATH}"/bitxhub_config/bitxhub.pid ]; then
+  if [ -f "${CURRENT_PATH}"/.bitxhub/bitxhub.pid ]; then
       print_red "bitxhub is already running in the background service"
-      cat "${CURRENT_PATH}"/bitxhub_config/bitxhub.pid
+      cat "${CURRENT_PATH}"/.bitxhub/bitxhub.pid
       exit 0
   fi
 
   if [ "$MODE" == "solo" ]; then
     print_blue "===> Generate bitxhub solo configure"
-    goduck bitxhub config --mode solo --target "${CURRENT_PATH}"/bitxhub_config
+    goduck bitxhub config --mode solo --target "${CURRENT_PATH}"/.bitxhub
   fi
   if [ "$MODE" == "cluster" ]; then
     print_blue "===> Generate bitxhub cluster configure"
-    goduck bitxhub config --num "${N}" --target "${CURRENT_PATH}"/bitxhub_config
+    goduck bitxhub config --num "${N}" --target "${CURRENT_PATH}"/.bitxhub
   fi
 
   if [ ! -d "bitxhub" ]; then
@@ -63,7 +63,7 @@ function prepare() {
 function bitxhub_up() {
   prepare
 
-  cd "${CURRENT_PATH}"/bitxhub_config
+  cd "${CURRENT_PATH}"/.bitxhub
 
   if [ "$MODE" == "solo" ]; then
     if [ ! -d nodeSolo/plugins ]; then
@@ -71,8 +71,8 @@ function bitxhub_up() {
       cp -r "${CURRENT_PATH}"/bitxhub/internal/plugins/build/solo.so nodeSolo/plugins
     fi
     echo "Start bitxhub solo node"
-    nohup bitxhub --repo="${CURRENT_PATH}"/bitxhub_config/nodeSolo start >/dev/null 2>&1 &
-    echo $! >>"${CURRENT_PATH}"/bitxhub_config/bitxhub.pid
+    nohup bitxhub --repo="${CURRENT_PATH}"/.bitxhub/nodeSolo start >/dev/null 2>&1 &
+    echo $! >>"${CURRENT_PATH}"/.bitxhub/bitxhub.pid
   fi
 
   if [ "$MODE" == "cluster" ]; then
@@ -82,8 +82,8 @@ function bitxhub_up() {
         cp -r "${CURRENT_PATH}"/bitxhub/internal/plugins/build/raft.so node${i}/plugins
       fi
       echo "Start bitxhub node${i}"
-      nohup bitxhub --repo="${CURRENT_PATH}"/bitxhub_config/node${i} start >/dev/null 2>&1 &
-      echo $! >>"${CURRENT_PATH}"/bitxhub_config/bitxhub.pid
+      nohup bitxhub --repo="${CURRENT_PATH}"/.bitxhub/node${i} start >/dev/null 2>&1 &
+      echo $! >>"${CURRENT_PATH}"/.bitxhub/bitxhub.pid
     done
   fi
 
@@ -91,7 +91,7 @@ function bitxhub_up() {
 
 function bitxhub_down() {
   set +e
-  cd "${CURRENT_PATH}"/bitxhub_config
+  cd "${CURRENT_PATH}"/.bitxhub
   if [ -a bitxhub.pid ]; then
     list=$(cat bitxhub.pid)
     for pid in $list; do

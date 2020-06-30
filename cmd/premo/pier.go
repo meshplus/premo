@@ -67,14 +67,18 @@ func startPier(ctx *cli.Context) error {
 func stopPier(ctx *cli.Context) error {
 	appchain := ctx.String("type")
 
-	repoRoot, err := repo.PathRootWithDefault("")
+	repoRoot, err := repo.PathRoot()
 	if err != nil {
 		return fmt.Errorf("please 'premo init' first")
 	}
 
+	return downPier(repoRoot, appchain)
+}
+
+func downPier(repoRoot, appchain string) error {
 	args := make([]string, 0)
 	args = append(args, "run_pier.sh", "down", "-t", appchain)
-	err = execute.ExecuteShell(repoRoot, args...)
+	err := execute.ExecuteShell(repoRoot, args...)
 	if err != nil {
 		return err
 	}
