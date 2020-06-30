@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/meshplus/premo/internal/repo"
-	"github.com/meshplus/premo/pkg/execute"
+	"github.com/meshplus/premo/pkg/exec"
 	"github.com/urfave/cli/v2"
 )
 
@@ -51,7 +51,7 @@ func stopBitxhub(ctx *cli.Context) error {
 func downBitxhub(repoRoot string) error {
 	args := make([]string, 0)
 	args = append(args, "run_bitxhub.sh", "down")
-	err := execute.ExecuteShell(repoRoot, args...)
+	err = exec.ExecuteShell(repoRoot, args...)
 	if err != nil {
 		return err
 	}
@@ -84,7 +84,7 @@ func runBitXHub(num int, repoRoot, version string) error {
 	args := make([]string, 0)
 	args = append(args, "run_bitxhub.sh", "up", mode, strconv.Itoa(num), version)
 
-	err := execute.ExecuteShell(repoRoot, args...)
+	err := exec.ExecuteShell(repoRoot, args...)
 	if err != nil {
 		return err
 	}

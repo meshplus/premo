@@ -5,7 +5,7 @@ import (
 
 	"github.com/meshplus/premo/internal/repo"
 	"github.com/meshplus/premo/pkg/constant"
-	"github.com/meshplus/premo/pkg/execute"
+	"github.com/meshplus/premo/pkg/exec"
 	"github.com/urfave/cli/v2"
 )
 
@@ -78,7 +78,7 @@ func stopPier(ctx *cli.Context) error {
 func downPier(repoRoot, appchain string) error {
 	args := make([]string, 0)
 	args = append(args, "run_pier.sh", "down", "-t", appchain)
-	err := execute.ExecuteShell(repoRoot, args...)
+	err = exec.ExecuteShell(repoRoot, args...)
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func runPier(appchain, repoRoot, pierVersion string) error {
 		return fmt.Errorf("pier mode must be one of the FABRIC or ETHEREUM")
 	}
 
-	err := execute.ExecuteShell(repoRoot, args...)
+	err := exec.ExecuteShell(repoRoot, args...)
 	if err != nil {
 		return err
 	}
