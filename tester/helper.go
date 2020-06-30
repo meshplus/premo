@@ -47,7 +47,7 @@ func (c *FabricClientHelper) GetBalance(username string) (string, error) {
 
 func (c *FabricClientHelper) InterchainTransfer(targetAppId, contractAddr, from, to, amount string) error {
 	args := make([][]byte, 0)
-	args = append(args, []byte(targetAppId), []byte(contractAddr), []byte("transfer"), []byte(from), []byte(to), []byte(amount))
+	args = append(args, []byte(targetAppId), []byte(contractAddr), []byte(from), []byte(to), []byte(amount))
 	_, err := c.Invoke("transfer", "transfer", args...)
 	if err != nil {
 		return err

@@ -48,11 +48,16 @@ func stopAppchain(ctx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("please 'premo init' first")
 	}
+	return downAppchain(repoRoot, appchain)
+}
 
+func downAppchain(repoRoot, appchain string) error {
 	args := make([]string, 0)
 	args = append(args, "run_appchain.sh", "down", appchain)
 
+
 	err = exec.ExecuteShell(repoRoot, args...)
+
 	if err != nil {
 		return err
 	}

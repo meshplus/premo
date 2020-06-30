@@ -22,7 +22,7 @@ function prepare() {
   fi
 
   if [ ! -d "$HOME/.goduck" ]; then
-      goduck init
+    goduck init
   fi
 }
 
@@ -31,11 +31,15 @@ function appchain_up() {
 
   if [ "$MODE" == "ethereum" ]; then
     print_blue "===> Start ethereum appchain"
-    goduck pier start --chain ethereum --type docker
+    goduck ether start
   fi
   if [ "$MODE" == "fabric" ]; then
     print_blue "===> Start fabric appchain"
-    goduck pier start --chain fabric --type docker
+    goduck fabric start
+
+    if [ "$(docker container ls | grep -c broker)" == 0 ]; then
+        goduck fabric chaincode --config "$HOME"/.goduck/config.yaml
+    fi
   fi
 }
 
@@ -44,11 +48,11 @@ function appchain_down() {
 
   if [ "$MODE" == "ethereum" ]; then
     print_blue "===> Stop ethereum appchain"
-    goduck pier stop --chain ethereum
+    goduck ethereum stop
   fi
   if [ "$MODE" == "fabric" ]; then
     print_blue "===> Start fabric appchain"
-    goduck pier stop --chain fabric
+    goduck fabric stop
   fi
 }
 

@@ -45,7 +45,10 @@ func stopBitxhub(ctx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("please 'premo init' first")
 	}
+	return downBitxhub(repoRoot)
+}
 
+func downBitxhub(repoRoot string) error {
 	args := make([]string, 0)
 	args = append(args, "run_bitxhub.sh", "down")
 	err = exec.ExecuteShell(repoRoot, args...)

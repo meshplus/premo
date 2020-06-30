@@ -60,3 +60,7 @@ build:
 ## make linter: Run golanci-lint
 linter:
 	 run
+
+.PHONY: tester build
+
+

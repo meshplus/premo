@@ -53,6 +53,7 @@ function prepare() {
   if [ "$MODE" == "fabric" ]; then
     print_blue "===> Generate fabric pier configure"
     # generate config for fabric pier
+    PIER_ROOT="${CURRENT_PATH}"/.pier_fabric
     cd "${CURRENT_PATH}"
     if [ ! -d .pier_fabric ]; then
       mkdir .pier_fabric
@@ -103,6 +104,7 @@ function prepare() {
     cd "${PIER_ROOT}"
     goduck pier config \
       --mode "relay" \
+      --ID 1 \
       --bitxhub "localhost:60011" \
       --validators "0xe6f8c9cf6e38bd506fae93b73ee5e80cc8f73667" \
       --validators "0x8374bb1e41d4a4bb4ac465e74caa37d242825efc" \
@@ -159,7 +161,8 @@ function pier_up() {
     print_blue "===> Deploy rule in bitxhub"
     rule_deploy fabric
     cd "${CURRENT_PATH}"
-    export CONFIG_PATH="${PIER_ROOT}"/fabric
+    FABRIC_CONFIG_PATH="${PIER_ROOT}"/fabric
+    x_replace "s:\${CONFIG_PATH}:$FABRIC_CONFIG_PATH:g" "${PIER_ROOT}"/fabric/config.yaml
   fi
 
   if [ "$MODE" == "ethereum" ]; then
@@ -169,13 +172,11 @@ function pier_up() {
     appchain_register chainB ether chainB-description 1.0 ethereum/ether.validators
     print_blue "===> Deploy rule in bitxhub"
     rule_deploy ethereum
-    cd "${CURRENT_PATH}"
-    export CONFIG_PATH="${PIER_ROOT}"/ethereum
   fi
 
   print_blue "===> Start pier..."
   nohup pier --repo "${PIER_ROOT}" start >/dev/null 2>&1 &
-  echo $! >>"${CURRENT_PATH}/pier-${MODE}.pid"
+  echo $! >>"${PIER_ROOT}/pier-${MODE}.pid"
   print_green "===> Start pier successfully!!!"
 }
 
@@ -183,6 +184,7 @@ function pier_down() {
   set +e
   print_blue "===> Kill $MODE pier"
 
+  cd "${CURRENT_PATH}"/.pier_$MODE
   if [ -a pier-$MODE.pid ]; then
     pid=$(cat pier-$MODE.pid)
     kill "$pid"
