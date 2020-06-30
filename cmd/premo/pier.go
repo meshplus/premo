@@ -78,7 +78,7 @@ func stopPier(ctx *cli.Context) error {
 func downPier(repoRoot, appchain string) error {
 	args := make([]string, 0)
 	args = append(args, "run_pier.sh", "down", "-t", appchain)
-	err = exec.ExecuteShell(repoRoot, args...)
+	err := exec.ExecuteShell(repoRoot, args...)
 	if err != nil {
 		return err
 	}

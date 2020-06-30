@@ -51,7 +51,7 @@ func stopBitxhub(ctx *cli.Context) error {
 func downBitxhub(repoRoot string) error {
 	args := make([]string, 0)
 	args = append(args, "run_bitxhub.sh", "down")
-	err = exec.ExecuteShell(repoRoot, args...)
+	err := exec.ExecuteShell(repoRoot, args...)
 	if err != nil {
 		return err
 	}
