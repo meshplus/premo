@@ -1,62 +1,63 @@
 # Premo
 BitXHub interchain transaction testing framework
 
-## Install
 
-Install binary:
+## Quick Start
+
+### Installation
 
 ```shell
+git clone git@github.com:meshplus/premo.git
+cd premo
 make install
 ```
 
-## Start the system
-
-In order to test the cross-chain system, first start it. If you want to start the system by hand...
-
-Run bitxhub(relay chain):
-
-```shell
-cd scripts
-bash run_bitxhub.sh up cluster 4 master
-
-## shut down:
-bash run_bitxhub.sh down
-```
-
-Run appchains(one ethereum chain and one fabric chain)：
-
-```shell
-# fabric appchain
-bash run_appchain.sh up fabric
-# ethereum appchain
-bash run_appchain.sh up ethereum
-
-## shut down:
-bash run_appchain.sh down fabric
-bash run_appchain.sh down ethereum
-```
-
-Run piers(one ethereum pier and one fabric pier):
-
-```shell
-# fabric pier
-bash run_pier.sh up -t fabric -v master -r '.pier_fabric' -b 'localhost:60011'
-# ethereum pier
-bash run_pier.sh up -t ethereum -v master -r '.pier_ethereum' -b 'localhost:60011'
-
-## shut down:
-bash run_pier.sh down -t fabric
-bash run_pier.sh down -t ethereum
-```
-
-## Test the system
-
-See `premo -h` for details.
-
-Initialize premo:
+### Initialization
 
 ```shell
 premo init
 ```
 
-it will create `~/.premo` dir.
+It will create `~/.premo` directory on you computer.
+
+### Start Premo
+
+```shell
+premo interchain up
+```
+
+It will start the following things: 
+
++ a ethereum chain and a fabric chain (both in the form of docker container)
++ a fabric pier and a ethereum pier
++ deploy necessary contracts on fabric (ethererum chain image was already deployed)
+
+### Do Testing
+
+```shell
+make tester
+```
+
+## Usage
+
+```shell
+premo [global options] command [command options] [arguments...]
+```
+
+### command
+
++ `init`        init config home for premo
++ `version`     Premo version
++ `test`        test bitxhub function
++ `pier`        Start or stop the pier
++ `bitxhub`     Start or stop the bitxhub cluster
++ `appchain`    Bring up the appchain network
++ `interchain`  Start or Stop the interchain system
++ `help, h`     Shows a list of commands or help for one command
+
+### global options
+
++ `--repo value`  Premo storage repo path
++ `--help, -h`    show help (default: false)
+
+
