@@ -1,6 +1,8 @@
 # Premo
-BitXHub interchain transaction testing framework
 
+![build](https://github.com/meshplus/premo/workflows/build/badge.svg)[![Go Report Card](https://goreportcard.com/badge/github.com/meshplus/premo)](https://goreportcard.com/report/github.com/meshplus/premo)
+
+BitXHub interchain transaction testing framework.
 
 ## Quick Start
 
