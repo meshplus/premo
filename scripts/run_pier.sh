@@ -89,8 +89,14 @@ function prepare() {
     cd "${CURRENT_PATH}"
     if [ ! -f fabric_rule.wasm ]; then
       print_blue "===> Downloading fabric_rule.wasm"
-      wget https://github.com/meshplus/bitxhub/blob/master/scripts/quick_start/fabric_rule.wasm
+      wget https://github.com/meshplus/bitxhub/raw/v1.0.0-rc3/scripts/quick_start/fabric_rule.wasm
     fi
+
+    PEM_PATH="${PIER_ROOT}"/fabric/crypto-config/peerOrganizations/org2.example.com/peers/peer1.org2.example.com/msp/signcerts/peer1.org2.example.com-cert.pem
+    if [ ! -f "${PEM_PATH}" ]; then
+      PEM_PATH="${PIER_ROOT}"/fabric/crypto-config/peerOrganizations/org2.example1.com/peers/peer1.org2.example1.com/msp/signcerts/peer1.org2.example1.com-cert.pem
+    fi
+    cp "${PEM_PATH}" "${PIER_ROOT}"/fabric/fabric.validators
   fi
 
   if [ "$MODE" == "ethereum" ]; then
