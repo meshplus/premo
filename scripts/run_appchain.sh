@@ -48,10 +48,10 @@ function appchain_down() {
 
   if [ "$MODE" == "ethereum" ]; then
     print_blue "===> Stop ethereum appchain"
-    goduck ethereum stop
+    goduck ether stop
   fi
   if [ "$MODE" == "fabric" ]; then
-    print_blue "===> Start fabric appchain"
+    print_blue "===> Stop fabric appchain"
     goduck fabric stop
   fi
 }

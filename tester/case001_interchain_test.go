@@ -8,9 +8,7 @@ import (
 	"github.com/Rican7/retry"
 	"github.com/Rican7/retry/backoff"
 	"github.com/Rican7/retry/strategy"
-
 	"github.com/meshplus/bitxhub-kit/log"
-
 	"github.com/stretchr/testify/suite"
 )
 
@@ -68,7 +66,7 @@ func (suite *Interchain) TestEth2Fabric() {
 		if err != nil {
 			return err
 		}
-		err = AssertBalance(amount, fabricBeforeBalance, fabricAfterBalance)
+		err = AssertBalance(amount, fabricAfterBalance, fabricBeforeBalance)
 		if err != nil {
 			return err
 		}
@@ -121,7 +119,7 @@ func (suite *Interchain) TestFabric2Eth() {
 		if err != nil {
 			return err
 		}
-		err = AssertBalance(amount, ethBeforeBalance, ethAfterBalance)
+		err = AssertBalance(amount, ethAfterBalance, ethBeforeBalance)
 		if err != nil {
 			return err
 		}
