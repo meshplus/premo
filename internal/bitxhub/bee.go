@@ -8,6 +8,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/meshplus/bitxhub-kit/fileutil"
+
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-kit/key"
@@ -34,7 +36,7 @@ type bee struct {
 	cancel   context.CancelFunc
 }
 
-func NewBee(tps int) (*bee, error) {
+func NewBee(tps int, keyPath string) (*bee, error) {
 	xpk, err := asym.GenerateKey(asym.ECDSASecp256r1)
 	if err != nil {
 		return nil, err
@@ -45,11 +47,12 @@ func NewBee(tps int) (*bee, error) {
 		return nil, err
 	}
 
-	keyPath, err := repo.KeyPath()
-	if err != nil {
-		return nil, err
+	if !fileutil.Exist(keyPath) {
+		keyPath, err = repo.KeyPath()
+		if err != nil {
+			return nil, err
+		}
 	}
-
 	k, err := key.LoadKey(keyPath)
 	if err != nil {
 		return nil, err
