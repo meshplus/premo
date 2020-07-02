@@ -6,6 +6,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 	"reflect"
 	"strings"
 
@@ -23,13 +24,17 @@ type EthClient struct {
 }
 
 // New returns EthClient with ethereum addr and private key path
-func New(etherAddr, keyPath string) (*EthClient, error) {
-	etherCli, err := ethclient.Dial(etherAddr)
+func New(configPath string) (*EthClient, error) {
+	config, err := UnmarshalConfig(configPath)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshal ether config error:%w", err)
+	}
+	etherCli, err := ethclient.Dial(config.Ether.Addr)
 	if err != nil {
 		return nil, err
 	}
 
-	keyByte, err := ioutil.ReadFile(keyPath)
+	keyByte, err := ioutil.ReadFile(filepath.Join(configPath, config.Ether.KeyPath))
 	if err != nil {
 		return nil, err
 	}

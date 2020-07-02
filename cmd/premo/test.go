@@ -34,6 +34,11 @@ var testCMD = &cli.Command{
 			Usage:   "test duration",
 		},
 		&cli.StringFlag{
+			Name:    "key_path",
+			Aliases: []string{"k"},
+			Usage:   "Specific key path",
+		},
+		&cli.StringFlag{
 			Name:  "type",
 			Usage: "Specific tx type: interchain, data, transfer",
 			Value: "transfer",
@@ -57,6 +62,7 @@ func benchmark(ctx *cli.Context) error {
 		TPS:        ctx.Int("tps"),
 		Duration:   ctx.Int("duration"),
 		Type:       ctx.String("type"),
+		KeyPath:    ctx.String("key_path"),
 		Validator:  string(val),
 		Rule:       contract,
 	}

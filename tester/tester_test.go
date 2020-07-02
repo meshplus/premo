@@ -21,15 +21,20 @@ func TestTester(t *testing.T) {
 	require.Nil(t, err)
 
 	transferContractAddr := "0x668a209Dc6562707469374B8235e37b8eC25db08"
-	ethAccountKeyPath := filepath.Join(repoRoot, ".pier_ethereum", "ethereum", "account.key")
-	require.True(t, fileutil.Exist(ethAccountKeyPath))
-	ethClient, err := ethereum.New("http://localhost:8545", ethAccountKeyPath)
+	etherConfigPath := filepath.Join(repoRoot, ".pier_ethereum", "ethereum")
+	require.True(t, fileutil.Exist(etherConfigPath))
+
+	ethClient, err := ethereum.New(etherConfigPath)
 	require.Nil(t, err)
+
+	transferAbi := filepath.Join(repoRoot, "transfer.abi")
+	require.True(t, fileutil.Exist(transferAbi))
+
 	ethLoadKey, err := key.LoadKey(filepath.Join(repoRoot, ".pier_ethereum", "key.json"))
 	require.Nil(t, err)
 	ethClientHelper := &EthClientHelper{
 		EthClient:    ethClient,
-		abiPath:      "test_data/ethereum/transfer.abi",
+		abiPath:      transferAbi,
 		contractAddr: transferContractAddr,
 		appchainId:   strings.ToLower(ethLoadKey.Address.Hex()),
 	}

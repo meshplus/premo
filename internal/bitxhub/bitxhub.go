@@ -39,6 +39,7 @@ type Config struct {
 	Type       string
 	Validator  string
 	Rule       []byte
+	KeyPath    string
 }
 
 func New(config *Config) (*Broker, error) {
@@ -58,7 +59,7 @@ func New(config *Config) (*Broker, error) {
 		go func() {
 			defer wg.Done()
 
-			bee, err := NewBee(config.TPS / config.Concurrent)
+			bee, err := NewBee(config.TPS/config.Concurrent, config.KeyPath)
 			if err != nil {
 				logger.Error(err)
 				return

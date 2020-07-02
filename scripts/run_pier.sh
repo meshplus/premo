@@ -132,7 +132,7 @@ function prepare() {
     cd "${CURRENT_PATH}"
     if [ ! -f ethereum_rule.wasm ]; then
       print_blue "===> Downloading ethereum_rule.wasm"
-      wget https://github.com/meshplus/pier-client-ethereum/blob/master/config/validating.wasm
+      wget https://github.com/meshplus/pier-client-ethereum/raw/master/config/validating.wasm
       mv validating.wasm ethereum_rule.wasm
     fi
   fi

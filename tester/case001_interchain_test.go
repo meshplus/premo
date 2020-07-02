@@ -31,14 +31,15 @@ func (suite *Interchain) TestEth2Fabric() {
 	username := "Alice"
 	amount := "1"
 
-	ethBeforeBalance, err := suite.ethClient.GetBalance(username)
-	suite.Nil(err)
-
-	logger.Infof("before Aline's eth balance:%s", ethBeforeBalance)
 	fabricBeforeBalance, err := suite.fabricClient.GetBalance(username)
 	suite.Nil(err)
 	logger.Infof("before Aline's fabric balance:%s", fabricBeforeBalance)
 
+	ethBeforeBalance, err := suite.ethClient.GetBalance(username)
+	suite.Nil(err)
+	logger.Infof("before Aline's eth balance:%s", ethBeforeBalance)
+
+	logger.Infof("%s is sending %s coin from Ethereum to Fabric", username, amount)
 	err = suite.ethClient.InterchainTransfer(suite.fabricClient.appchainId, username, username, amount)
 	suite.Nil(err)
 
@@ -92,6 +93,7 @@ func (suite *Interchain) TestFabric2Eth() {
 	suite.Nil(err)
 	logger.Infof("before Aline's eth balance:%s", ethBeforeBalance)
 
+	logger.Infof("%s is sending %s coin from Fabric to Ethereum", username, amount)
 	err = suite.fabricClient.InterchainTransfer(suite.ethClient.appchainId, suite.ethClient.contractAddr, username, username, amount)
 	suite.Nil(err)
 
