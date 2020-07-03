@@ -55,6 +55,7 @@ premo [global options] command [command options] [arguments...]
 + `bitxhub`     Start or stop the bitxhub cluster
 + `appchain`    Bring up the appchain network
 + `interchain`  Start or Stop the interchain system
++ `status`      List the status of instantiated components  
 + `help, h`     Shows a list of commands or help for one command
 
 ### global options

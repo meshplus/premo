@@ -6,6 +6,7 @@ require (
 	github.com/Knetic/govaluate v3.0.0+incompatible // indirect
 	github.com/Rican7/retry v0.1.0
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
+	github.com/cheynewallace/tabby v1.1.0
 	github.com/cloudflare/cfssl v0.0.0-20190409034051-768cd563887f // indirect
 	github.com/coreos/etcd v3.3.13+incompatible
 	github.com/ethereum/go-ethereum v1.9.13
@@ -30,6 +31,7 @@ require (
 	github.com/rjeczalik/notify v0.9.2 // indirect
 	github.com/rogpeppe/go-internal v1.5.2 // indirect
 	github.com/rs/cors v1.7.0 // indirect
+	github.com/shirou/gopsutil v0.0.0-20190901111213-e4ec7b275ada
 	github.com/sirupsen/logrus v1.5.0
 	github.com/spf13/viper v1.6.1
 	github.com/stretchr/testify v1.4.0
