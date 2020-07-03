@@ -73,7 +73,6 @@ func (client *FabricClient) Invoke(chaincodeID, funcName string, invokeArgs ...[
 	})
 
 	if err != nil {
-		fmt.Printf("Failed to invoke: %+v\n", err)
 		return "", err
 	}
 	ret := string(response.Payload)
