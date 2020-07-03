@@ -34,6 +34,7 @@ func main() {
 		bitxhubCMD,
 		appchainCMD,
 		interchainCMD,
+		statusCMD,
 	}
 
 	err := app.Run(os.Args)
