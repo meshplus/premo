@@ -36,7 +36,7 @@ type bee struct {
 	cancel   context.CancelFunc
 }
 
-func NewBee(tps int, keyPath string) (*bee, error) {
+func NewBee(tps int, keyPath string, addr string) (*bee, error) {
 	xpk, err := asym.GenerateKey(asym.ECDSASecp256r1)
 	if err != nil {
 		return nil, err
@@ -69,7 +69,7 @@ func NewBee(tps int, keyPath string) (*bee, error) {
 	}
 
 	client, err := rpcx.New(
-		rpcx.WithAddrs(cfg.addrs),
+		rpcx.WithAddrs([]string{addr}),
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(privKey),
 	)
