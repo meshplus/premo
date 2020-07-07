@@ -39,6 +39,12 @@ var testCMD = &cli.Command{
 			Usage:   "Specific key path",
 		},
 		&cli.StringFlag{
+			Name:    "remote_bitxhub_addr",
+			Aliases: []string{"r"},
+			Usage:   "Specific remote bitxhub address",
+			Value:   "localhost:60011",
+		},
+		&cli.StringFlag{
 			Name:  "type",
 			Usage: "Specific tx type: interchain, data, transfer",
 			Value: "transfer",
@@ -58,13 +64,14 @@ func benchmark(ctx *cli.Context) error {
 		return err
 	}
 	config := &bitxhub.Config{
-		Concurrent: ctx.Int("concurrent"),
-		TPS:        ctx.Int("tps"),
-		Duration:   ctx.Int("duration"),
-		Type:       ctx.String("type"),
-		KeyPath:    ctx.String("key_path"),
-		Validator:  string(val),
-		Rule:       contract,
+		Concurrent:  ctx.Int("concurrent"),
+		TPS:         ctx.Int("tps"),
+		Duration:    ctx.Int("duration"),
+		Type:        ctx.String("type"),
+		KeyPath:     ctx.String("key_path"),
+		BitxhubAddr: ctx.String("remote_bitxhub_addr"),
+		Validator:   string(val),
+		Rule:        contract,
 	}
 
 	broker, err := bitxhub.New(config)

@@ -33,13 +33,14 @@ type Broker struct {
 }
 
 type Config struct {
-	Concurrent int
-	TPS        int
-	Duration   int // s uint
-	Type       string
-	Validator  string
-	Rule       []byte
-	KeyPath    string
+	Concurrent  int
+	TPS         int
+	Duration    int // s uint
+	Type        string
+	Validator   string
+	Rule        []byte
+	KeyPath     string
+	BitxhubAddr string
 }
 
 func New(config *Config) (*Broker, error) {
@@ -59,7 +60,7 @@ func New(config *Config) (*Broker, error) {
 		go func() {
 			defer wg.Done()
 
-			bee, err := NewBee(config.TPS/config.Concurrent, config.KeyPath)
+			bee, err := NewBee(config.TPS/config.Concurrent, config.KeyPath, config.BitxhubAddr)
 			if err != nil {
 				logger.Error(err)
 				return
