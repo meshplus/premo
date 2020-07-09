@@ -182,8 +182,15 @@ function pier_up() {
 
   print_blue "===> Start pier..."
   nohup pier --repo "${PIER_ROOT}" start >/dev/null 2>&1 &
-  echo $! >>"${PIER_ROOT}/pier-${MODE}.pid"
-  print_green "===> Start pier successfully!!!"
+  PID=$!
+  sleep 3
+  if [ -n "$(ps -p ${PID} -o pid=)" ]; then
+    print_green "===> Start pier successfully!!!"
+    echo $! >>"${PIER_ROOT}/pier-${MODE}.pid"
+  else
+    print_green "===> Start pier fail!!!"
+  fi
+
 }
 
 function pier_down() {
@@ -196,8 +203,6 @@ function pier_down() {
     kill "$pid"
     if [ $? -eq 0 ]; then
       echo "pier-$MODE pid:$pid exit"
-    else
-      print_red "pier exit fail, try use kill -9 $pid"
     fi
     rm pier-$MODE.pid
   fi

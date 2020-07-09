@@ -25,13 +25,13 @@ function prepare() {
   fi
 
   if [ ! -d "$HOME/.goduck" ]; then
-      goduck init
+    goduck init
   fi
 
   if [ -f "${CURRENT_PATH}"/.bitxhub/bitxhub.pid ]; then
-      print_red "bitxhub is already running in the background service"
-      cat "${CURRENT_PATH}"/.bitxhub/bitxhub.pid
-      exit 0
+    print_red "bitxhub is already running in the background service"
+    cat "${CURRENT_PATH}"/.bitxhub/bitxhub.pid
+    exit 0
   fi
 
   if [ "$MODE" == "solo" ]; then
@@ -70,9 +70,17 @@ function bitxhub_up() {
       mkdir nodeSolo/plugins
       cp -r "${CURRENT_PATH}"/bitxhub/internal/plugins/build/solo.so nodeSolo/plugins
     fi
-    echo "Start bitxhub solo node"
+
     nohup bitxhub --repo="${CURRENT_PATH}"/.bitxhub/nodeSolo start >/dev/null 2>&1 &
-    echo $! >>"${CURRENT_PATH}"/.bitxhub/bitxhub.pid
+    PID=$!
+    sleep 3
+    if [ -n "$(ps -p ${PID} -o pid=)" ]; then
+      echo "===> Start bitxhub solo node successful"
+      echo $PID >>"${CURRENT_PATH}"/.bitxhub/bitxhub.pid
+    else
+      print_red "===> Start bitxhub solo node fail"
+    fi
+
   fi
 
   if [ "$MODE" == "cluster" ]; then
@@ -81,9 +89,16 @@ function bitxhub_up() {
         mkdir node${i}/plugins
         cp -r "${CURRENT_PATH}"/bitxhub/internal/plugins/build/raft.so node${i}/plugins
       fi
-      echo "Start bitxhub node${i}"
+
       nohup bitxhub --repo="${CURRENT_PATH}"/.bitxhub/node${i} start >/dev/null 2>&1 &
-      echo $! >>"${CURRENT_PATH}"/.bitxhub/bitxhub.pid
+      PID=$!
+      sleep 3
+      if [ -n "$(ps -p ${PID} -o pid=)" ]; then
+        echo "===> Start bitxhub node${i} successful"
+        echo $PID >>"${CURRENT_PATH}"/.bitxhub/bitxhub.pid
+      else
+        print_red "===> Start bitxhub node${i} fail"
+      fi
     done
   fi
 
@@ -98,8 +113,6 @@ function bitxhub_down() {
       kill "$pid"
       if [ $? -eq 0 ]; then
         echo "node pid:$pid exit"
-      else
-        print_red "program exit fail, try use kill -9 $pid"
       fi
     done
     rm bitxhub.pid

@@ -22,6 +22,7 @@ import (
 
 var counter int64
 var sender int64
+var delayer int64
 
 type bee struct {
 	xprivKey crypto.PrivateKey
@@ -147,23 +148,41 @@ func (bee *bee) stop() {
 
 func (bee *bee) sendBVMTx(i uint64) error {
 	atomic.AddInt64(&sender, 1)
+	args := make([]*pb.Arg, 0)
+	args = append(args, rpcx.String("a"), rpcx.String("10"))
 
-	go func() {
-		receipt, err := bee.client.InvokeBVMContract(rpcx.StoreContractAddr, "Set", rpcx.String("a"), rpcx.String("10"))
-		// fmt.Printf("status: %v, ret: %v, hash: %x\n", ret.Status, ret.Ret, ret.TxHash)
-		if err != nil {
-			logger.Error(err)
-			return
-		}
+	pl := &pb.InvokePayload{
+		Method: "Set",
+		Args:   args,
+	}
 
-		if receipt.Status.String() == "FAILED" {
-			logger.Error(err)
-			return
-		}
+	data, err := pl.Marshal()
+	if err != nil {
+		return err
+	}
 
-		atomic.AddInt64(&counter, 1)
-	}()
+	td := &pb.TransactionData{
+		Type:    pb.TransactionData_INVOKE,
+		VmType:  pb.TransactionData_BVM,
+		Payload: data,
+	}
 
+	tx := &pb.Transaction{
+		From:      bee.xfrom,
+		To:        rpcx.StoreContractAddr,
+		Data:      td,
+		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Int63(),
+	}
+
+	if err := tx.Sign(bee.privKey); err != nil {
+		return err
+	}
+	_, err = bee.client.SendTransaction(tx)
+	if err != nil {
+		return err
+	}
+	go bee.counterReceipt(tx)
 	return nil
 }
 
@@ -220,20 +239,11 @@ func (bee *bee) sendTransferTx(to types.Address) error {
 		return err
 	}
 
-	go func() {
-		receipt, err := bee.client.SendTransactionWithReceipt(tx)
-		if err != nil {
-			logger.Error(err)
-			return
-		}
-
-		if receipt.Status.String() == "FAILED" {
-			logger.Error(string(receipt.Ret))
-			return
-		}
-
-		atomic.AddInt64(&counter, 1)
-	}()
+	_, err = bee.client.SendTransaction(tx)
+	if err != nil {
+		return err
+	}
+	go bee.counterReceipt(tx)
 
 	return nil
 }
@@ -277,23 +287,11 @@ func (bee *bee) sendInterchainTx(i uint64) error {
 		return err
 	}
 
-	hash, err := bee.client.SendTransaction(tx)
+	_, err = bee.client.SendTransaction(tx)
 	if err != nil {
 		return err
 	}
-
-	go func(hash string) {
-		receipt, err := bee.client.GetReceipt(hash)
-		if err != nil {
-			logger.Error(err)
-			return
-		}
-		if receipt.Status.String() == "FAILED" {
-			logger.Error(string(receipt.Ret))
-			return
-		}
-		atomic.AddInt64(&counter, 1)
-	}(hash)
+	go bee.counterReceipt(tx)
 
 	return nil
 }
@@ -322,4 +320,18 @@ func mockIBTP(index uint64, from, to string) *pb.IBTP {
 		Type:      pb.IBTP_INTERCHAIN,
 		Timestamp: time.Now().UnixNano(),
 	}
+}
+
+func (bee *bee) counterReceipt(tx *pb.Transaction) {
+	receipt, err := bee.client.GetReceipt(tx.Hash().String())
+	if err != nil {
+		logger.Error(err)
+		return
+	}
+	if receipt.Status.String() == "FAILED" {
+		logger.Error(string(receipt.Ret))
+		return
+	}
+	atomic.AddInt64(&delayer, time.Now().UnixNano()-tx.Timestamp)
+	atomic.AddInt64(&counter, 1)
 }

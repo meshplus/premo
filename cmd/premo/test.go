@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/gobuffalo/packr"
 	"github.com/meshplus/premo/internal/bitxhub"
@@ -90,13 +91,14 @@ func benchmark(ctx *cli.Context) error {
 }
 
 func handleShutdown(node *bitxhub.Broker) {
+	current := time.Now()
 	var stop = make(chan os.Signal)
 	signal.Notify(stop, syscall.SIGTERM)
 	signal.Notify(stop, syscall.SIGINT)
 	go func() {
 		<-stop
 		fmt.Println("received interrupt signal, shutting down...")
-		if err := node.Stop(); err != nil {
+		if err := node.Stop(current); err != nil {
 			panic(err)
 		}
 		os.Exit(0)

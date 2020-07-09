@@ -92,6 +92,10 @@ func (broker *Broker) Start(typ string) error {
 	logger.Info("starting broker")
 	var wg sync.WaitGroup
 	wg.Add(len(broker.bees))
+
+	current := time.Now()
+	lastCounter := atomic.LoadInt64(&counter)
+	lastDelayer := atomic.LoadInt64(&delayer)
 	for i := 0; i < len(broker.bees); i++ {
 		go func(i int) {
 			err := broker.bees[i].start(typ)
@@ -106,42 +110,43 @@ func (broker *Broker) Start(typ string) error {
 		}).Debug("start bee")
 		wg.Done()
 	}
-
 	wg.Wait()
 	log.WithFields(logrus.Fields{
 		"number": len(broker.bees),
 	}).Info("start all bees")
 
-	current := time.Now()
-
 	go func() {
 		ticker := time.NewTicker(time.Second)
 		for {
 			<-ticker.C
-			c := float64(atomic.LoadInt64(&counter))
-			log.Infof("current tps is %f", c/time.Since(current).Seconds())
+			currentCounter := atomic.LoadInt64(&counter)
+			c := float64(currentCounter - lastCounter)
+			lastCounter = currentCounter
+
+			currentDelayer := atomic.LoadInt64(&delayer)
+			d := float64(currentDelayer-lastDelayer) / float64(time.Millisecond)
+			lastDelayer = currentDelayer
+			log.Infof("current tps is %f, tx_delay is %fms", c, d/c)
 		}
 	}()
 
 	time.Sleep(time.Duration(broker.config.Duration) * time.Second)
 
+	_ = broker.Stop(current)
+	return nil
+}
+
+func (broker *Broker) Stop(current time.Time) error {
 	for i := 0; i < len(broker.bees); i++ {
 		broker.bees[i].stop()
 	}
-
+	delayerAvg := float64(delayer) / float64(counter)
 	log.WithFields(logrus.Fields{
 		"number":   counter,
 		"duration": time.Since(current).Seconds(),
 		"tps":      float64(counter) / time.Since(current).Seconds(),
+		"tx_delay": delayerAvg / float64(time.Millisecond),
 	}).Info("finish testing")
-
-	return nil
-}
-
-func (broker *Broker) Stop() error {
-	for i := 0; i < len(broker.bees); i++ {
-		broker.bees[i].stop()
-	}
 
 	return nil
 }

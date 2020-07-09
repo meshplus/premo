@@ -38,7 +38,7 @@ function appchain_up() {
     goduck fabric start
 
     if [ "$(docker container ls | grep -c broker)" == 0 ]; then
-        goduck fabric chaincode --config "$HOME"/.goduck/config.yaml
+        goduck fabric chaincode
     fi
   fi
 }
