@@ -47,6 +47,7 @@ tester:
 
 ## make install: Go install the project
 install:
+	cd internal/repo && packr
 	$(GO) install -ldflags '${GO_LDFLAGS}' ./cmd/${APP_NAME}
 	@printf "${GREEN}Build ${APP_NAME} successfully!${NC}\n"
 
