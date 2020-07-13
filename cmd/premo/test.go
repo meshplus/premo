@@ -41,11 +41,11 @@ var testCMD = &cli.Command{
 			Aliases: []string{"k"},
 			Usage:   "Specific key path",
 		},
-		&cli.StringFlag{
+		&cli.StringSliceFlag{
 			Name:    "remote_bitxhub_addr",
 			Aliases: []string{"r"},
 			Usage:   "Specific remote bitxhub address",
-			Value:   "localhost:60011",
+			Value:   cli.NewStringSlice("localhost:60011"),
 		},
 		&cli.StringFlag{
 			Name:  "type",
@@ -72,7 +72,7 @@ func benchmark(ctx *cli.Context) error {
 		Duration:    ctx.Int("duration"),
 		Type:        ctx.String("type"),
 		KeyPath:     ctx.String("key_path"),
-		BitxhubAddr: ctx.String("remote_bitxhub_addr"),
+		BitxhubAddr: ctx.StringSlice("remote_bitxhub_addr"),
 		Validator:   string(val),
 		Rule:        contract,
 	}
