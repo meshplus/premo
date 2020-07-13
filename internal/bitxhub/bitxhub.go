@@ -40,7 +40,7 @@ type Config struct {
 	Validator   string
 	Rule        []byte
 	KeyPath     string
-	BitxhubAddr string
+	BitxhubAddr []string
 }
 
 func New(config *Config) (*Broker, error) {
