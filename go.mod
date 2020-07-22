@@ -35,9 +35,9 @@ require (
 	github.com/sirupsen/logrus v1.5.0
 	github.com/spf13/viper v1.6.1
 	github.com/stretchr/testify v1.4.0
+	github.com/tidwall/gjson v1.3.5
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/wonderivan/logger v1.0.0
-	go.etcd.io/etcd v3.3.13+incompatible
 )
 
 replace github.com/golang/protobuf => github.com/golang/protobuf v1.3.2
