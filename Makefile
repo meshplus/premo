@@ -40,10 +40,13 @@ test-coverage:
 	@$(GO) test -short -coverprofile cover.out -covermode=atomic ${TEST_PKGS}
 	@cat cover.out >> coverage.txt
 
+## make tester: Run interchain test
+bitxhub-tester:
+	cd tester/bxh_tester && $(GO) test -v -run TestTester
 
-## make tester: Run integration test
-tester:
-	cd tester && $(GO) test -v -run TestTester
+## make tester: Run interchain test
+interchain-tester:
+	cd tester/interchain_tester && $(GO) test -v -run TestTester
 
 ## make install: Go install the project
 install:

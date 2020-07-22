@@ -1,4 +1,4 @@
-package tester
+package interchain_tester
 
 import (
 	"github.com/meshplus/bitxhub-kit/log"
