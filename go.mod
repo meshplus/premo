@@ -23,8 +23,8 @@ require (
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/meshplus/bitxhub-kit v1.0.1-0.20200525112026-df2160653e23
-	github.com/meshplus/bitxhub-model v1.0.0-rc4.0.20200714082154-970b730cdb6c
-	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20200605082433-5c458439647b
+	github.com/meshplus/bitxhub-model v1.0.0-rc4.0.20200715074308-91ceb39c38a4
+	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20200724090229-1d9837d12e99
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/pkg/errors v0.9.1
@@ -38,6 +38,7 @@ require (
 	github.com/tidwall/gjson v1.3.5
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/wonderivan/logger v1.0.0
+	go.etcd.io/etcd v3.3.13+incompatible
 )
 
 replace github.com/golang/protobuf => github.com/golang/protobuf v1.3.2
