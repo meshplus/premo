@@ -87,7 +87,7 @@ func (suite *Snake) TestTXWrongSigAlgorithm() {
 }
 
 func (suite *Snake) TestTXExtra10MB() {
-	MB10 := make([]byte, 1<<21) // 10MB
+	MB10 := make([]byte, 10e7) // 10MB
 	for i := 0; i < len(MB10); i++ {
 		MB10[i] = uint8(rand.Intn(255))
 	}
@@ -107,7 +107,7 @@ func (suite *Snake) TestTXExtra10MB() {
 	suite.Nil(err)
 
 	_, err = suite.client.SendTransaction(tx)
-	suite.Nil(err)
+	suite.NotNil(err)
 }
 
 func (suite *Snake) TestGetTxByHash() {
