@@ -3,7 +3,6 @@ package bxh_tester
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -205,17 +204,14 @@ func (suite *Snake) TestGetAccountBalanceByNilAddress() {
 }
 
 func (suite *Snake) TestGetAccountBalanceByWrongAddress() {
-	res, err := suite.client.GetAccountBalance("ABC")
+	_, err := suite.client.GetAccountBalance("ABC")
 	suite.NotNil(err)
-	fmt.Println("res:" + string(res.Data))
 
-	res, err = suite.client.GetAccountBalance("0x123")
+	_, err = suite.client.GetAccountBalance("0x123")
 	suite.NotNil(err)
-	fmt.Println("res:" + string(res.Data))
 
-	res, err = suite.client.GetAccountBalance("__ _~~+——*/")
+	_, err = suite.client.GetAccountBalance("__ _~~+——*/")
 	suite.NotNil(err)
-	fmt.Println("res:" + string(res.Data))
 }
 
 func (suite *Snake) TestGetChainStatus() {
