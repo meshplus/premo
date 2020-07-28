@@ -160,14 +160,18 @@ func (suite *Snake) TestGetBlocks() {
 	chainMeta, err := suite.client.GetChainMeta()
 	suite.Nil(err)
 
-	res, err := suite.client.GetBlocks(1, chainMeta.Height)
+	start := uint64(1)
+	if chainMeta.Height > 10 {
+		start = chainMeta.Height - 10
+	}
+	res, err := suite.client.GetBlocks(start, chainMeta.Height)
 	suite.Nil(err)
 
-	block, err := suite.client.GetBlock("1", pb.GetBlockRequest_HEIGHT)
+	block, err := suite.client.GetBlock(strconv.Itoa(int(start)), pb.GetBlockRequest_HEIGHT)
 	suite.Nil(err)
 
 	suite.Equal(block.BlockHash, res.Blocks[0].BlockHash)
-	suite.Equal(int(chainMeta.Height), len(res.Blocks))
+	suite.Equal(int(chainMeta.Height-start)+1, len(res.Blocks))
 }
 
 func (suite *Snake) TestGetBlocksByNonexistentRange() {
