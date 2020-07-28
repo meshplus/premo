@@ -4,6 +4,9 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/Rican7/retry"
+	"github.com/Rican7/retry/backoff"
+	"github.com/Rican7/retry/strategy"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-model/pb"
 )
@@ -87,7 +90,7 @@ func (suite *Snake) TestTXWrongSigAlgorithm() {
 }
 
 func (suite *Snake) TestTXExtra10MB() {
-	MB10 := make([]byte, 1<<21) // 10MB
+	MB10 := make([]byte, 10*1024*1024) // 10MB
 	for i := 0; i < len(MB10); i++ {
 		MB10[i] = uint8(rand.Intn(255))
 	}
@@ -107,7 +110,7 @@ func (suite *Snake) TestTXExtra10MB() {
 	suite.Nil(err)
 
 	_, err = suite.client.SendTransaction(tx)
-	suite.Nil(err)
+	suite.NotNil(err)
 }
 
 func (suite *Snake) TestGetTxByHash() {
@@ -127,9 +130,18 @@ func (suite *Snake) TestGetTxByHash() {
 	hash, err := suite.client.SendTransaction(tx)
 	suite.Nil(err)
 
-	time.Sleep(10 * time.Second)
-
-	ret, err := suite.client.GetTransaction(hash)
+	var ret *pb.GetTransactionResponse
+	err1 := retry.Retry(func(attempt uint) error {
+		ret, err = suite.client.GetTransaction(hash)
+		if err != nil {
+			return err
+		}
+		return nil
+	},
+		strategy.Limit(5),
+		strategy.Backoff(backoff.Fibonacci(500*time.Millisecond)),
+	)
+	suite.Nil(err1)
 	suite.Nil(err)
 	suite.NotNil(ret)
 }
