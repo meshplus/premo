@@ -81,6 +81,7 @@ func (suite *Snake) TestTXWrongSigPrivateKey() {
 	suite.Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
+	suite.Nil(err)
 	suite.NotNil(ret)
 	suite.True(ret.Status == pb.Receipt_FAILED)
 }

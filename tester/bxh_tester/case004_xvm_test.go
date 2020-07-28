@@ -1,7 +1,6 @@
 package bxh_tester
 
 import (
-	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"time"
@@ -66,7 +65,6 @@ func (suite *Snake) TestInvokeContractNotExistMethod() {
 
 func (suite *Snake) TestInvokeRandomAddressContract() {
 	bs := hexutil.Encode([]byte("random contract address"))
-	fmt.Println(bs)
 	fakeAddr := types.String2Address(bs)
 
 	result, err := suite.client.InvokeXVMContract(fakeAddr, "bbb", rpcx.Int32(1))
