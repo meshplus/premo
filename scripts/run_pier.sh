@@ -22,6 +22,10 @@ function printHelp() {
 }
 
 function prepare() {
+  PIER_CLIENT_FABRIC_VERSION=${VERSION}
+  PIER_CLIENT_ETHEREUM_VERSION=${VERSION}
+  print_blue "pier(and client) version: ${VERSION}"
+
   cd "${CURRENT_PATH}"
   if ! type goduck >/dev/null 2>&1; then
     print_blue "===> Install goduck"
