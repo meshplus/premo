@@ -88,7 +88,6 @@ func (suite *Snake) TestHandleIBTPShouldSucceed() {
 func (suite *Snake) TestHandleIBTPWithNonexistentFrom() {
 	kA, kB, from, to := suite.prepare()
 	suite.RegisterAppchain(kB, "fabric")
-	suite.RegisterRule(kA, "./testdata/simple_rule.wasm")
 
 	suite.client.SetPrivateKey(kA)
 	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 1, Timestamp: time.Now().UnixNano()}
