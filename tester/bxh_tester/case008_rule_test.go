@@ -8,6 +8,8 @@ import (
 )
 
 func (suite *Snake) TestRegisterRuleShouldSucceed() {
+	suite.RegisterAppchain(suite.pk, "hyperchain")
+
 	contract, err := ioutil.ReadFile("./testdata/simple_rule.wasm")
 	suite.Nil(err)
 
@@ -24,6 +26,8 @@ func (suite *Snake) TestRegisterRuleShouldSucceed() {
 }
 
 func (suite *Snake) TestAuditRuleShouldSucceed() {
+	suite.RegisterAppchain(suite.pk, "hyperchain")
+
 	contract, err := ioutil.ReadFile("./testdata/simple_rule.wasm")
 	suite.Nil(err)
 
@@ -81,6 +85,7 @@ func (suite *Snake) TestGetFabricRuleAddressShouldSucceed() {
 }
 
 func (suite *Snake) TestRegisterUnexistedWasmRuleShouldFail() {
+	suite.RegisterAppchain(suite.pk, "hyperchain")
 	contractAddr := "0x1234"
 	args := []*pb.Arg{
 		rpcx.String(suite.from.String()),
@@ -103,6 +108,6 @@ func (suite *Snake) TestRegisterUnexistedAppchainShouldFail() {
 		rpcx.String(contractAddr.String()),
 	}
 	res, err := suite.client.InvokeBVMContract(rpcx.RuleManagerContractAddr, "RegisterRule", args...)
-	suite.NotNil(err)
+	suite.Nil(err)
 	suite.True(res.Status == pb.Receipt_FAILED)
 }
