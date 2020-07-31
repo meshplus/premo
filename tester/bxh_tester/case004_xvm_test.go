@@ -14,12 +14,12 @@ import (
 func (suite *Snake) TestDeployContractIsNull() {
 	bytes := make([]byte, 0)
 	_, err := suite.client.DeployContract(bytes)
-	suite.NotNil(err)
+	suite.Require().NotNil(err)
 }
 
 func (suite *Snake) TestDeployContractWithToAddress() {
 	contract, err := ioutil.ReadFile("testdata/example.wasm")
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	td := &pb.TransactionData{
 		Type:    pb.TransactionData_INVOKE,
@@ -36,10 +36,10 @@ func (suite *Snake) TestDeployContractWithToAddress() {
 	}
 
 	err = tx.Sign(suite.pk)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 	receipt, err := suite.client.SendTransactionWithReceipt(tx)
-	suite.Nil(err)
-	suite.True(receipt.Status == pb.Receipt_FAILED)
+	suite.Require().Nil(err)
+	suite.Require().True(receipt.Status == pb.Receipt_FAILED)
 }
 
 func (suite *Snake) TestDeployContract() {
@@ -50,17 +50,17 @@ func (suite *Snake) TestInvokeContract() {
 	address := deployExampleContract(suite)
 
 	result, err := suite.client.InvokeXVMContract(address, "a", rpcx.Int32(1), rpcx.Int32(2))
-	suite.Nil(err)
-	suite.True(result.Status == pb.Receipt_SUCCESS)
-	suite.True("336" == string(result.Ret))
+	suite.Require().Nil(err)
+	suite.Require().True(result.Status == pb.Receipt_SUCCESS)
+	suite.Require().True("336" == string(result.Ret))
 }
 
 func (suite *Snake) TestInvokeContractNotExistMethod() {
 	address := deployExampleContract(suite)
 
 	result, err := suite.client.InvokeXVMContract(address, "bbb", rpcx.Int32(1), rpcx.Int32(2))
-	suite.Nil(err)
-	suite.True(result.Status == pb.Receipt_FAILED)
+	suite.Require().Nil(err)
+	suite.Require().True(result.Status == pb.Receipt_FAILED)
 }
 
 func (suite *Snake) TestInvokeRandomAddressContract() {
@@ -68,16 +68,16 @@ func (suite *Snake) TestInvokeRandomAddressContract() {
 	fakeAddr := types.String2Address(bs)
 
 	result, err := suite.client.InvokeXVMContract(fakeAddr, "bbb", rpcx.Int32(1))
-	suite.Nil(err)
-	suite.True(result.Status == pb.Receipt_FAILED)
+	suite.Require().Nil(err)
+	suite.Require().True(result.Status == pb.Receipt_FAILED)
 }
 
 func (suite *Snake) TestInvokeContractEmptyMethod() {
 	address := deployExampleContract(suite)
 
 	result, err := suite.client.InvokeXVMContract(address, "")
-	suite.Nil(err)
-	suite.True(result.Status == pb.Receipt_FAILED)
+	suite.Require().Nil(err)
+	suite.Require().True(result.Status == pb.Receipt_FAILED)
 }
 
 func (suite *Snake) TestDeploy10MContract() {
@@ -88,33 +88,33 @@ func (suite *Snake) TestDeployContractWrongArg() {
 	address := deployExampleContract(suite)
 
 	result, err := suite.client.InvokeXVMContract(address, "a", rpcx.String("1"), rpcx.Int32(2))
-	suite.Nil(err)
-	suite.True(result.Status == pb.Receipt_FAILED)
+	suite.Require().Nil(err)
+	suite.Require().True(result.Status == pb.Receipt_FAILED)
 
 	// incorrect function params
 	result, err = suite.client.InvokeXVMContract(address, "a", rpcx.Int32(1), rpcx.String("2"))
-	suite.Nil(err)
-	suite.True(result.Status == pb.Receipt_FAILED)
+	suite.Require().Nil(err)
+	suite.Require().True(result.Status == pb.Receipt_FAILED)
 
 	result, err = suite.client.InvokeXVMContract(address, "a", rpcx.String("1"), rpcx.String("2"))
-	suite.Nil(err)
-	suite.True(result.Status == pb.Receipt_FAILED)
+	suite.Require().Nil(err)
+	suite.Require().True(result.Status == pb.Receipt_FAILED)
 }
 
 func (suite *Snake) TestDeployContractWrongNumberArg() {
 	address := deployExampleContract(suite)
 
 	result, err := suite.client.InvokeXVMContract(address, "a", rpcx.Int32(1), rpcx.Int32(2), rpcx.Int32(3))
-	suite.Nil(err)
-	suite.True(result.Status == pb.Receipt_FAILED)
+	suite.Require().Nil(err)
+	suite.Require().True(result.Status == pb.Receipt_FAILED)
 }
 
 func deployExampleContract(suite *Snake) types.Address {
 	contract, err := ioutil.ReadFile("testdata/example.wasm")
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	address, err := suite.client.DeployContract(contract)
-	suite.Nil(err)
-	suite.NotNil(address)
+	suite.Require().Nil(err)
+	suite.Require().NotNil(address)
 	return address
 }

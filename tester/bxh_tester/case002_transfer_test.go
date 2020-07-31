@@ -12,10 +12,10 @@ import (
 
 func (suite *Snake) TestTransferLessThanAmount() {
 	res, err := suite.client.GetAccountBalance(suite.from.String())
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	balance := gjson.Get(string(res.Data), "balance").Uint()
-	suite.Nil(err)
+	suite.Require().Nil(err)
 	amount := balance + 1
 
 	tx := &pb.Transaction{
@@ -29,16 +29,16 @@ func (suite *Snake) TestTransferLessThanAmount() {
 	}
 
 	err = tx.Sign(suite.pk)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	hash, err := suite.client.SendTransaction(tx)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
-	suite.NotNil(ret)
-	suite.True(ret.Status == pb.Receipt_FAILED)
-	suite.Equal(tx.Hash().String(), ret.TxHash.String())
-	suite.True(strings.Contains(string(ret.Ret), "not sufficient funds"))
+	suite.Require().NotNil(ret)
+	suite.Require().True(ret.Status == pb.Receipt_FAILED)
+	suite.Require().Equal(tx.Hash().String(), ret.TxHash.String())
+	suite.Require().True(strings.Contains(string(ret.Ret), "not sufficient funds"))
 }
 
 func (suite *Snake) TestToAddressIs0X000___000() {
@@ -54,15 +54,15 @@ func (suite *Snake) TestToAddressIs0X000___000() {
 	}
 
 	err := tx.Sign(suite.pk)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	hash, err := suite.client.SendTransaction(tx)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
-	suite.NotNil(ret)
-	suite.True(ret.Status == pb.Receipt_SUCCESS)
-	suite.Equal(tx.Hash().String(), ret.TxHash.String())
+	suite.Require().NotNil(ret)
+	suite.Require().True(ret.Status == pb.Receipt_SUCCESS)
+	suite.Require().Equal(tx.Hash().String(), ret.TxHash.String())
 }
 
 func (suite *Snake) TestTypeIsXVM() {
@@ -78,15 +78,15 @@ func (suite *Snake) TestTypeIsXVM() {
 	}
 
 	err := tx.Sign(suite.pk)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	hash, err := suite.client.SendTransaction(tx)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
-	suite.NotNil(ret)
-	suite.True(ret.Status == pb.Receipt_SUCCESS)
-	suite.Equal(tx.Hash().String(), ret.TxHash.String())
+	suite.Require().NotNil(ret)
+	suite.Require().True(ret.Status == pb.Receipt_SUCCESS)
+	suite.Require().Equal(tx.Hash().String(), ret.TxHash.String())
 }
 
 func (suite *Snake) TestTransfer() {
@@ -101,13 +101,13 @@ func (suite *Snake) TestTransfer() {
 	}
 
 	err := tx.Sign(suite.pk)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	hash, err := suite.client.SendTransaction(tx)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
-	suite.NotNil(ret)
-	suite.True(ret.Status == pb.Receipt_SUCCESS)
-	suite.Equal(tx.Hash().String(), ret.TxHash.String())
+	suite.Require().NotNil(ret)
+	suite.Require().True(ret.Status == pb.Receipt_SUCCESS)
+	suite.Require().Equal(tx.Hash().String(), ret.TxHash.String())
 }

@@ -22,10 +22,10 @@ func (suite *Snake) TestTXEmptyFrom() {
 	}
 
 	err := tx.Sign(suite.pk)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	_, err = suite.client.SendTransaction(tx)
-	suite.NotNil(err)
+	suite.Require().NotNil(err)
 }
 
 func (suite *Snake) TestTXEmptyTo() {
@@ -39,10 +39,10 @@ func (suite *Snake) TestTXEmptyTo() {
 	}
 
 	err := tx.Sign(suite.pk)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	_, err = suite.client.SendTransaction(tx)
-	suite.NotNil(err)
+	suite.Require().NotNil(err)
 }
 
 func (suite *Snake) TestTXEmptySig() {
@@ -57,7 +57,7 @@ func (suite *Snake) TestTXEmptySig() {
 	}
 
 	_, err := suite.client.SendTransaction(tx)
-	suite.NotNil(err)
+	suite.Require().NotNil(err)
 }
 
 func (suite *Snake) TestTXWrongSigPrivateKey() {
@@ -72,18 +72,18 @@ func (suite *Snake) TestTXWrongSigPrivateKey() {
 	}
 
 	pk1, err := asym.GenerateKey(asym.ECDSASecp256r1)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	err = tx.Sign(pk1)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	hash, err := suite.client.SendTransaction(tx)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
-	suite.Nil(err)
-	suite.NotNil(ret)
-	suite.True(ret.Status == pb.Receipt_FAILED)
+	suite.Require().Nil(err)
+	suite.Require().NotNil(ret)
+	suite.Require().True(ret.Status == pb.Receipt_FAILED)
 }
 
 func (suite *Snake) TestTXWrongSigAlgorithm() {
@@ -108,10 +108,10 @@ func (suite *Snake) TestTXExtra10MB() {
 	}
 
 	err := tx.Sign(suite.pk)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	_, err = suite.client.SendTransaction(tx)
-	suite.NotNil(err)
+	suite.Require().NotNil(err)
 }
 
 func (suite *Snake) TestGetTxByHash() {
@@ -126,10 +126,10 @@ func (suite *Snake) TestGetTxByHash() {
 	}
 
 	err := tx.Sign(suite.pk)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	hash, err := suite.client.SendTransaction(tx)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	var ret *pb.GetTransactionResponse
 	err1 := retry.Retry(func(attempt uint) error {
@@ -142,9 +142,9 @@ func (suite *Snake) TestGetTxByHash() {
 		strategy.Limit(5),
 		strategy.Backoff(backoff.Fibonacci(500*time.Millisecond)),
 	)
-	suite.Nil(err1)
-	suite.Nil(err)
-	suite.NotNil(ret)
+	suite.Require().Nil(err1)
+	suite.Require().Nil(err)
+	suite.Require().NotNil(ret)
 }
 
 func (suite *Snake) TestGetReceiptByHash() {
@@ -159,13 +159,13 @@ func (suite *Snake) TestGetReceiptByHash() {
 	}
 
 	err := tx.Sign(suite.pk)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	hash, err := suite.client.SendTransaction(tx)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
-	suite.NotNil(ret)
-	suite.True(ret.Status == pb.Receipt_SUCCESS)
-	suite.Equal(tx.Hash().String(), ret.TxHash.String())
+	suite.Require().NotNil(ret)
+	suite.Require().True(ret.Status == pb.Receipt_SUCCESS)
+	suite.Require().Equal(tx.Hash().String(), ret.TxHash.String())
 }
