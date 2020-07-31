@@ -84,6 +84,19 @@ func (suite *Snake) TestGetFabricRuleAddressShouldSucceed() {
 	suite.Require().True(res.Status == pb.Receipt_SUCCESS)
 }
 
+func (suite *Snake) TestRegisterUnexistedWasmRuleShouldFail() {
+	suite.RegisterAppchain(suite.pk, "hyperchain")
+	contractAddr := "0x1234"
+	args := []*pb.Arg{
+		rpcx.String(suite.from.String()),
+		rpcx.String(contractAddr),
+	}
+	res, err := suite.client.InvokeBVMContract(rpcx.RuleManagerContractAddr, "RegisterRule", args...)
+	suite.NotNil(err)
+	suite.True(res.Status == pb.Receipt_FAILED)
+
+}
+
 func (suite *Snake) TestRegisterUnexistedAppchainShouldFail() {
 	contract, err := ioutil.ReadFile("./testdata/simple_rule.wasm")
 	suite.Require().Nil(err)
@@ -96,6 +109,7 @@ func (suite *Snake) TestRegisterUnexistedAppchainShouldFail() {
 		rpcx.String(contractAddr.String()),
 	}
 	res, err := suite.client.InvokeBVMContract(rpcx.RuleManagerContractAddr, "RegisterRule", args...)
+
 	suite.Require().Nil(err)
 	suite.Require().True(res.Status == pb.Receipt_FAILED)
 }
