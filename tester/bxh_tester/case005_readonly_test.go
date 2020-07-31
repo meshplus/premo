@@ -15,23 +15,23 @@ func (suite *Snake) TestNormalReadOnly() {
 	keyForNormal := "key_for_normal"
 	valueForNormal := "value_for_normal"
 	receipt, err := suite.client.InvokeBVMContract(rpcx.StoreContractAddr, "Set", pb.String(keyForNormal), pb.String(valueForNormal))
-	suite.Nil(err)
-	suite.Equal(pb.Receipt_SUCCESS, receipt.Status)
+	suite.Require().Nil(err)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 
 	queryKey, err := genContractTransaction(pb.TransactionData_BVM, suite.pk,
 		rpcx.StoreContractAddr, "Get", pb.String(keyForNormal))
 
 	receipt, err = suite.client.SendView(queryKey)
-	suite.Nil(err)
-	suite.True(receipt.Status == pb.Receipt_SUCCESS)
-	suite.Equal(valueForNormal, string(receipt.Ret))
+	suite.Require().Nil(err)
+	suite.Require().True(receipt.Status == pb.Receipt_SUCCESS)
+	suite.Require().Equal(valueForNormal, string(receipt.Ret))
 }
 
 func (suite *Snake) TestSendTx2ReadOnlyApi() {
 	rand.Seed(time.Now().UnixNano())
 	randKey := make([]byte, 20)
 	_, err := rand.Read(randKey)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	valueForRand := "value_for_rand"
 
@@ -42,22 +42,22 @@ func (suite *Snake) TestSendTx2ReadOnlyApi() {
 		rpcx.StoreContractAddr, "Get", pb.String(string(randKey)))
 
 	receipt, err := suite.client.SendView(tx)
-	suite.Nil(err)
-	suite.Equal(pb.Receipt_SUCCESS, receipt.Status)
+	suite.Require().Nil(err)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 
 	receipt, err = suite.client.SendView(queryKey)
-	suite.Nil(err)
-	suite.True(receipt.Status == pb.Receipt_FAILED)
+	suite.Require().Nil(err)
+	suite.Require().True(receipt.Status == pb.Receipt_FAILED)
 
 	// send tx to SendTransactionWithReceipt api and value got set
 	receipt, err = suite.client.SendTransactionWithReceipt(tx)
-	suite.Nil(err)
-	suite.Equal(pb.Receipt_SUCCESS, receipt.Status)
+	suite.Require().Nil(err)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 
 	receipt, err = suite.client.SendView(queryKey)
-	suite.Nil(err)
-	suite.True(receipt.Status == pb.Receipt_SUCCESS)
-	suite.Equal(valueForRand, string(receipt.Ret))
+	suite.Require().Nil(err)
+	suite.Require().True(receipt.Status == pb.Receipt_SUCCESS)
+	suite.Require().Equal(valueForRand, string(receipt.Ret))
 }
 
 func genContractTransaction(

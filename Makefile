@@ -40,7 +40,7 @@ test-coverage:
 	@$(GO) test -short -coverprofile cover.out -covermode=atomic ${TEST_PKGS}
 	@cat cover.out >> coverage.txt
 
-## make tester: Run interchain test
+## make bitxhub-tester: Run bitxhub test
 bitxhub-tester:
 	cd tester/bxh_tester && $(GO) test -v -run TestTester
 

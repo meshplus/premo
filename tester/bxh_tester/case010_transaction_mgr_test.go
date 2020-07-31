@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strconv"
-	"testing"
 	"time"
 
 	"github.com/meshplus/bitxhub-kit/crypto"
@@ -430,7 +429,6 @@ func (suite *TransactionMgrSuite) Test010_AssetExchange_Signs() {
 		addr, err := verifySign(digest[:], sign)
 		suite.Require().Nil(err)
 		suite.Require().Equal(validator, addr)
-		fmt.Println(addr)
 	}
 }
 
@@ -492,7 +490,7 @@ func (suite *TransactionMgrSuite) genChainClient() *ChainClient {
 
 func (suite *TransactionMgrSuite) RegisterAppchain(client *ChainClient, chainType string) {
 	pubBytes, err := client.pk.PublicKey().Bytes()
-	suite.Nil(err)
+	suite.Require().Nil(err)
 
 	client.client.SetPrivateKey(client.pk)
 	var pubKeyStr = hex.EncodeToString(pubBytes)
@@ -506,11 +504,11 @@ func (suite *TransactionMgrSuite) RegisterAppchain(client *ChainClient, chainTyp
 		rpcx.String(pubKeyStr),          //public key
 	}
 	res, err := client.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "Register", args...)
-	suite.Nil(err)
+	suite.Require().Nil(err)
 	appChain := &rpcx.Appchain{}
 	err = json.Unmarshal(res.Ret, appChain)
-	suite.Nil(err)
-	suite.NotNil(appChain.ID)
+	suite.Require().Nil(err)
+	suite.Require().NotNil(appChain.ID)
 }
 
 func (suite *TransactionMgrSuite) RegisterRule(client *ChainClient, ruleFile string) {
@@ -529,8 +527,4 @@ func (suite *TransactionMgrSuite) RegisterRule(client *ChainClient, ruleFile str
 	res, err := client.client.InvokeBVMContract(rpcx.RuleManagerContractAddr, "RegisterRule", pb.String(from.Hex()), pb.String(addr.Hex()))
 	suite.Require().Nil(err)
 	suite.Require().True(res.IsSuccess())
-}
-
-func TestTransactionMgrSuite(t *testing.T) {
-	suite.Run(t, &TransactionMgrSuite{})
 }
