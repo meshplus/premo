@@ -1,19 +1,13 @@
 package bitxhub
 
 import (
-	"github.com/meshplus/bitxhub-kit/key"
+	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	"github.com/sirupsen/logrus"
 )
 
 func NewBxhClient(addr, path string, logger *logrus.Entry) (*rpcx.ChainClient, error) {
-	k, err := key.LoadKey(path)
-
-	if err != nil {
-		return nil, err
-	}
-
-	privKey, err := k.GetPrivateKey("bitxhub")
+	privKey, err := asym.RestorePrivateKey(path, "bitxhub")
 	if err != nil {
 		return nil, err
 	}

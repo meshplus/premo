@@ -12,7 +12,6 @@ import (
 
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
-	"github.com/meshplus/bitxhub-kit/key"
 	"github.com/meshplus/bitxhub-kit/types"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
@@ -38,7 +37,7 @@ type bee struct {
 }
 
 func NewBee(tps int, keyPath string, addrs []string) (*bee, error) {
-	xpk, err := asym.GenerateKey(asym.ECDSASecp256r1)
+	xpk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	if err != nil {
 		return nil, err
 	}
@@ -54,12 +53,7 @@ func NewBee(tps int, keyPath string, addrs []string) (*bee, error) {
 			return nil, err
 		}
 	}
-	k, err := key.LoadKey(keyPath)
-	if err != nil {
-		return nil, err
-	}
-
-	privKey, err := k.GetPrivateKey(repo.KeyPassword)
+	privKey, err := asym.RestorePrivateKey(keyPath, repo.KeyPassword)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +116,7 @@ func (bee *bee) start(typ string) error {
 			case "transfer":
 				fallthrough
 			default:
-				privkey, err := asym.GenerateKey(asym.ECDSASecp256r1)
+				privkey, err := asym.GenerateKeyPair(crypto.Secp256k1)
 				if err != nil {
 					logger.Error(err)
 					return err

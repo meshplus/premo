@@ -10,7 +10,8 @@ import (
 	"time"
 
 	"github.com/meshplus/bitxhub-kit/crypto"
-	"github.com/meshplus/bitxhub-kit/crypto/asym/ecdsa"
+	"github.com/meshplus/bitxhub-kit/crypto/asym"
+	"github.com/meshplus/bitxhub-kit/types"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	"github.com/stretchr/testify/suite"
@@ -426,33 +427,11 @@ func (suite *TransactionMgrSuite) Test010_AssetExchange_Signs() {
 	digest := sha256.Sum256([]byte(msg))
 
 	for validator, sign := range resp.Sign {
-		addr, err := verifySign(digest[:], sign)
+		ok, err := asym.Verify(crypto.Secp256k1, sign, digest[:], types.String2Address(validator))
 		suite.Require().Nil(err)
-		suite.Require().Equal(validator, addr)
+		suite.Require().True(ok)
+		fmt.Println(validator)
 	}
-}
-
-func verifySign(digest, sig []byte) (string, error) {
-	if len(sig) != 130 {
-		return "", fmt.Errorf("signature length is not correct")
-	}
-	pubBytes := sig[65:]
-	pubkey, err := ecdsa.UnmarshalPublicKey(pubBytes, ecdsa.Secp256r1)
-	if err != nil {
-		return "", err
-	}
-
-	ok, err := pubkey.Verify(digest, sig)
-	if err != nil || !ok {
-		return "", err
-	}
-
-	addr, err := pubkey.Address()
-	if err != nil {
-		return "", err
-	}
-
-	return addr.String(), nil
 }
 
 func (suite *TransactionMgrSuite) SetupTest() {
@@ -468,7 +447,7 @@ func (suite *TransactionMgrSuite) SetupTest() {
 }
 
 func (suite *TransactionMgrSuite) genChainClient() *ChainClient {
-	pk, err := ecdsa.GenerateKey(ecdsa.Secp256r1)
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 
 	addr, err := pk.PublicKey().Address()
