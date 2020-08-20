@@ -2,18 +2,15 @@ package interchain_tester
 
 import (
 	"path/filepath"
-	"strings"
 	"testing"
 
-	"github.com/meshplus/bitxhub-kit/key"
+	"github.com/meshplus/bitxhub-kit/crypto/asym"
+	"github.com/meshplus/premo/internal/repo"
 	"github.com/meshplus/premo/pkg/appchain/ethereum"
 	"github.com/meshplus/premo/pkg/appchain/fabric"
-	"go.etcd.io/etcd/pkg/fileutil"
-
-	"github.com/meshplus/premo/internal/repo"
 	"github.com/stretchr/testify/require"
-
 	"github.com/stretchr/testify/suite"
+	"go.etcd.io/etcd/pkg/fileutil"
 )
 
 func TestTester(t *testing.T) {
@@ -30,22 +27,26 @@ func TestTester(t *testing.T) {
 	transferAbi := filepath.Join(repoRoot, "transfer.abi")
 	require.True(t, fileutil.Exist(transferAbi))
 
-	ethLoadKey, err := key.LoadKey(filepath.Join(repoRoot, ".pier_ethereum", "key.json"))
+	ethLoadKey, err := asym.RestorePrivateKey(filepath.Join(repoRoot, ".pier_ethereum", "key.json"), repo.KeyPassword)
+	require.Nil(t, err)
+	address, err := ethLoadKey.PublicKey().Address()
 	require.Nil(t, err)
 	ethClientHelper := &EthClientHelper{
 		EthClient:    ethClient,
 		abiPath:      transferAbi,
 		contractAddr: transferContractAddr,
-		appchainId:   strings.ToLower(ethLoadKey.Address.Hex()),
+		appchainId:   address.String(),
 	}
 
-	fabricLoadKey, err := key.LoadKey(filepath.Join(repoRoot, ".pier_fabric", "key.json"))
+	fabricLoadKey, err := asym.RestorePrivateKey(filepath.Join(repoRoot, ".pier_fabric", "key.json"), repo.KeyPassword)
 	require.Nil(t, err)
 	fabricClient, err := fabric.New(filepath.Join(repoRoot, ".pier_fabric", "fabric"))
 	require.Nil(t, err)
+	address, err = fabricLoadKey.PublicKey().Address()
+	require.Nil(t, err)
 	fabricClientHelper := &FabricClientHelper{
 		FabricClient: fabricClient,
-		appchainId:   strings.ToLower(fabricLoadKey.Address.Hex()),
+		appchainId:   address.String(),
 	}
 
 	suite.Run(t, &Interchain{

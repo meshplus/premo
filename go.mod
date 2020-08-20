@@ -8,30 +8,30 @@ require (
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/cheynewallace/tabby v1.1.0
 	github.com/cloudflare/cfssl v0.0.0-20190409034051-768cd563887f // indirect
-	github.com/coreos/etcd v3.3.13+incompatible
-	github.com/ethereum/go-ethereum v1.9.13
+	github.com/coreos/etcd v3.3.18+incompatible
+	github.com/ethereum/go-ethereum v1.9.18
 	github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5 // indirect
 	github.com/gballet/go-libpcsclite v0.0.0-20191108122812-4678299bea08 // indirect
 	github.com/gobuffalo/envy v1.9.0 // indirect
 	github.com/gobuffalo/packd v1.0.0
 	github.com/gobuffalo/packr v1.30.1
-	github.com/golang/mock v1.3.0 // indirect
 	github.com/golangci/golangci-lint v1.23.0 // indirect
 	github.com/google/certificate-transparency-go v1.1.0 // indirect
 	github.com/hyperledger/fabric-lib-go v1.0.0 // indirect
 	github.com/hyperledger/fabric-sdk-go v1.0.0-alpha5
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/meshplus/bitxhub-kit v1.0.1-0.20200525112026-df2160653e23
+	github.com/meshplus/bitxhub-kit v1.0.1-0.20200813124031-6f6bdc99564f
 	github.com/meshplus/bitxhub-model v1.0.0-rc4.0.20200731025300-2bb1717059e0
 	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20200731031000-ec0387c42327
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/pkg/errors v0.9.1
+	github.com/prometheus/client_golang v1.7.2-0.20200724220135-c650ae9fa103 // indirect
 	github.com/rjeczalik/notify v0.9.2 // indirect
 	github.com/rogpeppe/go-internal v1.5.2 // indirect
 	github.com/rs/cors v1.7.0 // indirect
-	github.com/shirou/gopsutil v0.0.0-20190901111213-e4ec7b275ada
+	github.com/shirou/gopsutil v2.20.5+incompatible
 	github.com/sirupsen/logrus v1.5.0
 	github.com/spf13/viper v1.6.1
 	github.com/stretchr/testify v1.4.0
@@ -60,3 +60,7 @@ replace github.com/pelletier/go-toml => github.com/pelletier/go-toml v1.2.0
 replace github.com/spf13/jwalterweatherman => github.com/spf13/jwalterweatherman v1.0.0
 
 replace github.com/mholt/archiver => github.com/mholt/archiver v0.0.0-20180417220235-e4ef56d48eb0
+
+replace github.com/go-kit/kit => github.com/go-kit/kit v0.8.0
+
+replace github.com/prometheus/client_golang => github.com/prometheus/client_golang v0.9.3
