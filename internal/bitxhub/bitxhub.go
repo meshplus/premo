@@ -38,9 +38,11 @@ type Config struct {
 	Duration    int // s uint
 	Type        string
 	Validator   string
+	Proof       []byte
 	Rule        []byte
 	KeyPath     string
 	BitxhubAddr []string
+	Appchain    string
 }
 
 func New(config *Config) (*Broker, error) {
@@ -60,14 +62,14 @@ func New(config *Config) (*Broker, error) {
 		go func() {
 			defer wg.Done()
 
-			bee, err := NewBee(config.TPS/config.Concurrent, config.KeyPath, config.BitxhubAddr)
+			bee, err := NewBee(config.TPS/config.Concurrent, config.KeyPath, config.BitxhubAddr, config)
 			if err != nil {
 				logger.Error(err)
 				return
 			}
 
 			if config.Type == "interchain" {
-				if err := bee.prepareChain("fabric", "检查链", config.Validator, "1.4.4", "fabric for law", config.Rule); err != nil {
+				if err := bee.prepareChain(config.Appchain, "检查链", config.Validator, "1.4.4", "fabric for law", config.Rule); err != nil {
 					logger.Error(err)
 					return
 				}
