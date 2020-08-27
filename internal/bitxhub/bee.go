@@ -277,7 +277,7 @@ func (bee *bee) sendInterchainTx(i uint64) error {
 		Nonce:     rand.Int63(),
 	}
 
-	if err := tx.Sign(bee.privKey); err != nil {
+	if err := tx.Sign(bee.xprivKey); err != nil {
 		return err
 	}
 
