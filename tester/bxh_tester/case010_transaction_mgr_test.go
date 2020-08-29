@@ -418,7 +418,7 @@ func (suite *TransactionMgrSuite) Test010_AssetExchange_Signs() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res0.Status, string(res0.Ret))
 
-	resp, err := suite.client0.client.GetAssetExchangeSigns(aei.Id)
+	resp, err := suite.client0.client.GetMultiSigns(aei.Id, pb.GetMultiSignsRequest_ASSET_EXCHANGE)
 	suite.Require().Nil(err)
 	suite.Require().NotNil(resp)
 	suite.Require().Equal(4, len(resp.Sign))
