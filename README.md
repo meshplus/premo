@@ -25,7 +25,7 @@ It will create `~/.premo` directory on you computer.
 ### Start Premo
 
 ```shell
-premo interchain up
+premo interchain up --bitxhub_version v1.0.0-rc1 --pier_version v1.0.0-rc1
 ```
 
 It will start the following things: 
@@ -34,10 +34,15 @@ It will start the following things:
 + a fabric pier and a ethereum pier
 + deploy necessary contracts on fabric (ethererum chain image was already deployed)
 
-### Do Testing
+### Do Bitxhub Testing
 
 ```shell
-make tester
+make bitxhub-tester
+```
+### Do Interchain Testing
+
+```shell
+make interchain-tester
 ```
 
 ## Usage
