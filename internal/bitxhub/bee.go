@@ -11,7 +11,6 @@ import (
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-kit/fileutil"
-	"github.com/meshplus/bitxhub-kit/key"
 	"github.com/meshplus/bitxhub-kit/types"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
@@ -37,9 +36,8 @@ type bee struct {
 	config   *Config
 }
 
-
 func NewBee(tps int, keyPath string, addrs []string, config *Config) (*bee, error) {
-	xpk, err := asym.GenerateKey(asym.ECDSASecp256r1)
+	xpk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 
 	if err != nil {
 		return nil, err
