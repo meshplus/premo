@@ -39,18 +39,23 @@ var testCMD = &cli.Command{
 		&cli.StringFlag{
 			Name:    "key_path",
 			Aliases: []string{"k"},
-			Usage:   "Specific key path",
+			Usage:   "Specify key path",
 		},
 		&cli.StringSliceFlag{
 			Name:    "remote_bitxhub_addr",
 			Aliases: []string{"r"},
-			Usage:   "Specific remote bitxhub address",
+			Usage:   "Specify remote bitxhub address",
 			Value:   cli.NewStringSlice("localhost:60011"),
 		},
 		&cli.StringFlag{
 			Name:  "type",
-			Usage: "Specific tx type: interchain, data, transfer",
+			Usage: "Specify tx type: interchain, data, transfer",
 			Value: "transfer",
+		},
+		&cli.StringFlag{
+			Name:  "appchain",
+			Usage: "Specify appchain type: fabric:simple, fabric:complex, hpc",
+			Value: "fabric:simple",
 		},
 	},
 	Action: benchmark,
@@ -58,10 +63,30 @@ var testCMD = &cli.Command{
 
 func benchmark(ctx *cli.Context) error {
 	box := packr.NewBox(repo.ConfigPath)
-	val, err := box.Find("fabric.validators")
+	//val, err := box.Find("fabric.validators")
+	val, err := box.Find("single_validator")
 	if err != nil {
 		return err
 	}
+	proof, err := box.Find("proof_1.0.0_rc")
+	if err != nil {
+		return err
+	}
+
+	appchain := ctx.String("appchain")
+	if appchain == "fabric:complex" {
+		val, err = box.Find("validator_1.0.0_rc_complex")
+		if err != nil {
+			return err
+		}
+		proof, err = box.Find("proof_1.0.0_rc_complex")
+		if err != nil {
+			return err
+		}
+	} else if appchain != "fabric:simple" && appchain != "hyperchain" {
+		return fmt.Errorf("unsupported appchain type")
+	}
+
 	contract, err := box.Find("rule.wasm")
 	if err != nil {
 		return err
@@ -74,7 +99,9 @@ func benchmark(ctx *cli.Context) error {
 		KeyPath:     ctx.String("key_path"),
 		BitxhubAddr: ctx.StringSlice("remote_bitxhub_addr"),
 		Validator:   string(val),
+		Proof:       proof,
 		Rule:        contract,
+		Appchain:    appchain,
 	}
 
 	if config.Concurrent > config.TPS {
