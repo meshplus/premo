@@ -104,6 +104,10 @@ func benchmark(ctx *cli.Context) error {
 		Appchain:    appchain,
 	}
 
+	if config.Concurrent > config.TPS {
+		return fmt.Errorf("error: concurrent should be less than tps")
+	}
+
 	broker, err := bitxhub.New(config)
 	if err != nil {
 		return err

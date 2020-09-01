@@ -15,7 +15,7 @@ func PrivKeyFromKey(key string) (crypto.PrivateKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	des, err := sym.GenerateKey(sym.ThirdDES, []byte("bitxhub"+padding))
+	des, err := sym.GenerateSymKey(crypto.ThirdDES, []byte("bitxhub"+padding))
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +25,7 @@ func PrivKeyFromKey(key string) (crypto.PrivateKey, error) {
 	}
 
 	var privKey crypto.PrivateKey
-	privKey, err = ecdsa.UnmarshalPrivateKey(bytes, ecdsa.Secp256r1)
+	privKey, err = ecdsa.UnmarshalPrivateKey(bytes, crypto.Secp256k1)
 	if err != nil {
 		return nil, err
 	}

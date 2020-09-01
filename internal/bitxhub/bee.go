@@ -37,8 +37,10 @@ type bee struct {
 	config   *Config
 }
 
+
 func NewBee(tps int, keyPath string, addrs []string, config *Config) (*bee, error) {
 	xpk, err := asym.GenerateKey(asym.ECDSASecp256r1)
+
 	if err != nil {
 		return nil, err
 	}
@@ -54,12 +56,7 @@ func NewBee(tps int, keyPath string, addrs []string, config *Config) (*bee, erro
 			return nil, err
 		}
 	}
-	k, err := key.LoadKey(keyPath)
-	if err != nil {
-		return nil, err
-	}
-
-	privKey, err := k.GetPrivateKey(repo.KeyPassword)
+	privKey, err := asym.RestorePrivateKey(keyPath, repo.KeyPassword)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +120,7 @@ func (bee *bee) start(typ string) error {
 			case "transfer":
 				fallthrough
 			default:
-				privkey, err := asym.GenerateKey(asym.ECDSASecp256r1)
+				privkey, err := asym.GenerateKeyPair(crypto.Secp256k1)
 				if err != nil {
 					logger.Error(err)
 					return err
