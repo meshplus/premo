@@ -45,6 +45,37 @@ func (suite *Snake) TestTXEmptyTo() {
 	_, err = suite.client.SendTransaction(tx)
 	suite.Require().NotNil(err)
 }
+/*增加form和to都为空*/
+func (suite *Snake) TestTXEmptyFromAndTo() {
+	tx := &pb.Transaction{
+		Data: &pb.TransactionData{
+			Amount: 1,
+		},
+		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Int63(),
+	}
+	err := tx.Sign(suite.pk)
+	suite.Require().Nil(err)
+	_, err = suite.client.SendTransaction(tx)
+	suite.Require().NotNil(err)
+}
+/*增加from和to相同*/
+func (suite *Snake) TestTXSameFromAndTo() {
+	tx := &pb.Transaction{
+		From: suite.from,
+		To: suite.from,
+		Data: &pb.TransactionData{
+			Amount: 1,
+		},
+		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Int63(),
+	}
+	err := tx.Sign(suite.pk)
+	suite.Require().Nil(err)
+
+	_, err = suite.client.SendTransaction(tx)
+	suite.Require().NotNil(err)
+}
 
 func (suite *Snake) TestTXEmptySig() {
 	tx := &pb.Transaction{
@@ -169,4 +200,25 @@ func (suite *Snake) TestGetReceiptByHash() {
 	suite.Require().NotNil(ret)
 	suite.Require().True(ret.Status == pb.Receipt_SUCCESS)
 	suite.Require().Equal(tx.Hash().String(), ret.TxHash.String())
+}
+/*通过错误的hash值进行查询*/
+func (suite *Snake) TestGetReceiptByWrongHash() {
+	tx := &pb.Transaction{
+		From: suite.from,
+		To:   suite.to,
+		Data: &pb.TransactionData{
+			Amount: 1,
+		},
+		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Int63(),
+	}
+
+	err := tx.Sign(suite.pk)
+	suite.Require().Nil(err)
+
+	hash, err := suite.client.SendTransaction(tx)
+	suite.Require().Nil(err)
+	hash = hash + "1"
+	ret, err := suite.client.GetReceipt(hash)
+	suite.Require().Nil(ret)
 }
