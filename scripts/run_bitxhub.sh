@@ -36,11 +36,11 @@ function prepare() {
 
   if [ "$MODE" == "solo" ]; then
     print_blue "===> Generate bitxhub solo configure"
-    goduck bitxhub config --mode solo --target "${CURRENT_PATH}"/.bitxhub
+    goduck bitxhub config --mode solo --target "${CURRENT_PATH}"/.bitxhub --version "${VERSION}"
   fi
   if [ "$MODE" == "cluster" ]; then
     print_blue "===> Generate bitxhub cluster configure"
-    goduck bitxhub config --num "${N}" --target "${CURRENT_PATH}"/.bitxhub
+    goduck bitxhub config --num "${N}" --target "${CURRENT_PATH}"/.bitxhub --version "${VERSION}"
   fi
 
   if [ ! -d "bitxhub" ]; then
