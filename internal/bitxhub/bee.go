@@ -2,6 +2,7 @@ package bitxhub
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -285,6 +286,7 @@ func (bee *bee) sendInterchainTx(i uint64) error {
 		Data:      td,
 		Timestamp: time.Now().UnixNano(),
 		Nonce:     rand.Int63(),
+		Extra:     bee.config.Proof,
 	}
 
 	if err := tx.Sign(bee.xprivKey); err != nil {
@@ -318,6 +320,8 @@ func mockIBTP(index uint64, from, to string, proof []byte) *pb.IBTP {
 
 	ibtppd, _ := payload.Marshal()
 
+	proofHash := sha256.Sum256(proof)
+
 	return &pb.IBTP{
 		From:      from,
 		To:        to,
@@ -325,7 +329,7 @@ func mockIBTP(index uint64, from, to string, proof []byte) *pb.IBTP {
 		Index:     index,
 		Type:      pb.IBTP_INTERCHAIN,
 		Timestamp: time.Now().UnixNano(),
-		Proof:     proof,
+		Proof:     proofHash[:],
 	}
 }
 
