@@ -7,7 +7,6 @@ import (
 	"github.com/Rican7/retry"
 	"github.com/Rican7/retry/backoff"
 	"github.com/Rican7/retry/strategy"
-	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-model/pb"
 )
@@ -72,7 +71,7 @@ func (suite *Snake) TestTXWrongSigPrivateKey() {
 		Nonce:     rand.Int63(),
 	}
 
-	pk1, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	pk1, err := asym.GenerateKey(asym.ECDSASecp256r1)
 	suite.Require().Nil(err)
 
 	err = tx.Sign(pk1)

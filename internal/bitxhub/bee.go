@@ -8,9 +8,10 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/meshplus/bitxhub-kit/fileutil"
+
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
-	"github.com/meshplus/bitxhub-kit/fileutil"
 	"github.com/meshplus/bitxhub-kit/key"
 	"github.com/meshplus/bitxhub-kit/types"
 	"github.com/meshplus/bitxhub-model/pb"
@@ -34,13 +35,10 @@ type bee struct {
 	count    uint64
 	ctx      context.Context
 	cancel   context.CancelFunc
-	config   *Config
 }
 
-
-func NewBee(tps int, keyPath string, addrs []string, config *Config) (*bee, error) {
+func NewBee(tps int, keyPath string, addrs []string) (*bee, error) {
 	xpk, err := asym.GenerateKey(asym.ECDSASecp256r1)
-
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +54,12 @@ func NewBee(tps int, keyPath string, addrs []string, config *Config) (*bee, erro
 			return nil, err
 		}
 	}
-	privKey, err := asym.RestorePrivateKey(keyPath, repo.KeyPassword)
+	k, err := key.LoadKey(keyPath)
+	if err != nil {
+		return nil, err
+	}
+
+	privKey, err := k.GetPrivateKey(repo.KeyPassword)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +90,6 @@ func NewBee(tps int, keyPath string, addrs []string, config *Config) (*bee, erro
 		ctx:      ctx,
 		cancel:   cancel,
 		xid:      "",
-		config:   config,
 	}, nil
 }
 
@@ -120,7 +122,7 @@ func (bee *bee) start(typ string) error {
 			case "transfer":
 				fallthrough
 			default:
-				privkey, err := asym.GenerateKeyPair(crypto.Secp256k1)
+				privkey, err := asym.GenerateKey(asym.ECDSASecp256r1)
 				if err != nil {
 					logger.Error(err)
 					return err
@@ -184,12 +186,11 @@ func (bee *bee) sendBVMTx(i uint64) error {
 	return nil
 }
 
-func (bee *bee) prepareChain(chainType, name, validators, version, desc string, contract []byte) error {
+func (bee *bee) prepareChain(typ, name, validators, version, desc string, contract []byte) error {
 	bee.client.SetPrivateKey(bee.xprivKey)
 	// register chain
-	pubKey, _ := bee.xprivKey.PublicKey().Bytes()
 	receipt, err := bee.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "Register", rpcx.String(validators),
-		rpcx.Int32(1), rpcx.String(chainType), rpcx.String(name), rpcx.String(desc), rpcx.String(version), rpcx.String(string(pubKey)))
+		rpcx.Int32(1), rpcx.String(typ), rpcx.String(name), rpcx.String(desc), rpcx.String(version), rpcx.String(""))
 	if err != nil {
 		return fmt.Errorf("register appchain error: %w", err)
 	}
@@ -206,20 +207,13 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 		return fmt.Errorf("audit appchain error:%w", err)
 	}
 
-	ruleAddr := "0x00000000000000000000000000000000000000a1"
 	// deploy rule
-	if chainType == "hyperchain" {
-		contractAddr, err := bee.client.DeployContract(contract)
-		if err != nil {
-			return fmt.Errorf("deploy contract error:%w", err)
-		}
-
-		ruleAddr = contractAddr.String()
-	} else if chainType == "fabric:complex" {
-		ruleAddr = "0x00000000000000000000000000000000000000a0"
+	contractAddr, err := bee.client.DeployContract(contract)
+	if err != nil {
+		return fmt.Errorf("deploy contract error:%w", err)
 	}
 
-	_, err = bee.client.InvokeContract(pb.TransactionData_BVM, ValidationContractAddr, "RegisterRule", rpcx.String(ID), rpcx.String(ruleAddr))
+	_, err = bee.client.InvokeContract(pb.TransactionData_BVM, ValidationContractAddr, "RegisterRule", rpcx.String(ID), rpcx.String(contractAddr.String()))
 	if err != nil {
 		return fmt.Errorf("register rule error:%w", err)
 	}
@@ -256,7 +250,7 @@ func (bee *bee) sendTransferTx(to types.Address) error {
 
 func (bee *bee) sendInterchainTx(i uint64) error {
 	atomic.AddInt64(&sender, 1)
-	ibtp := mockIBTP(i, bee.xfrom.String(), bee.xfrom.String(), bee.config.Proof)
+	ibtp := mockIBTP(i, bee.xfrom.String(), bee.xfrom.String())
 	b, err := ibtp.Marshal()
 	if err != nil {
 		return err
@@ -267,7 +261,7 @@ func (bee *bee) sendInterchainTx(i uint64) error {
 
 	pl := &pb.InvokePayload{
 		Method: "HandleIBTP",
-		Args:   []*pb.Arg{pb.Bytes(b)}[:],
+		Args:   args,
 	}
 
 	data, err := pl.Marshal()
@@ -289,7 +283,7 @@ func (bee *bee) sendInterchainTx(i uint64) error {
 		Nonce:     rand.Int63(),
 	}
 
-	if err := tx.Sign(bee.xprivKey); err != nil {
+	if err := tx.Sign(bee.privKey); err != nil {
 		return err
 	}
 
@@ -302,23 +296,21 @@ func (bee *bee) sendInterchainTx(i uint64) error {
 	return nil
 }
 
-func mockIBTP(index uint64, from, to string, proof []byte) *pb.IBTP {
+func mockIBTP(index uint64, from, to string) *pb.IBTP {
+
 	content := &pb.Content{
-		SrcContractId: "mychannel&transfer",
-		DstContractId: "mychannel&transfer",
+		SrcContractId: from,
+		DstContractId: from,
 		Func:          "interchainCharge",
-		Args:          [][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
-		Callback:      "interchainConfirm",
+		Args:          [][]byte{[]byte(from + ",1,Alice,Bob,1")},
 	}
 
-	bytes, _ := content.Marshal()
+	data, _ := json.Marshal(content)
 
-	payload := &pb.Payload{
+	ibtppd, _ := json.Marshal(pb.Payload{
 		Encrypted: false,
-		Content:   bytes,
-	}
-
-	ibtppd, _ := payload.Marshal()
+		Content:   data,
+	})
 
 	return &pb.IBTP{
 		From:      from,
@@ -327,26 +319,18 @@ func mockIBTP(index uint64, from, to string, proof []byte) *pb.IBTP {
 		Index:     index,
 		Type:      pb.IBTP_INTERCHAIN,
 		Timestamp: time.Now().UnixNano(),
-		Proof:     proof,
 	}
 }
 
 func (bee *bee) counterReceipt(tx *pb.Transaction) {
-	for {
-		receipt, err := bee.client.GetReceipt(tx.Hash().String())
-		if err != nil {
-			if err.Error() == "not found in DB" {
-				continue
-			}
-			logger.Error(err)
-			return
-		}
-
-		if receipt.Status.String() == "FAILED" {
-			logger.Error(string(receipt.Ret))
-			return
-		}
-		break
+	receipt, err := bee.client.GetReceipt(tx.Hash().String())
+	if err != nil {
+		logger.Error(err)
+		return
+	}
+	if receipt.Status.String() == "FAILED" {
+		logger.Error(string(receipt.Ret))
+		return
 	}
 	atomic.AddInt64(&delayer, time.Now().UnixNano()-tx.Timestamp)
 	atomic.AddInt64(&counter, 1)

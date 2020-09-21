@@ -62,7 +62,7 @@ func New(config *Config) (*Broker, error) {
 		go func() {
 			defer wg.Done()
 
-			bee, err := NewBee(config.TPS/config.Concurrent, config.KeyPath, config.BitxhubAddr, config)
+			bee, err := NewBee(config.TPS/config.Concurrent, config.KeyPath, config.BitxhubAddr)
 			if err != nil {
 				logger.Error(err)
 				return

@@ -7,16 +7,16 @@ import (
 	"time"
 
 	"github.com/meshplus/bitxhub-kit/crypto"
-	"github.com/meshplus/bitxhub-kit/crypto/asym"
+	"github.com/meshplus/bitxhub-kit/crypto/asym/ecdsa"
 	"github.com/meshplus/bitxhub-kit/types"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 )
 
 func (suite *Snake) prepare() (crypto.PrivateKey, crypto.PrivateKey, types.Address, types.Address) {
-	kA, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	kA, err := ecdsa.GenerateKey(ecdsa.Secp256r1)
 	suite.Require().Nil(err)
-	kB, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	kB, err := ecdsa.GenerateKey(ecdsa.Secp256r1)
 	suite.Require().Nil(err)
 
 	from, err := kA.PublicKey().Address()
