@@ -5,13 +5,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-kit/types"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	"github.com/stretchr/testify/suite"
-	"io/ioutil"
 )
 
 type TransactionMgrSuite struct {
@@ -116,34 +117,40 @@ func (suite *TransactionMgrSuite) Test001_One2One_AssetExchange_HappyPath() {
 		ReceiverOnDst: "AAA",
 		AssetOnDst:    10,
 	}
+	proof := "test"
+	proofHash := sha256.Sum256([]byte(proof))
 
 	content, err := aei.Marshal()
 	suite.Require().Nil(err)
 
-	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Extra: content}
+	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	data0, err := ib0.Marshal()
 	suite.Require().Nil(err)
 
-	res0, err := suite.client0.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx.Extra = []byte(proof)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(0), res0.Status, string(res0.Ret))
+	suite.Require().Equal(pb.Receipt_SUCCESS, res0.Status, string(res0.Ret))
 
 	res, err := suite.client0.client.InvokeBVMContract(rpcx.AssetExchangeContractAddr, "GetStatus", pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(0), res.Status, string(res.Ret))
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status, string(res.Ret))
 	suite.Require().Equal("0", string(res.Ret))
 
-	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Extra: []byte(aei.Id)}
+	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	data1, err := ib1.Marshal()
 	suite.Require().Nil(err)
 
-	res1, err := suite.client1.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx.Extra = []byte(proof)
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(0), res1.Status, string(res1.Ret))
+	suite.Require().Equal(pb.Receipt_SUCCESS, res1.Status, string(res1.Ret))
 
 	res, err = suite.client0.client.InvokeBVMContract(rpcx.AssetExchangeContractAddr, "GetStatus", pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(0), res.Status, string(res.Ret))
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status, string(res.Ret))
 	suite.Require().Equal("1", string(res.Ret))
 }
 
@@ -161,23 +168,29 @@ func (suite *TransactionMgrSuite) Test002_One2One_AssetExchange_FromRefund() {
 		ReceiverOnDst: "AAA",
 		AssetOnDst:    10,
 	}
+	proof := "test"
+	proofHash := sha256.Sum256([]byte(proof))
 
 	content, err := aei.Marshal()
 	suite.Require().Nil(err)
 
-	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Extra: content}
+	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	data0, err := ib0.Marshal()
 	suite.Require().Nil(err)
 
-	res0, err := suite.client0.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx.Extra = []byte(proof)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res0.Status, string(res0.Ret))
 
-	ib1 := &pb.IBTP{From: from, To: to, Index: index + 1, Type: pb.IBTP_ASSET_EXCHANGE_REFUND, Extra: []byte(aei.Id)}
+	ib1 := &pb.IBTP{From: from, To: to, Index: index + 1, Type: pb.IBTP_ASSET_EXCHANGE_REFUND, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	data1, err := ib1.Marshal()
 	suite.Require().Nil(err)
 
-	res1, err := suite.client0.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx, _ = suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx.Extra = []byte(proof)
+	res1, err := suite.client0.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res1.Status, string(res1.Ret))
 
@@ -186,11 +199,13 @@ func (suite *TransactionMgrSuite) Test002_One2One_AssetExchange_FromRefund() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status, string(res.Ret))
 	suite.Require().Equal("2", string(res.Ret))
 
-	ib1 = &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Extra: []byte(aei.Id)}
+	ib1 = &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	data1, err = ib1.Marshal()
 	suite.Require().Nil(err)
 
-	res1, err = suite.client1.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx.Extra = []byte(proof)
+	res1, err = suite.client1.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res1.Status, string(res1.Ret))
 }
@@ -209,23 +224,29 @@ func (suite *TransactionMgrSuite) Test003_One2One_AssetExchange_ToRefund() {
 		ReceiverOnDst: "AAA",
 		AssetOnDst:    10,
 	}
+	proof := "test"
+	proofHash := sha256.Sum256([]byte(proof))
 
 	content, err := aei.Marshal()
 	suite.Require().Nil(err)
 
-	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Extra: content}
+	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	data0, err := ib0.Marshal()
 	suite.Require().Nil(err)
 
-	res0, err := suite.client0.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx.Extra = []byte(proof)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res0.Status, string(res0.Ret))
 
-	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REFUND, Extra: []byte(aei.Id)}
+	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REFUND, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	data1, err := ib1.Marshal()
 	suite.Require().Nil(err)
 
-	res1, err := suite.client1.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx.Extra = []byte(proof)
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res1.Status, string(res1.Ret))
 
@@ -234,11 +255,13 @@ func (suite *TransactionMgrSuite) Test003_One2One_AssetExchange_ToRefund() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status, string(res.Ret))
 	suite.Require().Equal("2", string(res.Ret))
 
-	ib1 = &pb.IBTP{From: to, To: from, Index: index + 1, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Extra: []byte(aei.Id)}
+	ib1 = &pb.IBTP{From: to, To: from, Index: index + 1, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	data1, err = ib1.Marshal()
 	suite.Require().Nil(err)
 
-	res1, err = suite.client1.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx.Extra = []byte(proof)
+	res1, err = suite.client1.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res1.Status, string(res1.Ret))
 }
@@ -257,15 +280,19 @@ func (suite *TransactionMgrSuite) Test004_AssetExchange_Signs() {
 		ReceiverOnDst: "AAA",
 		AssetOnDst:    10,
 	}
+	proof := "test"
+	proofHash := sha256.Sum256([]byte(proof))
 
 	content, err := aei.Marshal()
 	suite.Require().Nil(err)
 
-	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Extra: content}
+	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	data0, err := ib0.Marshal()
 	suite.Require().Nil(err)
 
-	res0, err := suite.client0.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx.Extra = []byte(proof)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res0.Status, string(res0.Ret))
 
@@ -299,31 +326,39 @@ func (suite *TransactionMgrSuite) Test005_One2One_AssetExchange_FromToRefund() {
 		ReceiverOnDst: "AAA",
 		AssetOnDst:    10,
 	}
+	proof := "test"
+	proofHash := sha256.Sum256([]byte(proof))
 
 	content, err := aei.Marshal()
 	suite.Require().Nil(err)
 
-	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Extra: content}
+	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	data0, err := ib0.Marshal()
 	suite.Require().Nil(err)
 
-	res0, err := suite.client0.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx.Extra = []byte(proof)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res0.Status, string(res0.Ret))
 
-	ib1 := &pb.IBTP{From: from, To: to, Index: index + 1, Type: pb.IBTP_ASSET_EXCHANGE_REFUND, Extra: []byte(aei.Id)}
+	ib1 := &pb.IBTP{From: from, To: to, Index: index + 1, Type: pb.IBTP_ASSET_EXCHANGE_REFUND, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	data1, err := ib1.Marshal()
 	suite.Require().Nil(err)
 
-	res1, err := suite.client0.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx, _ = suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx.Extra = []byte(proof)
+	res1, err := suite.client0.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res1.Status, string(res1.Ret))
 
-	ib2 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REFUND, Extra: []byte(aei.Id)}
+	ib2 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REFUND, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	data2, err := ib2.Marshal()
 	suite.Require().Nil(err)
 
-	res2, err := suite.client0.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data2))
+	tx, _ = suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data2))
+	tx.Extra = []byte(proof)
+	res2, err := suite.client0.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res1.Status, string(res2.Ret))
 
@@ -332,11 +367,13 @@ func (suite *TransactionMgrSuite) Test005_One2One_AssetExchange_FromToRefund() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status, string(res.Ret))
 	suite.Require().Equal("2", string(res.Ret))
 
-	ib1 = &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Extra: []byte(aei.Id)}
+	ib1 = &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	data1, err = ib1.Marshal()
 	suite.Require().Nil(err)
 
-	res1, err = suite.client1.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx.Extra = []byte(proof)
+	res1, err = suite.client1.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res1.Status, string(res1.Ret))
 }
@@ -355,63 +392,73 @@ func (suite *TransactionMgrSuite) Test006_One2One_AssetExchange_SameId() {
 		ReceiverOnDst: "AAA",
 		AssetOnDst:    10,
 	}
+	proof := "test"
+	proofHash := sha256.Sum256([]byte(proof))
 
 	content, err := aei.Marshal()
 	suite.Require().Nil(err)
 
-	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Extra: content}
+	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	data0, err := ib0.Marshal()
 	suite.Require().Nil(err)
 
-	res0, err := suite.client0.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx.Extra = []byte(proof)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(0), res0.Status, string(res0.Ret))
+	suite.Require().Equal(pb.Receipt_SUCCESS, res0.Status, string(res0.Ret))
 
 	res, err := suite.client0.client.InvokeBVMContract(rpcx.AssetExchangeContractAddr, "GetStatus", pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(0), res.Status, string(res.Ret))
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status, string(res.Ret))
 	suite.Require().Equal("0", string(res.Ret))
 
-	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Extra: []byte(aei.Id)}
+	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	data1, err := ib1.Marshal()
 	suite.Require().Nil(err)
 
-	res1, err := suite.client1.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx.Extra = []byte(proof)
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(0), res1.Status, string(res1.Ret))
+	suite.Require().Equal(pb.Receipt_SUCCESS, res1.Status, string(res1.Ret))
 
 	res, err = suite.client0.client.InvokeBVMContract(rpcx.AssetExchangeContractAddr, "GetStatus", pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(0), res.Status, string(res.Ret))
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status, string(res.Ret))
 	suite.Require().Equal("1", string(res.Ret))
 
 	//same id
 	content, err = aei.Marshal()
 	suite.Require().Nil(err)
 
-	ib0 = &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Extra: content}
+	ib0 = &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	data0, err = ib0.Marshal()
 	suite.Require().Nil(err)
 
-	res0, err = suite.client0.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx, _ = suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx.Extra = []byte(proof)
+	res0, err = suite.client0.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(1), res0.Status, string(res0.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res0.Status, string(res0.Ret))
 
 	res, err = suite.client0.client.InvokeBVMContract(rpcx.AssetExchangeContractAddr, "GetStatus", pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(0), res.Status, string(res.Ret))
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status, string(res.Ret))
 
-	ib1 = &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Extra: []byte(aei.Id)}
+	ib1 = &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	data1, err = ib1.Marshal()
 	suite.Require().Nil(err)
 
-	res1, err = suite.client1.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx.Extra = []byte(proof)
+	res1, err = suite.client1.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(1), res1.Status, string(res1.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res1.Status, string(res1.Ret))
 
 	res, err = suite.client0.client.InvokeBVMContract(rpcx.AssetExchangeContractAddr, "GetStatus", pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(0), res.Status, string(res.Ret))
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status, string(res.Ret))
 
 }
 
@@ -429,34 +476,40 @@ func (suite *TransactionMgrSuite) Test007_One2One_AssetExchange_FromToFrom() {
 		ReceiverOnDst: "AAA",
 		AssetOnDst:    10,
 	}
+	proof := "test"
+	proofHash := sha256.Sum256([]byte(proof))
 
 	content, err := aei.Marshal()
 	suite.Require().Nil(err)
 
-	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Extra: content}
+	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	data0, err := ib0.Marshal()
 	suite.Require().Nil(err)
 
-	res0, err := suite.client0.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx.Extra = []byte(proof)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(0), res0.Status, string(res0.Ret))
+	suite.Require().Equal(pb.Receipt_SUCCESS, res0.Status, string(res0.Ret))
 
 	res, err := suite.client0.client.InvokeBVMContract(rpcx.AssetExchangeContractAddr, "GetStatus", pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(0), res.Status, string(res.Ret))
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status, string(res.Ret))
 	suite.Require().Equal("0", string(res.Ret))
 
-	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Extra: []byte(aei.Id)}
+	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	data1, err := ib1.Marshal()
 	suite.Require().Nil(err)
 
-	res1, err := suite.client1.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx.Extra = []byte(proof)
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(0), res1.Status, string(res1.Ret))
+	suite.Require().Equal(pb.Receipt_SUCCESS, res1.Status, string(res1.Ret))
 
 	res, err = suite.client0.client.InvokeBVMContract(rpcx.AssetExchangeContractAddr, "GetStatus", pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(0), res.Status, string(res.Ret))
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status, string(res.Ret))
 	suite.Require().Equal("1", string(res.Ret))
 }
 
@@ -473,33 +526,39 @@ func (suite *TransactionMgrSuite) Test008_One2One_AssetExchange_LoseFieldId() {
 		ReceiverOnDst: "AAA",
 		AssetOnDst:    10,
 	}
+	proof := "test"
+	proofHash := sha256.Sum256([]byte(proof))
 
 	content, err := aei.Marshal()
 	suite.Require().Nil(err)
 
-	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Extra: content}
+	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	data0, err := ib0.Marshal()
 	suite.Require().Nil(err)
 
-	res0, err := suite.client0.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx.Extra = []byte(proof)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(1), res0.Status, string(res0.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res0.Status, string(res0.Ret))
 
 	res, err := suite.client0.client.InvokeBVMContract(rpcx.AssetExchangeContractAddr, "GetStatus", pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(1), res.Status, string(res.Ret))
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status, string(res.Ret))
 
-	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Extra: []byte(aei.Id)}
+	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	data1, err := ib1.Marshal()
 	suite.Require().Nil(err)
 
-	res1, err := suite.client1.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx.Extra = []byte(proof)
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(1), res1.Status, string(res1.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res1.Status, string(res1.Ret))
 
 	res, err = suite.client0.client.InvokeBVMContract(rpcx.AssetExchangeContractAddr, "GetStatus", pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(1), res.Status, string(res.Ret))
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status, string(res.Ret))
 }
 
 func (suite *TransactionMgrSuite) Test008_One2One_AssetExchange_LoseFieldSender() {
@@ -515,33 +574,39 @@ func (suite *TransactionMgrSuite) Test008_One2One_AssetExchange_LoseFieldSender(
 		ReceiverOnDst: "AAA",
 		AssetOnDst:    10,
 	}
+	proof := "test"
+	proofHash := sha256.Sum256([]byte(proof))
 
 	content, err := aei.Marshal()
 	suite.Require().Nil(err)
 
-	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Extra: content}
+	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	data0, err := ib0.Marshal()
 	suite.Require().Nil(err)
 
-	res0, err := suite.client0.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx.Extra = []byte(proof)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(1), res0.Status, string(res0.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res0.Status, string(res0.Ret))
 
 	res, err := suite.client0.client.InvokeBVMContract(rpcx.AssetExchangeContractAddr, "GetStatus", pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(1), res.Status, string(res.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res.Status, string(res.Ret))
 
-	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Extra: []byte(aei.Id)}
+	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	data1, err := ib1.Marshal()
 	suite.Require().Nil(err)
 
-	res1, err := suite.client1.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx.Extra = []byte(proof)
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(1), res1.Status, string(res1.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res1.Status, string(res1.Ret))
 
 	res, err = suite.client0.client.InvokeBVMContract(rpcx.AssetExchangeContractAddr, "GetStatus", pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(1), res.Status, string(res.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res.Status, string(res.Ret))
 }
 
 func (suite *TransactionMgrSuite) Test009_One2One_AssetExchange_LoseFieldAsset() {
@@ -556,31 +621,37 @@ func (suite *TransactionMgrSuite) Test009_One2One_AssetExchange_LoseFieldAsset()
 		ReceiverOnDst: "AAA",
 		AssetOnDst:    10,
 	}
+	proof := "test"
+	proofHash := sha256.Sum256([]byte(proof))
 
 	content, err := aei.Marshal()
 	suite.Require().Nil(err)
 
-	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Extra: content}
+	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	data0, err := ib0.Marshal()
 	suite.Require().Nil(err)
 
-	res0, err := suite.client0.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
+	tx.Extra = []byte(proof)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(1), res0.Status, string(res0.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res0.Status, string(res0.Ret))
 
 	res, err := suite.client0.client.InvokeBVMContract(rpcx.AssetExchangeContractAddr, "GetStatus", pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(1), res.Status, string(res.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res.Status, string(res.Ret))
 
-	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Extra: []byte(aei.Id)}
+	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	data1, err := ib1.Marshal()
 	suite.Require().Nil(err)
 
-	res1, err := suite.client1.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
+	tx.Extra = []byte(proof)
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(1), res1.Status, string(res1.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res1.Status, string(res1.Ret))
 
 	res, err = suite.client0.client.InvokeBVMContract(rpcx.AssetExchangeContractAddr, "GetStatus", pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_Status(1), res.Status, string(res.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res.Status, string(res.Ret))
 }

@@ -1,6 +1,7 @@
 package bxh_tester
 
 import (
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"io/ioutil"
@@ -74,13 +75,17 @@ func (suite *Snake) TestHandleIBTPShouldSucceed() {
 	suite.RegisterAppchain(kA, "hyperchain")
 	suite.RegisterAppchain(kB, "fabric")
 	suite.RegisterRule(kA, "./testdata/simple_rule.wasm")
+	proof := "test"
+	proofHash := sha256.Sum256([]byte(proof))
 
 	suite.client.SetPrivateKey(kA)
-	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 1, Timestamp: time.Now().UnixNano()}
+	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 	data, err := ib.Marshal()
 	suite.Require().Nil(err)
 
-	res, err := suite.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx.Extra = []byte(proof)
+	res, err := suite.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 }
@@ -88,13 +93,17 @@ func (suite *Snake) TestHandleIBTPShouldSucceed() {
 func (suite *Snake) TestHandleIBTPWithNonexistentFrom() {
 	kA, kB, from, to := suite.prepare()
 	suite.RegisterAppchain(kB, "fabric")
+	proof := "test"
+	proofHash := sha256.Sum256([]byte(proof))
 
 	suite.client.SetPrivateKey(kA)
-	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 1, Timestamp: time.Now().UnixNano()}
+	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 	data, err := ib.Marshal()
 	suite.Require().Nil(err)
 
-	res, err := suite.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx.Extra = []byte(proof)
+	res, err := suite.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 }
@@ -103,12 +112,16 @@ func (suite *Snake) TestHandleIBTPWithNonexistentTo() {
 	kA, _, from, to := suite.prepare()
 	suite.RegisterAppchain(kA, "hyperchain")
 	suite.RegisterRule(kA, "./testdata/simple_rule.wasm")
+	proof := "test"
+	proofHash := sha256.Sum256([]byte(proof))
 
-	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 1, Timestamp: time.Now().UnixNano()}
+	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 	data, err := ib.Marshal()
 	suite.Require().Nil(err)
 
-	res, err := suite.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx.Extra = []byte(proof)
+	res, err := suite.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 }
@@ -117,13 +130,17 @@ func (suite *Snake) TestHandleIBTPWithNonexistentRule() {
 	kA, kB, from, to := suite.prepare()
 	suite.RegisterAppchain(kA, "hyperchain")
 	suite.RegisterAppchain(kB, "fabric")
+	proof := "test"
+	proofHash := sha256.Sum256([]byte(proof))
 
 	suite.client.SetPrivateKey(kA)
-	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 1, Timestamp: time.Now().UnixNano()}
+	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 	data, err := ib.Marshal()
 	suite.Require().Nil(err)
 
-	res, err := suite.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx.Extra = []byte(proof)
+	res, err := suite.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 }
@@ -133,13 +150,17 @@ func (suite *Snake) TestHandleIBTPWithWrongIBTPIndex() {
 	suite.RegisterAppchain(kA, "hyperchain")
 	suite.RegisterAppchain(kB, "fabric")
 	suite.RegisterRule(kA, "./testdata/simple_rule.wasm")
+	proof := "test"
+	proofHash := sha256.Sum256([]byte(proof))
 
 	suite.client.SetPrivateKey(kA)
-	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 2, Timestamp: time.Now().UnixNano()}
+	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 2, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 	data, err := ib.Marshal()
 	suite.Require().Nil(err)
 
-	res, err := suite.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx.Extra = []byte(proof)
+	res, err := suite.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 }
@@ -149,27 +170,36 @@ func (suite *Snake) TestGetIBTPByID() {
 	suite.RegisterAppchain(kA, "hyperchain")
 	suite.RegisterAppchain(kB, "fabric")
 	suite.RegisterRule(kA, "./testdata/simple_rule.wasm")
+	proof := "test"
+	proofHash := sha256.Sum256([]byte(proof))
 
 	suite.client.SetPrivateKey(kA)
-	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 1, Timestamp: time.Now().UnixNano()}
+	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 	data, err := ib.Marshal()
 	suite.Require().Nil(err)
 
-	res, err := suite.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx.Extra = []byte(proof)
+	res, err := suite.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
 	ib.Index = 2
 	data, err = ib.Marshal()
 	suite.Require().Nil(err)
-	res, err = suite.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+
+	tx, _ = suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx.Extra = []byte(proof)
+	res, err = suite.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
 	ib.Index = 3
 	data, err = ib.Marshal()
 	suite.Require().Nil(err)
-	res, err = suite.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx, _ = suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx.Extra = []byte(proof)
+	res, err = suite.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
@@ -185,14 +215,17 @@ func (suite *Snake) TestHandleIBTPWithWrongProof() {
 	suite.RegisterAppchain(kA, "hyperchain")
 	suite.RegisterAppchain(kB, "fabric")
 	suite.RegisterRule(kA, "./testdata/example.wasm")
+	proof := "test"
+	proofHash := sha256.Sum256([]byte(proof))
 
 	suite.client.SetPrivateKey(kA)
-	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 1, Timestamp: time.Now().UnixNano()}
+	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 	data, err := ib.Marshal()
 	suite.Require().Nil(err)
 
-	ib.Proof = []byte("abc")
-	res, err := suite.client.InvokeBVMContract(rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx.Extra = []byte(proof)
+	res, err := suite.client.SendTransactionWithReceipt(tx)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 }
