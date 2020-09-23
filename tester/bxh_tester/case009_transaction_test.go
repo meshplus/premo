@@ -45,6 +45,7 @@ func (suite *Snake) TestTXEmptyTo() {
 	_, err = suite.client.SendTransaction(tx)
 	suite.Require().NotNil(err)
 }
+
 /*增加form和to都为空*/
 func (suite *Snake) TestTXEmptyFromAndTo() {
 	tx := &pb.Transaction{
@@ -59,11 +60,12 @@ func (suite *Snake) TestTXEmptyFromAndTo() {
 	_, err = suite.client.SendTransaction(tx)
 	suite.Require().NotNil(err)
 }
+
 /*增加from和to相同*/
 func (suite *Snake) TestTXSameFromAndTo() {
 	tx := &pb.Transaction{
 		From: suite.from,
-		To: suite.from,
+		To:   suite.from,
 		Data: &pb.TransactionData{
 			Amount: 1,
 		},
@@ -112,10 +114,8 @@ func (suite *Snake) TestTXWrongSigPrivateKey() {
 	hash, err := suite.client.SendTransaction(tx)
 	suite.Require().Nil(err)
 
-	ret, err := suite.client.GetReceipt(hash)
-	suite.Require().Nil(err)
-	suite.Require().NotNil(ret)
-	suite.Require().True(ret.Status == pb.Receipt_FAILED)
+	_, err = suite.client.GetReceipt(hash)
+	suite.Require().NotNil(err)
 }
 
 func (suite *Snake) TestTXWrongSigAlgorithm() {
@@ -201,6 +201,7 @@ func (suite *Snake) TestGetReceiptByHash() {
 	suite.Require().True(ret.Status == pb.Receipt_SUCCESS)
 	suite.Require().Equal(tx.Hash().String(), ret.TxHash.String())
 }
+
 /*通过错误的hash值进行查询*/
 func (suite *Snake) TestGetReceiptByWrongHash() {
 	tx := &pb.Transaction{

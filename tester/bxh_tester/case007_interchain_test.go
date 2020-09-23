@@ -103,9 +103,8 @@ func (suite *Snake) TestHandleIBTPWithNonexistentFrom() {
 
 	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
-	res, err := suite.client.SendTransactionWithReceipt(tx)
-	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
+	_, err = suite.client.SendTransactionWithReceipt(tx)
+	suite.Require().NotNil(err)
 }
 
 func (suite *Snake) TestHandleIBTPWithNonexistentTo() {
@@ -140,9 +139,8 @@ func (suite *Snake) TestHandleIBTPWithNonexistentRule() {
 
 	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
-	res, err := suite.client.SendTransactionWithReceipt(tx)
-	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
+	_, err = suite.client.SendTransactionWithReceipt(tx)
+	suite.Require().NotNil(err)
 }
 
 func (suite *Snake) TestHandleIBTPWithWrongIBTPIndex() {
@@ -225,7 +223,6 @@ func (suite *Snake) TestHandleIBTPWithWrongProof() {
 
 	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
-	res, err := suite.client.SendTransactionWithReceipt(tx)
-	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
+	_, err = suite.client.SendTransactionWithReceipt(tx)
+	suite.Require().NotNil(err)
 }
