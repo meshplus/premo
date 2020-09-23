@@ -2,6 +2,7 @@ package bxh_tester
 
 import (
 	"math/rand"
+	"strconv"
 
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
@@ -17,7 +18,8 @@ func (suite *Snake) TestSet10MData() {
 }
 
 func (suite *Snake) TestGetEmptyKey() {
-	receipt1, err := suite.client.InvokeBVMContract(rpcx.StoreContractAddr, "Get", pb.String(""))
+
+	receipt1, err := suite.client.InvokeBVMContract(rpcx.StoreContractAddr, "Get", pb.String(strconv.FormatUint(uint64(rand.Int()), 10)))
 	suite.Require().Nil(err)
 
 	suite.Require().Equal(pb.Receipt_FAILED, receipt1.Status)

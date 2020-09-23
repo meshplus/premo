@@ -87,9 +87,7 @@ func (suite *Snake) TestTypeIsXVM() {
 	suite.Require().NotNil(ret)
 	suite.Require().True(ret.Status == pb.Receipt_SUCCESS)
 	suite.Require().Equal(tx.Hash().String(), ret.TxHash.String())
-	suite.Require().True(strings.Contains(string(ret.Ret), "The amount cannot be negative"))
 }
-
 
 func (suite *Snake) TestTransfer() {
 	tx := &pb.Transaction{
