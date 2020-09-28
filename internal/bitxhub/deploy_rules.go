@@ -30,7 +30,7 @@ func DeployRules(path, key, addr string) error {
 	if err != nil {
 		return err
 	}
-	contractAddr, err := cli.DeployContract(contract)
+	contractAddr, err := cli.DeployContract(contract, nil)
 	if err != nil {
 		return err
 	}
@@ -38,7 +38,8 @@ func DeployRules(path, key, addr string) error {
 	if err != nil {
 		return err
 	}
-	_, err = cli.InvokeContract(pb.TransactionData_BVM, ValidationContractAddr, "RegisterRule", rpcx.String(chainAddr.String()), rpcx.String(contractAddr.String()))
+	_, err = cli.InvokeContract(pb.TransactionData_BVM, ValidationContractAddr,
+		"RegisterRule", nil, rpcx.String(chainAddr.String()), rpcx.String(contractAddr.String()))
 	if err != nil {
 		return err
 	}

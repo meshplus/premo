@@ -30,6 +30,7 @@ type config struct {
 type Broker struct {
 	config *Config
 	bees   []*bee
+	client rpcx.Client
 }
 
 type Config struct {
@@ -84,9 +85,19 @@ func New(config *Config) (*Broker, error) {
 		"number": len(bees),
 	}).Info("generate all bees")
 
+	client, err := rpcx.New(
+		rpcx.WithAddrs(config.BitxhubAddr),
+		rpcx.WithLogger(cfg.logger),
+		rpcx.WithPrivateKey(bees[0].xprivKey),
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Broker{
 		config: config,
 		bees:   bees,
+		client: client,
 	}, nil
 }
 
@@ -98,6 +109,12 @@ func (broker *Broker) Start(typ string) error {
 	current := time.Now()
 	lastCounter := atomic.LoadInt64(&counter)
 	lastDelayer := atomic.LoadInt64(&delayer)
+
+	meta0, err := broker.client.GetChainMeta()
+	if err != nil {
+		return err
+	}
+
 	for i := 0; i < len(broker.bees); i++ {
 		go func(i int) {
 			err := broker.bees[i].start(typ)
@@ -105,7 +122,6 @@ func (broker *Broker) Start(typ string) error {
 				logger.Error(err)
 				return
 			}
-
 		}(i)
 		log.WithFields(logrus.Fields{
 			"index": i + 1,
@@ -135,6 +151,23 @@ func (broker *Broker) Start(typ string) error {
 	time.Sleep(time.Duration(broker.config.Duration) * time.Second)
 
 	_ = broker.Stop(current)
+
+	meta1, err := broker.client.GetChainMeta()
+	if err != nil {
+		return err
+	}
+
+	time.Sleep(20 * time.Second)
+
+	skip := (meta1.Height - meta0.Height) / 8
+	begin := meta0.Height + skip
+	end := meta1.Height - skip
+	tps, err := broker.client.GetTPS(begin, end)
+	if err != nil {
+		return err
+	}
+	log.Infof("the TPS from block %d to %d is %d", begin, end, tps)
+
 	return nil
 }
 

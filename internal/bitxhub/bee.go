@@ -5,7 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"math/rand"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -22,19 +22,24 @@ import (
 var counter int64
 var sender int64
 var delayer int64
+var ibtppd []byte
+var proofHash types.Hash
+var lock sync.Mutex
 
 type bee struct {
-	xprivKey crypto.PrivateKey
-	xfrom    types.Address
-	xid      string
-	client   rpcx.Client
-	privKey  crypto.PrivateKey
-	from     types.Address
-	tps      int
-	count    uint64
-	ctx      context.Context
-	cancel   context.CancelFunc
-	config   *Config
+	xprivKey    crypto.PrivateKey
+	xfrom       types.Address
+	xid         string
+	client      rpcx.Client
+	privKey     crypto.PrivateKey
+	from        types.Address
+	tps         int
+	count       uint64
+	norMalSeqNo uint64
+	ibtpSeqNo   uint64
+	ctx         context.Context
+	cancel      context.CancelFunc
+	config      *Config
 }
 
 func NewBee(tps int, keyPath string, addrs []string, config *Config) (*bee, error) {
@@ -77,22 +82,23 @@ func NewBee(tps int, keyPath string, addrs []string, config *Config) (*bee, erro
 	ctx, cancel := context.WithCancel(context.Background())
 
 	return &bee{
-		client:   client,
-		xprivKey: xpk,
-		xfrom:    xfrom,
-		privKey:  privKey,
-		from:     from,
-		tps:      tps,
-		ctx:      ctx,
-		cancel:   cancel,
-		xid:      "",
-		config:   config,
+		client:      client,
+		xprivKey:    xpk,
+		xfrom:       xfrom,
+		privKey:     privKey,
+		from:        from,
+		tps:         tps,
+		ctx:         ctx,
+		cancel:      cancel,
+		xid:         "",
+		config:      config,
+		ibtpSeqNo:   1,
+		norMalSeqNo: 1,
 	}, nil
 }
 
 func (bee *bee) start(typ string) error {
-	d := time.Second / time.Duration(bee.tps*10/9)
-	ticker := time.NewTicker(d)
+	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
 	for {
@@ -104,39 +110,54 @@ func (bee *bee) start(typ string) error {
 			}
 			return nil
 		case <-ticker.C:
-			atomic.AddUint64(&bee.count, 1)
-			switch typ {
-			case "interchain":
-				if err := bee.sendInterchainTx(bee.count); err != nil {
-					logger.Error(err)
-					return err
+			for i := 0; i < bee.tps; i++ {
+				bee.count++
+				var ibtpNo uint64
+				if typ == "interchain" {
+					ibtpNo = atomic.LoadUint64(&bee.ibtpSeqNo)
+					atomic.AddUint64(&bee.ibtpSeqNo, 1)
 				}
-			case "data":
-				if err := bee.sendBVMTx(bee.count); err != nil {
-					logger.Error(err)
-					return err
-				}
-			case "transfer":
-				fallthrough
-			default:
-				privkey, err := asym.GenerateKeyPair(crypto.Secp256k1)
-				if err != nil {
-					logger.Error(err)
-					return err
-				}
+				go func(count, ibtpNo uint64) {
+					err := bee.sendTx(typ, count, ibtpNo)
+					if err != nil {
+						logger.Error(err)
+					}
 
-				to, err := privkey.PublicKey().Address()
-				if err != nil {
-					return err
-				}
-
-				if err := bee.sendTransferTx(to); err != nil {
-					logger.Error(err)
-					return err
-				}
+				}(bee.count, ibtpNo)
 			}
 		}
 	}
+}
+
+func (bee *bee) sendTx(typ string, count, ibtpNo uint64) error {
+	switch typ {
+	case "interchain":
+		if err := bee.sendInterchainTx(count, ibtpNo); err != nil {
+			return err
+		}
+
+	case "data":
+		if err := bee.sendBVMTx(count); err != nil {
+			return err
+		}
+	case "transfer":
+		fallthrough
+	default:
+		privkey, err := asym.GenerateKeyPair(crypto.Secp256k1)
+		if err != nil {
+			return err
+		}
+
+		to, err := privkey.PublicKey().Address()
+		if err != nil {
+			return err
+		}
+
+		if err := bee.sendTransferTx(to); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (bee *bee) stop() {
@@ -169,16 +190,17 @@ func (bee *bee) sendBVMTx(i uint64) error {
 		To:        rpcx.StoreContractAddr,
 		Data:      td,
 		Timestamp: time.Now().UnixNano(),
-		Nonce:     rand.Int63(),
+		Nonce:     atomic.LoadUint64(&bee.norMalSeqNo),
 	}
 
 	if err := tx.Sign(bee.privKey); err != nil {
 		return err
 	}
-	_, err = bee.client.SendTransaction(tx)
+	_, err = bee.client.SendTransaction(tx, nil)
 	if err != nil {
 		return err
 	}
+	atomic.AddUint64(&bee.norMalSeqNo, 1)
 	go bee.counterReceipt(tx)
 	return nil
 }
@@ -187,11 +209,15 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 	bee.client.SetPrivateKey(bee.xprivKey)
 	// register chain
 	pubKey, _ := bee.xprivKey.PublicKey().Bytes()
-	receipt, err := bee.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "Register", rpcx.String(validators),
-		rpcx.Int32(1), rpcx.String(chainType), rpcx.String(name), rpcx.String(desc), rpcx.String(version), rpcx.String(string(pubKey)))
+	receipt, err := bee.invokeContract(rpcx.AppchainMgrContractAddr, atomic.LoadUint64(&bee.norMalSeqNo),
+		"Register", rpcx.String(validators), rpcx.Int32(1), rpcx.String(chainType),
+		rpcx.String(name), rpcx.String(desc), rpcx.String(version), rpcx.String(string(pubKey)))
 	if err != nil {
 		return fmt.Errorf("register appchain error: %w", err)
 	}
+
+	atomic.AddUint64(&bee.norMalSeqNo, 1)
+
 	appchain := &rpcx.Appchain{}
 	if err := json.Unmarshal(receipt.Ret, appchain); err != nil {
 		return err
@@ -199,16 +225,17 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 	ID := appchain.ID
 
 	// Audit chain
-	_, err = bee.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr,
+	receipt, err = bee.invokeContract(rpcx.AppchainMgrContractAddr, atomic.LoadUint64(&bee.norMalSeqNo),
 		"Audit", rpcx.String(ID), rpcx.Int32(1), rpcx.String(""))
 	if err != nil {
 		return fmt.Errorf("audit appchain error:%w", err)
 	}
+	atomic.AddUint64(&bee.norMalSeqNo, 1)
 
 	ruleAddr := "0x00000000000000000000000000000000000000a1"
 	// deploy rule
 	if chainType == "hyperchain" {
-		contractAddr, err := bee.client.DeployContract(contract)
+		contractAddr, err := bee.client.DeployContract(contract, nil)
 		if err != nil {
 			return fmt.Errorf("deploy contract error:%w", err)
 		}
@@ -218,11 +245,50 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 		ruleAddr = "0x00000000000000000000000000000000000000a0"
 	}
 
-	_, err = bee.client.InvokeContract(pb.TransactionData_BVM, ValidationContractAddr, "RegisterRule", rpcx.String(ID), rpcx.String(ruleAddr))
+	_, err = bee.invokeContract(ValidationContractAddr, atomic.LoadUint64(&bee.norMalSeqNo),
+		"RegisterRule", rpcx.String(ID), rpcx.String(ruleAddr))
 	if err != nil {
 		return fmt.Errorf("register rule error:%w", err)
 	}
+	atomic.AddUint64(&bee.norMalSeqNo, 1)
+
+	prepareInterchainTx(bee.config.Proof)
+
 	return nil
+}
+
+func (bee *bee) invokeContract(address types.Address, nonce uint64, method string, args ...*pb.Arg) (*pb.Receipt, error) {
+	from := bee.xfrom
+
+	pl := &pb.InvokePayload{
+		Method: method,
+		Args:   args[:],
+	}
+
+	data, err := pl.Marshal()
+	if err != nil {
+		return nil, err
+	}
+
+	td := &pb.TransactionData{
+		Type:    pb.TransactionData_INVOKE,
+		VmType:  pb.TransactionData_BVM,
+		Payload: data,
+	}
+
+	tx := &pb.Transaction{
+		From:      from,
+		To:        address,
+		Data:      td,
+		Timestamp: time.Now().UnixNano(),
+		Nonce:     nonce,
+	}
+
+	if err := tx.Sign(bee.xprivKey); err != nil {
+		return nil, fmt.Errorf("tx sign: %w", err)
+	}
+
+	return bee.client.SendTransactionWithReceipt(tx, nil)
 }
 
 func (bee *bee) sendTransferTx(to types.Address) error {
@@ -236,7 +302,7 @@ func (bee *bee) sendTransferTx(to types.Address) error {
 			Type:   pb.TransactionData_NORMAL,
 			Amount: 1,
 		},
-		Nonce: rand.Int63(),
+		Nonce: atomic.LoadUint64(&bee.norMalSeqNo),
 	}
 
 	err := tx.Sign(bee.privKey)
@@ -244,25 +310,24 @@ func (bee *bee) sendTransferTx(to types.Address) error {
 		return err
 	}
 
-	_, err = bee.client.SendTransaction(tx)
+	_, err = bee.client.SendTransaction(tx, nil)
 	if err != nil {
 		return err
 	}
+	atomic.AddUint64(&bee.norMalSeqNo, 1)
+
 	go bee.counterReceipt(tx)
 
 	return nil
 }
 
-func (bee *bee) sendInterchainTx(i uint64) error {
+func (bee *bee) sendInterchainTx(i uint64, ibtpNo uint64) error {
 	atomic.AddInt64(&sender, 1)
 	ibtp := mockIBTP(i, bee.xfrom.String(), bee.xfrom.String(), bee.config.Proof)
 	b, err := ibtp.Marshal()
 	if err != nil {
 		return err
 	}
-
-	args := make([]*pb.Arg, 0)
-	args = append(args, rpcx.Bytes(b))
 
 	pl := &pb.InvokePayload{
 		Method: "HandleIBTP",
@@ -285,15 +350,17 @@ func (bee *bee) sendInterchainTx(i uint64) error {
 		To:        rpcx.InterchainContractAddr,
 		Data:      td,
 		Timestamp: time.Now().UnixNano(),
-		Nonce:     rand.Int63(),
 		Extra:     bee.config.Proof,
 	}
 
-	if err := tx.Sign(bee.xprivKey); err != nil {
-		return err
-	}
+	//if err := tx.Sign(bee.xprivKey); err != nil {
+	//	return err
+	//}
 
-	_, err = bee.client.SendTransaction(tx)
+	_, err = bee.client.SendTransaction(tx, &rpcx.TransactOpts{
+		From:      fmt.Sprintf("%s-%s-%d", ibtp.From, ibtp.To, ibtp.Type),
+		IBTPNonce: ibtpNo,
+	})
 	if err != nil {
 		return err
 	}
@@ -302,7 +369,11 @@ func (bee *bee) sendInterchainTx(i uint64) error {
 	return nil
 }
 
-func mockIBTP(index uint64, from, to string, proof []byte) *pb.IBTP {
+func prepareInterchainTx(proof []byte) {
+	if ibtppd != nil {
+		return
+	}
+
 	content := &pb.Content{
 		SrcContractId: "mychannel&transfer",
 		DstContractId: "mychannel&transfer",
@@ -318,10 +389,11 @@ func mockIBTP(index uint64, from, to string, proof []byte) *pb.IBTP {
 		Content:   bytes,
 	}
 
-	ibtppd, _ := payload.Marshal()
+	ibtppd, _ = payload.Marshal()
+	proofHash = sha256.Sum256(proof)
+}
 
-	proofHash := sha256.Sum256(proof)
-
+func mockIBTP(index uint64, from, to string, proof []byte) *pb.IBTP {
 	return &pb.IBTP{
 		From:      from,
 		To:        to,
