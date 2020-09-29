@@ -16,12 +16,14 @@ require (
 	github.com/google/certificate-transparency-go v1.1.0 // indirect
 	github.com/hyperledger/fabric-lib-go v1.0.0 // indirect
 	github.com/hyperledger/fabric-sdk-go v1.0.0-alpha5
+	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/meshplus/bitxhub-kit v1.0.1-0.20200813124031-6f6bdc99564f
 	github.com/meshplus/bitxhub-model v1.0.0-rc4.0.20200927025558-ef1daaa6a629
-	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20200927072826-474f91eca4e9
+	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20200927102636-d78bdd9d3220
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.7.2-0.20200724220135-c650ae9fa103 // indirect
@@ -34,6 +36,7 @@ require (
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/wonderivan/logger v1.0.0
 	go.etcd.io/etcd v3.3.13+incompatible
+	sigs.k8s.io/yaml v1.2.0 // indirect
 )
 
 replace github.com/golang/protobuf => github.com/golang/protobuf v1.3.2
