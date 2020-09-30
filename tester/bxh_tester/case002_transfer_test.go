@@ -1,7 +1,6 @@
 package bxh_tester
 
 import (
-	"math/rand"
 	"strings"
 	"time"
 
@@ -25,13 +24,13 @@ func (suite *Snake) TestTransferLessThanAmount() {
 			Amount: amount,
 		},
 		Timestamp: time.Now().UnixNano(),
-		Nonce:     rand.Int63(),
+		//Nonce:     rand.Int63(),
 	}
 
 	err = tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	hash, err := suite.client.SendTransaction(tx)
+	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
@@ -50,13 +49,13 @@ func (suite *Snake) TestToAddressIs0X000___000() {
 			Amount: 1,
 		},
 		Timestamp: time.Now().UnixNano(),
-		Nonce:     rand.Int63(),
+		//Nonce:     rand.Int63(),
 	}
 
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	hash, err := suite.client.SendTransaction(tx)
+	hash, err := suite.client.SendTransaction(tx,nil)
 	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
@@ -74,13 +73,13 @@ func (suite *Snake) TestTypeIsXVM() {
 			Amount: 1,
 		},
 		Timestamp: time.Now().UnixNano(),
-		Nonce:     rand.Int63(),
+		//Nonce:     rand.Int63(),
 	}
 
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	hash, err := suite.client.SendTransaction(tx)
+	hash, err := suite.client.SendTransaction(tx,nil)
 	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
@@ -97,13 +96,13 @@ func (suite *Snake) TestTransfer() {
 			Amount: 1,
 		},
 		Timestamp: time.Now().UnixNano(),
-		Nonce:     rand.Int63(),
+		//Nonce:     rand.Int63(),
 	}
 
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	hash, err := suite.client.SendTransaction(tx)
+	hash, err := suite.client.SendTransaction(tx,nil)
 	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)

@@ -23,7 +23,10 @@ func (suite *TransactionMgrSuite) Test001_One2One_HappyPath() {
 
 	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib0.From + ib0.To,
+		IBTPNonce: ib0.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res0.Status, string(res0.Ret))
 
@@ -33,12 +36,15 @@ func (suite *TransactionMgrSuite) Test001_One2One_HappyPath() {
 
 	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
 	tx.Extra = []byte(proof)
-	res1, err := suite.client1.client.SendTransactionWithReceipt(tx)
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib1.From + ib1.To,
+		IBTPNonce: ib1.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res1.Status, string(res1.Ret))
 
 	txId := fmt.Sprintf("%s-%s-%d", from, to, index)
-	res, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus", pb.String(txId))
+	res, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus",nil, pb.String(txId))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res.Status, string(res.Ret))
 
@@ -60,7 +66,10 @@ func (suite *TransactionMgrSuite) Test002_One2One_ToFail() {
 
 	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib0.From + ib0.To,
+		IBTPNonce: ib0.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res0.Status, string(res0.Ret))
 
@@ -70,12 +79,15 @@ func (suite *TransactionMgrSuite) Test002_One2One_ToFail() {
 
 	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
 	tx.Extra = []byte(proof)
-	res1, err := suite.client1.client.SendTransactionWithReceipt(tx)
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib1.From + ib1.To,
+		IBTPNonce: ib1.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res1.Status, string(res1.Ret))
 
 	txId := fmt.Sprintf("%s-%s-%d", from, to, index)
-	res, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus", pb.String(txId))
+	res, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus",nil, pb.String(txId))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res.Status, string(res.Ret))
 
@@ -97,12 +109,15 @@ func (suite *TransactionMgrSuite) Test003_One2One_Unfinished() {
 
 	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib0.From + ib0.To,
+		IBTPNonce: ib0.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res0.Status)
 
 	txId := fmt.Sprintf("%s-%s-%d", from, to, index)
-	res, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus", pb.String(txId))
+	res, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus",nil, pb.String(txId))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res.Status, string(res.Ret))
 
@@ -123,15 +138,18 @@ func (suite *TransactionMgrSuite) Test004_One2Multi_HappyPath() {
 	ib1 := &pb.IBTP{From: from, To: to2, Index: index, Type: pb.IBTP_INTERCHAIN, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 
 	ibtps := pb.IBTPs{}
-	ibtps.Iptp = append(ibtps.Iptp, ib0)
-	ibtps.Iptp = append(ibtps.Iptp, ib1)
+	ibtps.Ibtps = append(ibtps.Ibtps, ib0)
+	ibtps.Ibtps = append(ibtps.Ibtps, ib1)
 
 	data0, err := ibtps.Marshal()
 	suite.Require().Nil(err)
 
 	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTPs", pb.Bytes(data0))
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib0.From + ib0.To,
+		IBTPNonce: ib0.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res0.Status, string(res0.Ret))
 
@@ -143,7 +161,10 @@ func (suite *TransactionMgrSuite) Test004_One2Multi_HappyPath() {
 
 	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
 	tx.Extra = []byte(proof)
-	res1, err := suite.client1.client.SendTransactionWithReceipt(tx)
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib1.From + ib1.To,
+		IBTPNonce: ib1.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res1.Status, string(res1.Ret))
 
@@ -153,12 +174,15 @@ func (suite *TransactionMgrSuite) Test004_One2Multi_HappyPath() {
 
 	tx, _ = suite.client2.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data2))
 	tx.Extra = []byte(proof)
-	res2, err := suite.client2.client.SendTransactionWithReceipt(tx)
+	res2, err := suite.client2.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib2.From + ib2.To,
+		IBTPNonce: ib2.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res2.Status, string(res2.Ret))
 
 	globalTxId := fmt.Sprintf("%s-%s", from, res0.TxHash.String())
-	res, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus", pb.String(globalTxId))
+	res, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus",nil, pb.String(globalTxId))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res.Status, string(res.Ret))
 
@@ -179,15 +203,18 @@ func (suite *TransactionMgrSuite) Test005_One2Multi_ToFail() {
 	ib1 := &pb.IBTP{From: from, To: to2, Index: index, Type: pb.IBTP_INTERCHAIN, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 
 	ibtps := pb.IBTPs{}
-	ibtps.Iptp = append(ibtps.Iptp, ib0)
-	ibtps.Iptp = append(ibtps.Iptp, ib1)
+	ibtps.Ibtps = append(ibtps.Ibtps, ib0)
+	ibtps.Ibtps = append(ibtps.Ibtps, ib1)
 
 	data0, err := ibtps.Marshal()
 	suite.Require().Nil(err)
 
 	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTPs", pb.Bytes(data0))
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib0.From + ib0.To,
+		IBTPNonce: ib0.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res0.Status, string(res0.Ret))
 
@@ -199,7 +226,10 @@ func (suite *TransactionMgrSuite) Test005_One2Multi_ToFail() {
 
 	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
 	tx.Extra = []byte(proof)
-	res1, err := suite.client1.client.SendTransactionWithReceipt(tx)
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib1.From + ib1.To,
+		IBTPNonce: ib1.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res1.Status, string(res1.Ret))
 
@@ -209,12 +239,15 @@ func (suite *TransactionMgrSuite) Test005_One2Multi_ToFail() {
 
 	tx, _ = suite.client2.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data2))
 	tx.Extra = []byte(proof)
-	res2, err := suite.client2.client.SendTransactionWithReceipt(tx)
+	res2, err := suite.client2.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib2.From + ib2.To,
+		IBTPNonce: ib2.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res2.Status, string(res2.Ret))
 
 	globalTxId := fmt.Sprintf("%s-%s", from, res0.TxHash.String())
-	res, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus", pb.String(globalTxId))
+	res, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus",nil, pb.String(globalTxId))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res.Status, string(res.Ret))
 
@@ -235,15 +268,18 @@ func (suite *TransactionMgrSuite) Test006_One2Multi_Unfinished() {
 	ib1 := &pb.IBTP{From: from, To: to2, Index: index, Type: pb.IBTP_INTERCHAIN, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 
 	ibtps := pb.IBTPs{}
-	ibtps.Iptp = append(ibtps.Iptp, ib0)
-	ibtps.Iptp = append(ibtps.Iptp, ib1)
+	ibtps.Ibtps = append(ibtps.Ibtps, ib0)
+	ibtps.Ibtps = append(ibtps.Ibtps, ib1)
 
 	data0, err := ibtps.Marshal()
 	suite.Require().Nil(err)
 
 	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTPs", pb.Bytes(data0))
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib0.From + ib0.To,
+		IBTPNonce: ib0.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res0.Status, string(res0.Ret))
 
@@ -255,12 +291,15 @@ func (suite *TransactionMgrSuite) Test006_One2Multi_Unfinished() {
 
 	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
 	tx.Extra = []byte(proof)
-	res1, err := suite.client1.client.SendTransactionWithReceipt(tx)
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib1.From + ib1.To,
+		IBTPNonce: ib1.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res1.Status, string(res1.Ret))
 
 	globalTxId := fmt.Sprintf("%s-%s", from, res0.TxHash.String())
-	res, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus", pb.String(globalTxId))
+	res, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus",nil, pb.String(globalTxId))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res.Status, string(res.Ret))
 
@@ -282,7 +321,10 @@ func (suite *TransactionMgrSuite) Test007_One2One_FinishedStatus_Success() {
 
 	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib0.From + ib0.To,
+		IBTPNonce: ib0.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res0.Status, string(res0.Ret))
 
@@ -292,19 +334,22 @@ func (suite *TransactionMgrSuite) Test007_One2One_FinishedStatus_Success() {
 
 	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
 	tx.Extra = []byte(proof)
-	res1, err := suite.client1.client.SendTransactionWithReceipt(tx)
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib1.From + ib1.To,
+		IBTPNonce: ib1.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res1.Status, string(res1.Ret))
 
 	txId := fmt.Sprintf("%s-%s-%d", from, to, index)
 
 	//test client0 GetStatus
-	txRes0, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus", pb.String(txId))
+	txRes0, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus",nil, pb.String(txId))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), txRes0.Status, string(txRes0.Ret))
 
 	//test client1 GetStatus
-	txRes1, err := suite.client1.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus", pb.String(txId))
+	txRes1, err := suite.client1.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus",nil, pb.String(txId))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), txRes1.Status, string(txRes1.Ret))
 }
@@ -322,7 +367,10 @@ func (suite *TransactionMgrSuite) Test008_One2One_FinishedStatus_Failure() {
 
 	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib0.From + ib0.To,
+		IBTPNonce: ib0.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res0.Status, string(res0.Ret))
 
@@ -332,19 +380,22 @@ func (suite *TransactionMgrSuite) Test008_One2One_FinishedStatus_Failure() {
 
 	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
 	tx.Extra = []byte(proof)
-	res1, err := suite.client1.client.SendTransactionWithReceipt(tx)
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib1.From + ib1.To,
+		IBTPNonce: ib1.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res1.Status, string(res1.Ret))
 
 	txId := fmt.Sprintf("%s-%s-%d", from, to, index)
 
 	//test client0 GetStatus
-	txRes0, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus", pb.String(txId))
+	txRes0, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus",nil, pb.String(txId))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), txRes0.Status, string(txRes0.Ret))
 
 	//test client1 GetStatus
-	txRes1, err := suite.client1.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus", pb.String(txId))
+	txRes1, err := suite.client1.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus",nil, pb.String(txId))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), txRes1.Status, string(txRes1.Ret))
 }
@@ -361,15 +412,18 @@ func (suite *TransactionMgrSuite) Test009_One2Multi_FinishedStatus_Success() {
 	ib1 := &pb.IBTP{From: from, To: to1, Index: index, Type: pb.IBTP_INTERCHAIN, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 
 	ibtps := pb.IBTPs{}
-	ibtps.Iptp = append(ibtps.Iptp, ib0)
-	ibtps.Iptp = append(ibtps.Iptp, ib1)
+	ibtps.Ibtps = append(ibtps.Ibtps, ib0)
+	ibtps.Ibtps = append(ibtps.Ibtps, ib1)
 
 	data0, err := ibtps.Marshal()
 	suite.Require().Nil(err)
 
 	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTPs", pb.Bytes(data0))
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib0.From + ib0.To,
+		IBTPNonce: ib0.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res0.Status, string(res0.Ret))
 
@@ -382,7 +436,10 @@ func (suite *TransactionMgrSuite) Test009_One2Multi_FinishedStatus_Success() {
 
 	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
 	tx.Extra = []byte(proof)
-	res1, err := suite.client1.client.SendTransactionWithReceipt(tx)
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib1.From + ib1.To,
+		IBTPNonce: ib1.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res1.Status, string(res1.Ret))
 
@@ -395,14 +452,17 @@ func (suite *TransactionMgrSuite) Test009_One2Multi_FinishedStatus_Success() {
 
 	tx, _ = suite.client2.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data2))
 	tx.Extra = []byte(proof)
-	res2, err := suite.client2.client.SendTransactionWithReceipt(tx)
+	res2, err := suite.client2.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib2.From + ib2.To,
+		IBTPNonce: ib2.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res2.Status, string(res2.Ret))
 
 	globalTxId := fmt.Sprintf("%s-%s", from, res0.TxHash.String())
 
 	//client0
-	client0res, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus", pb.String(globalTxId))
+	client0res, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus",nil, pb.String(globalTxId))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), client0res.Status, string(client0res.Ret))
 
@@ -411,7 +471,7 @@ func (suite *TransactionMgrSuite) Test009_One2Multi_FinishedStatus_Success() {
 	suite.Require().Equal(pb.TransactionStatus_SUCCESS, pb.TransactionStatus(client0status))
 
 	//client1
-	client1res, err := suite.client1.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus", pb.String(globalTxId))
+	client1res, err := suite.client1.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus",nil, pb.String(globalTxId))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), client1res.Status, string(client1res.Ret))
 
@@ -420,7 +480,7 @@ func (suite *TransactionMgrSuite) Test009_One2Multi_FinishedStatus_Success() {
 	suite.Require().Equal(pb.TransactionStatus_SUCCESS, pb.TransactionStatus(client1status))
 
 	//client2
-	client2res, err := suite.client2.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus", pb.String(globalTxId))
+	client2res, err := suite.client2.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus",nil, pb.String(globalTxId))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), client2res.Status, string(client2res.Ret))
 
@@ -441,15 +501,18 @@ func (suite *TransactionMgrSuite) Test010_One2Multi_FinishedStatus_Failure() {
 	ib1 := &pb.IBTP{From: from, To: to1, Index: index, Type: pb.IBTP_INTERCHAIN, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 
 	ibtps := pb.IBTPs{}
-	ibtps.Iptp = append(ibtps.Iptp, ib0)
-	ibtps.Iptp = append(ibtps.Iptp, ib1)
+	ibtps.Ibtps = append(ibtps.Ibtps, ib0)
+	ibtps.Ibtps = append(ibtps.Ibtps, ib1)
 
 	data0, err := ibtps.Marshal()
 	suite.Require().Nil(err)
 
 	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTPs", pb.Bytes(data0))
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx)
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib0.From + ib0.To,
+		IBTPNonce: ib0.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res0.Status, string(res0.Ret))
 
@@ -462,7 +525,10 @@ func (suite *TransactionMgrSuite) Test010_One2Multi_FinishedStatus_Failure() {
 
 	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
 	tx.Extra = []byte(proof)
-	res1, err := suite.client1.client.SendTransactionWithReceipt(tx)
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib1.From + ib1.To,
+		IBTPNonce: ib1.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res1.Status, string(res1.Ret))
 
@@ -475,14 +541,17 @@ func (suite *TransactionMgrSuite) Test010_One2Multi_FinishedStatus_Failure() {
 
 	tx, _ = suite.client2.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data2))
 	tx.Extra = []byte(proof)
-	res2, err := suite.client2.client.SendTransactionWithReceipt(tx)
+	res2, err := suite.client2.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From: ib2.From + ib2.To,
+		IBTPNonce: ib2.Index,
+	})
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), res2.Status, string(res2.Ret))
 
 	globalTxId := fmt.Sprintf("%s-%s", from, res0.TxHash.String())
 
 	//client0
-	client0res, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus", pb.String(globalTxId))
+	client0res, err := suite.client0.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus",nil, pb.String(globalTxId))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), client0res.Status, string(client0res.Ret))
 
@@ -491,7 +560,7 @@ func (suite *TransactionMgrSuite) Test010_One2Multi_FinishedStatus_Failure() {
 	suite.Require().Equal(pb.TransactionStatus_FAILURE, pb.TransactionStatus(client0status))
 
 	//client1
-	client1res, err := suite.client1.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus", pb.String(globalTxId))
+	client1res, err := suite.client1.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus",nil, pb.String(globalTxId))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), client1res.Status, string(client1res.Ret))
 
@@ -500,7 +569,7 @@ func (suite *TransactionMgrSuite) Test010_One2Multi_FinishedStatus_Failure() {
 	suite.Require().Equal(pb.TransactionStatus_FAILURE, pb.TransactionStatus(client1status))
 
 	//client2
-	client2res, err := suite.client2.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus", pb.String(globalTxId))
+	client2res, err := suite.client2.client.InvokeBVMContract(rpcx.TransactionMgrContractAddr, "GetStatus",nil, pb.String(globalTxId))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_Status(0), client2res.Status, string(client2res.Ret))
 
