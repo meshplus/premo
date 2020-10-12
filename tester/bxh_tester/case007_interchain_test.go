@@ -231,6 +231,7 @@ func (suite *Snake) TestGetIBTPByID() {
 	res, err = suite.client.InvokeBVMContract(rpcx.InterchainContractAddr, "GetIBTPByID", nil, pb.String(ib.ID()))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+	suite.client.SetPrivateKey(suite.pk)
 }
 
 func (suite *Snake) TestHandleIBTPWithWrongProof() {
