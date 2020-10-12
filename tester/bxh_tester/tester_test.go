@@ -30,10 +30,12 @@ type config struct {
 
 type Snake struct {
 	suite.Suite
-	client rpcx.Client
-	from   types.Address
-	pk     crypto.PrivateKey
-	to     types.Address
+	client    rpcx.Client
+	from      types.Address
+	fromIndex uint64
+	pk        crypto.PrivateKey
+	toIndex   uint64
+	to        types.Address
 }
 
 func TestTester(t *testing.T) {

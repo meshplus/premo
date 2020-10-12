@@ -19,13 +19,12 @@ func (suite *Snake) TestTXEmptyFrom() {
 			Amount: 1,
 		},
 		Timestamp: time.Now().UnixNano(),
-		Nonce:     rand.Int63(),
 	}
 
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	_, err = suite.client.SendTransaction(tx)
+	_, err = suite.client.SendTransaction(tx, nil)
 	suite.Require().NotNil(err)
 }
 
@@ -36,13 +35,12 @@ func (suite *Snake) TestTXEmptyTo() {
 			Amount: 1,
 		},
 		Timestamp: time.Now().UnixNano(),
-		Nonce:     rand.Int63(),
 	}
 
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	_, err = suite.client.SendTransaction(tx)
+	_, err = suite.client.SendTransaction(tx, nil)
 	suite.Require().NotNil(err)
 }
 
@@ -53,11 +51,10 @@ func (suite *Snake) TestTXEmptyFromAndTo() {
 			Amount: 1,
 		},
 		Timestamp: time.Now().UnixNano(),
-		Nonce:     rand.Int63(),
 	}
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
-	_, err = suite.client.SendTransaction(tx)
+	_, err = suite.client.SendTransaction(tx, nil)
 	suite.Require().NotNil(err)
 }
 
@@ -70,12 +67,11 @@ func (suite *Snake) TestTXSameFromAndTo() {
 			Amount: 1,
 		},
 		Timestamp: time.Now().UnixNano(),
-		Nonce:     rand.Int63(),
 	}
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	_, err = suite.client.SendTransaction(tx)
+	_, err = suite.client.SendTransaction(tx, nil)
 	suite.Require().NotNil(err)
 }
 
@@ -87,10 +83,9 @@ func (suite *Snake) TestTXEmptySig() {
 			Amount: 1,
 		},
 		Timestamp: time.Now().UnixNano(),
-		Nonce:     rand.Int63(),
 	}
-
-	_, err := suite.client.SendTransaction(tx)
+	tx.Nonce = 1
+	_, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().NotNil(err)
 }
 
@@ -102,7 +97,6 @@ func (suite *Snake) TestTXWrongSigPrivateKey() {
 			Amount: 1,
 		},
 		Timestamp: time.Now().UnixNano(),
-		Nonce:     rand.Int63(),
 	}
 
 	pk1, err := asym.GenerateKeyPair(crypto.Secp256k1)
@@ -111,11 +105,12 @@ func (suite *Snake) TestTXWrongSigPrivateKey() {
 	err = tx.Sign(pk1)
 	suite.Require().Nil(err)
 
-	hash, err := suite.client.SendTransaction(tx)
+	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
 
-	_, err = suite.client.GetReceipt(hash)
-	suite.Require().NotNil(err)
+	res, err := suite.client.GetReceipt(hash)
+	suite.Require().NotNil(res)
+	//suite.Require().NotNil(err)
 }
 
 func (suite *Snake) TestTXWrongSigAlgorithm() {
@@ -135,14 +130,13 @@ func (suite *Snake) TestTXExtra10MB() {
 			Amount: 1,
 		},
 		Timestamp: time.Now().UnixNano(),
-		Nonce:     rand.Int63(),
 		Extra:     MB10,
 	}
 
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	_, err = suite.client.SendTransaction(tx)
+	_, err = suite.client.SendTransaction(tx, nil)
 	suite.Require().NotNil(err)
 }
 
@@ -154,13 +148,12 @@ func (suite *Snake) TestGetTxByHash() {
 			Amount: 1,
 		},
 		Timestamp: time.Now().UnixNano(),
-		Nonce:     rand.Int63(),
 	}
 
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	hash, err := suite.client.SendTransaction(tx)
+	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
 
 	var ret *pb.GetTransactionResponse
@@ -187,13 +180,12 @@ func (suite *Snake) TestGetReceiptByHash() {
 			Amount: 1,
 		},
 		Timestamp: time.Now().UnixNano(),
-		Nonce:     rand.Int63(),
 	}
 
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	hash, err := suite.client.SendTransaction(tx)
+	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
@@ -211,13 +203,12 @@ func (suite *Snake) TestGetReceiptByWrongHash() {
 			Amount: 1,
 		},
 		Timestamp: time.Now().UnixNano(),
-		Nonce:     rand.Int63(),
 	}
 
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	hash, err := suite.client.SendTransaction(tx)
+	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
 	hash = hash + "1"
 	ret, err := suite.client.GetReceipt(hash)
