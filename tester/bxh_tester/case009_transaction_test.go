@@ -24,7 +24,7 @@ func (suite *Snake) TestTXEmptyFrom() {
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	_, err = suite.client.SendTransaction(tx,nil)
+	_, err = suite.client.SendTransaction(tx, nil)
 	suite.Require().NotNil(err)
 }
 
@@ -40,7 +40,7 @@ func (suite *Snake) TestTXEmptyTo() {
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	_, err = suite.client.SendTransaction(tx,nil)
+	_, err = suite.client.SendTransaction(tx, nil)
 	suite.Require().NotNil(err)
 }
 
@@ -54,7 +54,7 @@ func (suite *Snake) TestTXEmptyFromAndTo() {
 	}
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
-	_, err = suite.client.SendTransaction(tx,nil)
+	_, err = suite.client.SendTransaction(tx, nil)
 	suite.Require().NotNil(err)
 }
 
@@ -71,7 +71,7 @@ func (suite *Snake) TestTXSameFromAndTo() {
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	_, err = suite.client.SendTransaction(tx,nil)
+	_, err = suite.client.SendTransaction(tx, nil)
 	suite.Require().NotNil(err)
 }
 
@@ -84,8 +84,8 @@ func (suite *Snake) TestTXEmptySig() {
 		},
 		Timestamp: time.Now().UnixNano(),
 	}
-
-	_, err := suite.client.SendTransaction(tx,nil)
+	tx.Nonce = 1
+	_, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().NotNil(err)
 }
 
@@ -105,7 +105,7 @@ func (suite *Snake) TestTXWrongSigPrivateKey() {
 	err = tx.Sign(pk1)
 	suite.Require().Nil(err)
 
-	hash, err := suite.client.SendTransaction(tx,nil)
+	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
 
 	res, err := suite.client.GetReceipt(hash)
@@ -136,7 +136,7 @@ func (suite *Snake) TestTXExtra10MB() {
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	_, err = suite.client.SendTransaction(tx,nil)
+	_, err = suite.client.SendTransaction(tx, nil)
 	suite.Require().NotNil(err)
 }
 
@@ -153,7 +153,7 @@ func (suite *Snake) TestGetTxByHash() {
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	hash, err := suite.client.SendTransaction(tx,nil)
+	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
 
 	var ret *pb.GetTransactionResponse
@@ -185,7 +185,7 @@ func (suite *Snake) TestGetReceiptByHash() {
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	hash, err := suite.client.SendTransaction(tx,nil)
+	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
@@ -208,7 +208,7 @@ func (suite *Snake) TestGetReceiptByWrongHash() {
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	hash, err := suite.client.SendTransaction(tx,nil)
+	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
 	hash = hash + "1"
 	ret, err := suite.client.GetReceipt(hash)

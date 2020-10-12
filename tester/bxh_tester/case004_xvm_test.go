@@ -36,7 +36,7 @@ func (suite *Snake) TestDeployContractWithToAddress() {
 
 	err = tx.Sign(suite.pk)
 	suite.Require().Nil(err)
-	receipt, err := suite.client.SendTransactionWithReceipt(tx,nil)
+	receipt, err := suite.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().True(receipt.Status == pb.Receipt_FAILED)
 }
@@ -48,7 +48,7 @@ func (suite *Snake) TestDeployContract() {
 func (suite *Snake) TestInvokeContract() {
 	address := deployExampleContract(suite)
 
-	result, err := suite.client.InvokeXVMContract(address, "a",nil, rpcx.Int32(1), rpcx.Int32(2))
+	result, err := suite.client.InvokeXVMContract(address, "a", nil, rpcx.Int32(1), rpcx.Int32(2))
 	suite.Require().Nil(err)
 	suite.Require().True(result.Status == pb.Receipt_SUCCESS)
 	suite.Require().True("336" == string(result.Ret))
@@ -57,7 +57,7 @@ func (suite *Snake) TestInvokeContract() {
 func (suite *Snake) TestInvokeContractNotExistMethod() {
 	address := deployExampleContract(suite)
 
-	result, err := suite.client.InvokeXVMContract(address, "bbb",nil, rpcx.Int32(1), rpcx.Int32(2))
+	result, err := suite.client.InvokeXVMContract(address, "bbb", nil, rpcx.Int32(1), rpcx.Int32(2))
 	suite.Require().Nil(err)
 	suite.Require().True(result.Status == pb.Receipt_FAILED)
 }
@@ -66,7 +66,7 @@ func (suite *Snake) TestInvokeRandomAddressContract() {
 	bs := hexutil.Encode([]byte("random contract address"))
 	fakeAddr := types.String2Address(bs)
 
-	result, err := suite.client.InvokeXVMContract(fakeAddr, "bbb",nil, rpcx.Int32(1))
+	result, err := suite.client.InvokeXVMContract(fakeAddr, "bbb", nil, rpcx.Int32(1))
 	suite.Require().Nil(err)
 	suite.Require().True(result.Status == pb.Receipt_FAILED)
 }
@@ -74,7 +74,7 @@ func (suite *Snake) TestInvokeRandomAddressContract() {
 func (suite *Snake) TestInvokeContractEmptyMethod() {
 	address := deployExampleContract(suite)
 
-	result, err := suite.client.InvokeXVMContract(address, "",nil)
+	result, err := suite.client.InvokeXVMContract(address, "", nil)
 	suite.Require().Nil(err)
 	suite.Require().True(result.Status == pb.Receipt_FAILED)
 }
@@ -86,16 +86,16 @@ func (suite *Snake) TestDeploy10MContract() {
 func (suite *Snake) TestDeployContractWrongArg() {
 	address := deployExampleContract(suite)
 
-	result, err := suite.client.InvokeXVMContract(address, "a",nil, rpcx.String("1"), rpcx.Int32(2))
+	result, err := suite.client.InvokeXVMContract(address, "a", nil, rpcx.String("1"), rpcx.Int32(2))
 	suite.Require().Nil(err)
 	suite.Require().True(result.Status == pb.Receipt_FAILED)
 
 	// incorrect function params
-	result, err = suite.client.InvokeXVMContract(address, "a",nil, rpcx.Int32(1), rpcx.String("2"))
+	result, err = suite.client.InvokeXVMContract(address, "a", nil, rpcx.Int32(1), rpcx.String("2"))
 	suite.Require().Nil(err)
 	suite.Require().True(result.Status == pb.Receipt_FAILED)
 
-	result, err = suite.client.InvokeXVMContract(address, "a",nil, rpcx.String("1"), rpcx.String("2"))
+	result, err = suite.client.InvokeXVMContract(address, "a", nil, rpcx.String("1"), rpcx.String("2"))
 	suite.Require().Nil(err)
 	suite.Require().True(result.Status == pb.Receipt_FAILED)
 }
@@ -103,7 +103,7 @@ func (suite *Snake) TestDeployContractWrongArg() {
 func (suite *Snake) TestDeployContractWrongNumberArg() {
 	address := deployExampleContract(suite)
 
-	result, err := suite.client.InvokeXVMContract(address, "a",nil, rpcx.Int32(1), rpcx.Int32(2), rpcx.Int32(3))
+	result, err := suite.client.InvokeXVMContract(address, "a", nil, rpcx.Int32(1), rpcx.Int32(2), rpcx.Int32(3))
 	suite.Require().Nil(err)
 	suite.Require().True(result.Status == pb.Receipt_FAILED)
 }

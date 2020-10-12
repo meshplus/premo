@@ -59,7 +59,7 @@ func (suite *Snake) TestSetAndGetNormal() {
 }
 
 func (suite *Snake) TestGetNotExistingKey() {
-	receipt, err := suite.client.InvokeBVMContract(rpcx.StoreContractAddr, "Get",nil, pb.String("key_for_not_exist"))
+	receipt, err := suite.client.InvokeBVMContract(rpcx.StoreContractAddr, "Get", nil, pb.String("key_for_not_exist"))
 	suite.Require().Nil(err)
 
 	suite.Require().Equal(pb.Receipt_FAILED, receipt.Status)

@@ -43,7 +43,7 @@ func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, chainType string) {
 		rpcx.String("1.8"),              //version
 		rpcx.String(pubKeyStr),          //public key
 	}
-	res, err := suite.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "Register",nil, args...)
+	res, err := suite.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "Register", nil, args...)
 	suite.Require().Nil(err)
 	appChain := &rpcx.Appchain{}
 	err = json.Unmarshal(res.Ret, appChain)
@@ -60,11 +60,11 @@ func (suite *Snake) RegisterRule(pk crypto.PrivateKey, ruleFile string) {
 	// deploy rule
 	bytes, err := ioutil.ReadFile(ruleFile)
 	suite.Require().Nil(err)
-	addr, err := suite.client.DeployContract(bytes,nil)
+	addr, err := suite.client.DeployContract(bytes, nil)
 	suite.Require().Nil(err)
 
 	// register rule
-	res, err := suite.client.InvokeBVMContract(rpcx.RuleManagerContractAddr, "RegisterRule",nil, pb.String(from.Hex()), pb.String(addr.Hex()))
+	res, err := suite.client.InvokeBVMContract(rpcx.RuleManagerContractAddr, "RegisterRule", nil, pb.String(from.Hex()), pb.String(addr.Hex()))
 	suite.Require().Nil(err)
 	suite.Require().True(res.IsSuccess())
 }
@@ -86,7 +86,7 @@ func (suite *Snake) TestHandleIBTPShouldSucceed() {
 	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
 	res, err := suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From: ib.From + ib.To,
+		From:      ib.From + ib.To,
 		IBTPNonce: ib.Index,
 	})
 	suite.Require().Nil(err)
@@ -107,7 +107,7 @@ func (suite *Snake) TestHandleIBTPWithNonexistentFrom() {
 	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
 	_, err = suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From: ib.From + ib.To,
+		From:      ib.From + ib.To,
 		IBTPNonce: ib.Index,
 	})
 	suite.Require().NotNil(err)
@@ -127,7 +127,7 @@ func (suite *Snake) TestHandleIBTPWithNonexistentTo() {
 	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
 	res, err := suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From: ib.From + ib.To,
+		From:      ib.From + ib.To,
 		IBTPNonce: ib.Index,
 	})
 	suite.Require().Nil(err)
@@ -149,7 +149,7 @@ func (suite *Snake) TestHandleIBTPWithNonexistentRule() {
 	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
 	_, err = suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From: ib.From + ib.To,
+		From:      ib.From + ib.To,
 		IBTPNonce: ib.Index,
 	})
 	suite.Require().NotNil(err)
@@ -171,11 +171,11 @@ func (suite *Snake) TestHandleIBTPWithWrongIBTPIndex() {
 	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
 	res, err := suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From: ib.From + ib.To,
+		From:      ib.From + ib.To,
 		IBTPNonce: ib.Index,
 	})
-	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
+	suite.Require().NotNil(err)
+	suite.Require().Nil(res)
 }
 
 func (suite *Snake) TestGetIBTPByID() {
@@ -194,7 +194,7 @@ func (suite *Snake) TestGetIBTPByID() {
 	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
 	res, err := suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From: ib.From + ib.To,
+		From:      ib.From + ib.To,
 		IBTPNonce: ib.Index,
 	})
 	suite.Require().Nil(err)
@@ -208,7 +208,7 @@ func (suite *Snake) TestGetIBTPByID() {
 
 	tx.Extra = []byte(proof)
 	res, err = suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From: ib.From + ib.To,
+		From:      ib.From + ib.To,
 		IBTPNonce: ib.Index,
 	})
 	suite.Require().Nil(err)
@@ -220,7 +220,7 @@ func (suite *Snake) TestGetIBTPByID() {
 	tx, _ = suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
 	res, err = suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From: ib.From + ib.To,
+		From:      ib.From + ib.To,
 		IBTPNonce: ib.Index,
 	})
 	suite.Require().Nil(err)
@@ -228,7 +228,7 @@ func (suite *Snake) TestGetIBTPByID() {
 
 	// get IBTP by ID
 	ib.Index = 2
-	res, err = suite.client.InvokeBVMContract(rpcx.InterchainContractAddr, "GetIBTPByID",nil, pb.String(ib.ID()))
+	res, err = suite.client.InvokeBVMContract(rpcx.InterchainContractAddr, "GetIBTPByID", nil, pb.String(ib.ID()))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 }
@@ -249,7 +249,7 @@ func (suite *Snake) TestHandleIBTPWithWrongProof() {
 	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
 	_, err = suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From: ib.From + ib.To,
+		From:      ib.From + ib.To,
 		IBTPNonce: ib.Index,
 	})
 	suite.Require().NotNil(err)

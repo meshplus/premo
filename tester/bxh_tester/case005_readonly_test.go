@@ -14,12 +14,13 @@ import (
 func (suite *Snake) TestNormalReadOnly() {
 	keyForNormal := "key_for_normal"
 	valueForNormal := "value_for_normal"
-	receipt, err := suite.client.InvokeBVMContract(rpcx.StoreContractAddr, "Set",nil, pb.String(keyForNormal), pb.String(valueForNormal))
+	receipt, err := suite.client.InvokeBVMContract(rpcx.StoreContractAddr, "Set", nil, pb.String(keyForNormal), pb.String(valueForNormal))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 
 	queryKey, err := genContractTransaction(pb.TransactionData_BVM, suite.pk,
 		rpcx.StoreContractAddr, "Get", pb.String(keyForNormal))
+	queryKey.Nonce = 1
 
 	receipt, err = suite.client.SendView(queryKey)
 	suite.Require().Nil(err)
@@ -38,7 +39,7 @@ func (suite *Snake) TestSendTx2ReadOnlyApi() {
 	// send tx to SendView api and value not set
 	tx, err := genContractTransaction(pb.TransactionData_BVM, suite.pk,
 		rpcx.StoreContractAddr, "Set", pb.String(string(randKey)), pb.String(valueForRand))
-    tx.Nonce = 1
+	tx.Nonce = 1
 	queryKey, err := genContractTransaction(pb.TransactionData_BVM, suite.pk,
 		rpcx.StoreContractAddr, "Get", pb.String(string(randKey)))
 	queryKey.Nonce = 1
@@ -52,7 +53,7 @@ func (suite *Snake) TestSendTx2ReadOnlyApi() {
 	suite.Require().True(receipt.Status == pb.Receipt_FAILED)
 
 	// send tx to SendTransactionWithReceipt api and value got set
-	receipt, err = suite.client.SendTransactionWithReceipt(tx,nil)
+	receipt, err = suite.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 

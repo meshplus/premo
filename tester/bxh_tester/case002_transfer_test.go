@@ -55,7 +55,7 @@ func (suite *Snake) TestToAddressIs0X000___000() {
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	hash, err := suite.client.SendTransaction(tx,nil)
+	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
@@ -79,7 +79,7 @@ func (suite *Snake) TestTypeIsXVM() {
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	hash, err := suite.client.SendTransaction(tx,nil)
+	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
@@ -102,7 +102,7 @@ func (suite *Snake) TestTransfer() {
 	err := tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	hash, err := suite.client.SendTransaction(tx,nil)
+	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
