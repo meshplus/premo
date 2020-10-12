@@ -182,8 +182,8 @@ func (suite *Snake) TestGetReceiptByHash() {
 		Timestamp: time.Now().UnixNano(),
 	}
 
-	err := tx.Sign(suite.pk)
-	suite.Require().Nil(err)
+	// err = tx.Sign(suite.pk)
+	// suite.Require().Nil(err)
 
 	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
