@@ -31,7 +31,6 @@ func (suite *Snake) TestDeployContractWithToAddress() {
 		To:        suite.to,
 		Data:      td,
 		Timestamp: time.Now().UnixNano(),
-		//Nonce:     rand.Int63(),
 	}
 
 	err = tx.Sign(suite.pk)

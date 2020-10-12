@@ -379,7 +379,6 @@ func (suite *TransactionMgrSuite) Test005_One2One_AssetExchange_FromToRefund() {
 	tx, _ = suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
 	tx.Extra = []byte(proof)
 	res1, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		//From: ib1.From + ib1.To,
 		From:      fmt.Sprintf("%s-%s-%d", ib1.From, ib1.To, ib1.Category()),
 		IBTPNonce: ib1.Index,
 	})
@@ -393,7 +392,6 @@ func (suite *TransactionMgrSuite) Test005_One2One_AssetExchange_FromToRefund() {
 	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data2))
 	tx.Extra = []byte(proof)
 	res2, err := suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		//From: ib2.From + ib2.To,
 		From:      fmt.Sprintf("%s-%s-%d", ib2.From, ib2.To, ib2.Category()),
 		IBTPNonce: ib2.Index,
 	})
@@ -412,7 +410,6 @@ func (suite *TransactionMgrSuite) Test005_One2One_AssetExchange_FromToRefund() {
 	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
 	tx.Extra = []byte(proof)
 	res1, err = suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		//From: ib1.From + ib1.To,
 		From:      fmt.Sprintf("%s-%s-%d", ib1.From, ib1.To, ib1.Category()),
 		IBTPNonce: ib1.Index,
 	})
@@ -599,7 +596,6 @@ func (suite *TransactionMgrSuite) Test008_One2One_AssetExchange_LoseFieldId() {
 	tx, _ := suite.client0.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data0))
 	tx.Extra = []byte(proof)
 	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		//From: ib0.From + ib0.To,
 		From:      fmt.Sprintf("%s-%s-%d", ib0.From, ib0.To, ib0.Category()),
 		IBTPNonce: ib0.Index,
 	})
@@ -617,7 +613,6 @@ func (suite *TransactionMgrSuite) Test008_One2One_AssetExchange_LoseFieldId() {
 	tx, _ = suite.client1.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data1))
 	tx.Extra = []byte(proof)
 	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		//From: ib1.From + ib1.To,
 		From:      fmt.Sprintf("%s-%s-%d", ib0.From, ib0.To, ib0.Category()),
 		IBTPNonce: ib1.Index,
 	})
