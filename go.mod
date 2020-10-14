@@ -20,7 +20,7 @@ require (
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/meshplus/bitxhub-kit v1.0.1-0.20200813124031-6f6bdc99564f
-	github.com/meshplus/bitxhub-model v1.0.0-rc4.0.20200927025558-ef1daaa6a629
+	github.com/meshplus/bitxhub-model v1.0.0-rc4.0.20201009112846-79d2e6ddf10d
 	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20200927102636-d78bdd9d3220
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/modern-go/reflect2 v1.0.1 // indirect
