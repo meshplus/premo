@@ -86,7 +86,7 @@ func (suite *Snake) TestTXEmptySig() {
 	}
 	tx.Nonce = 1
 	_, err := suite.client.SendTransaction(tx, nil)
-	suite.Require().NotNil(err)
+	suite.Require().Nil(err)
 }
 
 func (suite *Snake) TestTXWrongSigPrivateKey() {
