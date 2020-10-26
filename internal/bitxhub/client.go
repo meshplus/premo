@@ -13,7 +13,6 @@ func NewBxhClient(addr, path string, logger *logrus.Entry) (*rpcx.ChainClient, e
 	}
 
 	cli, err := rpcx.New(
-		rpcx.WithAddrs([]string{addr}),
 		rpcx.WithLogger(logger),
 		rpcx.WithPrivateKey(privKey),
 	)

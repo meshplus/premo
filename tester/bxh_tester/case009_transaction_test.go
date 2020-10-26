@@ -13,90 +13,108 @@ import (
 )
 
 func (suite *Snake) TestTXEmptyFrom() {
+	data := &pb.TransactionData{
+		Amount: 1,
+	}
+	payload, err := data.Marshal()
 	tx := &pb.Transaction{
-		To: suite.to,
-		Data: &pb.TransactionData{
-			Amount: 1,
-		},
+		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Uint64(),
+		Payload:   payload,
 	}
 
-	err := tx.Sign(suite.pk)
+	err = tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	_, err = suite.client.SendTransaction(tx, nil)
+	_, err = suite.client.SendTransaction(tx,nil)
 	suite.Require().NotNil(err)
 }
 
 func (suite *Snake) TestTXEmptyTo() {
+	data := &pb.TransactionData{
+		Amount: 1,
+	}
+	payload, err := data.Marshal()
 	tx := &pb.Transaction{
-		From: suite.from,
-		Data: &pb.TransactionData{
-			Amount: 1,
-		},
+		From:      suite.from,
 		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Uint64(),
+		Payload:   payload,
 	}
 
-	err := tx.Sign(suite.pk)
+	err = tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	_, err = suite.client.SendTransaction(tx, nil)
+	_, err = suite.client.SendTransaction(tx,nil)
 	suite.Require().NotNil(err)
 }
 
 /*增加form和to都为空*/
 func (suite *Snake) TestTXEmptyFromAndTo() {
-	tx := &pb.Transaction{
-		Data: &pb.TransactionData{
-			Amount: 1,
-		},
-		Timestamp: time.Now().UnixNano(),
+	data := &pb.TransactionData{
+		Amount: 1,
 	}
-	err := tx.Sign(suite.pk)
+	payload, err := data.Marshal()
+	tx := &pb.Transaction{
+		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Uint64(),
+		Payload:   payload,
+	}
+	err = tx.Sign(suite.pk)
 	suite.Require().Nil(err)
-	_, err = suite.client.SendTransaction(tx, nil)
+	_, err = suite.client.SendTransaction(tx,nil)
 	suite.Require().NotNil(err)
 }
 
 /*增加from和to相同*/
 func (suite *Snake) TestTXSameFromAndTo() {
-	tx := &pb.Transaction{
-		From: suite.from,
-		To:   suite.from,
-		Data: &pb.TransactionData{
-			Amount: 1,
-		},
-		Timestamp: time.Now().UnixNano(),
+	data := &pb.TransactionData{
+		Amount: 1,
 	}
-	err := tx.Sign(suite.pk)
+	payload, err := data.Marshal()
+	tx := &pb.Transaction{
+		From:      suite.from,
+		To:        suite.from,
+		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Uint64(),
+		Payload:   payload,
+	}
+	err = tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	_, err = suite.client.SendTransaction(tx, nil)
+	_, err = suite.client.SendTransaction(tx,nil)
 	suite.Require().NotNil(err)
 }
 
 func (suite *Snake) TestTXEmptySig() {
-	tx := &pb.Transaction{
-		From: suite.from,
-		To:   suite.to,
-		Data: &pb.TransactionData{
-			Amount: 1,
-		},
-		Timestamp: time.Now().UnixNano(),
+	data := &pb.TransactionData{
+		Amount: 1,
 	}
-	tx.Nonce = 1
-	_, err := suite.client.SendTransaction(tx, nil)
-	suite.Require().Nil(err)
+	payload, err := data.Marshal()
+	tx := &pb.Transaction{
+		From:      suite.from,
+		To:        suite.to,
+		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Uint64(),
+		Payload:   payload,
+	}
+
+	_, err = suite.client.SendTransaction(tx,nil)
+	suite.Require().NotNil(err)
 }
 
 func (suite *Snake) TestTXWrongSigPrivateKey() {
+	data := &pb.TransactionData{
+		Amount: 1,
+	}
+	payload, err := data.Marshal()
 	tx := &pb.Transaction{
-		From: suite.from,
-		To:   suite.to,
-		Data: &pb.TransactionData{
-			Amount: 1,
-		},
+		From:      suite.from,
+		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Uint64(),
+		Payload:   payload,
 	}
 
 	pk1, err := asym.GenerateKeyPair(crypto.Secp256k1)
@@ -105,12 +123,11 @@ func (suite *Snake) TestTXWrongSigPrivateKey() {
 	err = tx.Sign(pk1)
 	suite.Require().Nil(err)
 
-	hash, err := suite.client.SendTransaction(tx, nil)
+	hash, err := suite.client.SendTransaction(tx,nil)
 	suite.Require().Nil(err)
 
-	res, err := suite.client.GetReceipt(hash)
-	suite.Require().NotNil(res)
-	//suite.Require().NotNil(err)
+	_, err = suite.client.GetReceipt(hash)
+	suite.Require().NotNil(err)
 }
 
 func (suite *Snake) TestTXWrongSigAlgorithm() {
@@ -123,37 +140,44 @@ func (suite *Snake) TestTXExtra10MB() {
 		MB10[i] = uint8(rand.Intn(255))
 	}
 
+	data := &pb.TransactionData{
+		Amount: 1,
+	}
+	payload, err := data.Marshal()
+
 	tx := &pb.Transaction{
-		From: suite.from,
-		To:   suite.to,
-		Data: &pb.TransactionData{
-			Amount: 1,
-		},
+		From:      suite.from,
+		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Uint64(),
 		Extra:     MB10,
+		Payload:   payload,
 	}
 
-	err := tx.Sign(suite.pk)
+	err = tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	_, err = suite.client.SendTransaction(tx, nil)
+	_, err = suite.client.SendTransaction(tx,nil)
 	suite.Require().NotNil(err)
 }
 
 func (suite *Snake) TestGetTxByHash() {
+	data := &pb.TransactionData{
+		Amount: 1,
+	}
+	payload, err := data.Marshal()
 	tx := &pb.Transaction{
-		From: suite.from,
-		To:   suite.to,
-		Data: &pb.TransactionData{
-			Amount: 1,
-		},
+		From:      suite.from,
+		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Uint64(),
+		Payload:   payload,
 	}
 
-	err := tx.Sign(suite.pk)
+	err = tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	hash, err := suite.client.SendTransaction(tx, nil)
+	hash, err := suite.client.SendTransaction(tx,nil)
 	suite.Require().Nil(err)
 
 	var ret *pb.GetTransactionResponse
@@ -173,16 +197,23 @@ func (suite *Snake) TestGetTxByHash() {
 }
 
 func (suite *Snake) TestGetReceiptByHash() {
+	data := &pb.TransactionData{
+		Amount: 1,
+	}
+	payload, err := data.Marshal()
+
 	tx := &pb.Transaction{
-		From: suite.from,
-		To:   suite.to,
-		Data: &pb.TransactionData{
-			Amount: 1,
-		},
+		From:      suite.from,
+		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Uint64(),
+		Payload:   payload,
 	}
 
-	hash, err := suite.client.SendTransaction(tx, nil)
+	err = tx.Sign(suite.pk)
+	suite.Require().Nil(err)
+
+	hash, err := suite.client.SendTransaction(tx,nil)
 	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
@@ -193,19 +224,22 @@ func (suite *Snake) TestGetReceiptByHash() {
 
 /*通过错误的hash值进行查询*/
 func (suite *Snake) TestGetReceiptByWrongHash() {
+	data := &pb.TransactionData{
+		Amount: 1,
+	}
+	payload, err := data.Marshal()
 	tx := &pb.Transaction{
-		From: suite.from,
-		To:   suite.to,
-		Data: &pb.TransactionData{
-			Amount: 1,
-		},
+		From:      suite.from,
+		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Uint64(),
+		Payload:   payload,
 	}
 
-	err := tx.Sign(suite.pk)
+	err = tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
-	hash, err := suite.client.SendTransaction(tx, nil)
+	hash, err := suite.client.SendTransaction(tx,nil)
 	suite.Require().Nil(err)
 	hash = hash + "1"
 	ret, err := suite.client.GetReceipt(hash)

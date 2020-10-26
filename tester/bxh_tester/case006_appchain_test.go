@@ -3,6 +3,7 @@ package bxh_tester
 import (
 	"encoding/hex"
 	"encoding/json"
+	"github.com/meshplus/bitxhub-model/constant"
 
 	"github.com/tidwall/gjson"
 
@@ -11,10 +12,10 @@ import (
 )
 
 func (suite *Snake) TestRegisterAppchain() {
-	pubBytes, err := suite.pk.PublicKey().Bytes()
+	pubAddress, err := suite.pk.PublicKey().Address()
 	suite.Require().Nil(err)
 
-	var pubKeyStr = hex.EncodeToString(pubBytes)
+	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String(""),                 //validators
 		rpcx.Int32(0),                   //consensus_type
@@ -24,7 +25,7 @@ func (suite *Snake) TestRegisterAppchain() {
 		rpcx.String("1.8"),              //version
 		rpcx.String(pubKeyStr),          //public key
 	}
-	res, err := suite.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "Register", nil, args...)
+	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
 	appChain := &rpcx.Appchain{}
 	err = json.Unmarshal(res.Ret, appChain)
@@ -38,7 +39,7 @@ func (suite *Snake) TestRegisterAppchainLoseFields() {
 		rpcx.Int32(0),      //consensus_type
 		rpcx.String("1.8"), //version
 	}
-	res, err := suite.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "Register", nil, args...)
+	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
 	suite.True(res.Status == pb.Receipt_FAILED)
 }
@@ -57,11 +58,11 @@ func (suite *Snake) TestRegisterReplicaAppchain() {
 		rpcx.String("1.8"),              //version
 		rpcx.String(pubKeyStr),          //public key
 	}
-	res, err := suite.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "Register", nil, args...)
+	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
 	appchainID := gjson.Get(string(res.Ret), "appchainID").String()
 
-	res1, err := suite.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "Register", nil, args...)
+	res1, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
 
 	appchainID1 := gjson.Get(string(res1.Ret), "appchainID").String()
@@ -82,11 +83,11 @@ func (suite *Snake) TestUpdateAppchain() {
 		rpcx.String("1.8"),              //version
 		rpcx.String(pubKeyStr),          //public key
 	}
-	_, err = suite.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "Register", nil, args...)
+	_, err = suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
 
 	args[2] = rpcx.String("hyperchain11111")
-	res1, err := suite.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "UpdateAppchain", nil, args...)
+	res1, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
 	suite.Require().Nil(err)
 	suite.True(res1.Status == pb.Receipt_SUCCESS)
 }
@@ -103,7 +104,7 @@ func (suite *Snake) TestUpdateAppchainLoseFields() {
 		rpcx.String("1.8"),              //version
 		rpcx.String(pubKeyStr),          //public key
 	}
-	res, err := suite.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "UpdateAppchain", nil, args...)
+	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
 	suite.Require().Nil(err)
 	suite.True(res.Status == pb.Receipt_FAILED)
 }
@@ -122,7 +123,7 @@ func (suite *Snake) TestAuditAppchain() {
 		rpcx.String("1.8"),              //version
 		rpcx.String(pubKeyStr),          //public key
 	}
-	_, err = suite.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "Register", nil, args...)
+	_, err = suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
 
 	args1 := []*pb.Arg{
@@ -130,7 +131,7 @@ func (suite *Snake) TestAuditAppchain() {
 		rpcx.Int32(1),               //audit approve
 		rpcx.String("Audit passed"), //desc
 	}
-	res, err := suite.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "Audit", nil, args1...)
+	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Audit", nil, args1...)
 	suite.Require().Nil(err)
 	suite.True(res.Status == pb.Receipt_SUCCESS)
 }
@@ -149,7 +150,7 @@ func (suite *Snake) TestRepeatAuditAppchain() {
 		rpcx.String("1.8"),              //version
 		rpcx.String(pubKeyStr),          //public key
 	}
-	_, err = suite.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "Register", nil, args...)
+	_, err = suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
 
 	args1 := []*pb.Arg{
@@ -157,7 +158,7 @@ func (suite *Snake) TestRepeatAuditAppchain() {
 		rpcx.Int32(0),                 //audit approve
 		rpcx.String("Audit rejected"), //desc
 	}
-	res1, err := suite.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "Audit", nil, args1...)
+	res1, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Audit", nil, args1...)
 	suite.Require().Nil(err)
 	suite.Require().Equal(res1.Status, pb.Receipt_SUCCESS)
 
@@ -166,7 +167,7 @@ func (suite *Snake) TestRepeatAuditAppchain() {
 		rpcx.Int32(1),               //audit approve
 		rpcx.String("Audit passed"), //desc
 	}
-	res2, err := suite.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "Audit", nil, args2...)
+	res2, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Audit", nil, args2...)
 	suite.Require().Nil(err)
 	suite.Require().Equal(res2.Status, pb.Receipt_SUCCESS)
 }
@@ -175,14 +176,14 @@ func (suite *Snake) TestFetchAuditRecord() {
 	args := []*pb.Arg{
 		rpcx.String(suite.from.String()),
 	}
-	res, err := suite.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "FetchAuditRecords", nil, args...)
+	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FetchAuditRecords", nil, args...)
 	suite.Require().Nil(err)
 	suite.True(res.Status == pb.Receipt_SUCCESS)
 }
 
 func (suite *Snake) TestGetAppchain() {
 	var args []*pb.Arg
-	res, err := suite.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "Appchain", nil, args...)
+	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Appchain", nil, args...)
 	suite.Require().Nil(err)
 	suite.True(res.Status == pb.Receipt_SUCCESS)
 }
@@ -191,7 +192,7 @@ func (suite *Snake) TestGetAppchainByID() {
 	args := []*pb.Arg{
 		rpcx.String(suite.from.String()),
 	}
-	res, err := suite.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "GetAppchain", nil, args...)
+	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "GetAppchain", nil, args...)
 	suite.Require().Nil(err)
 	suite.True(res.Status == pb.Receipt_SUCCESS)
 }

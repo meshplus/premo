@@ -2,24 +2,24 @@ package bxh_tester
 
 import (
 	"fmt"
+	"github.com/meshplus/bitxhub-model/constant"
 	"math/rand"
 	"time"
 
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/types"
 	"github.com/meshplus/bitxhub-model/pb"
-	rpcx "github.com/meshplus/go-bitxhub-client"
 )
 
 func (suite *Snake) TestNormalReadOnly() {
 	keyForNormal := "key_for_normal"
 	valueForNormal := "value_for_normal"
-	receipt, err := suite.client.InvokeBVMContract(rpcx.StoreContractAddr, "Set", nil, pb.String(keyForNormal), pb.String(valueForNormal))
+	receipt, err := suite.client.InvokeBVMContract(constant.StoreContractAddr.Address(), "Set", nil, pb.String(keyForNormal), pb.String(valueForNormal))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 
 	queryKey, err := genContractTransaction(pb.TransactionData_BVM, suite.pk,
-		rpcx.StoreContractAddr, "Get", pb.String(keyForNormal))
+		constant.StoreContractAddr.Address(), "Get", pb.String(keyForNormal))
 	queryKey.Nonce = 1
 
 	receipt, err = suite.client.SendView(queryKey)
@@ -38,10 +38,10 @@ func (suite *Snake) TestSendTx2ReadOnlyApi() {
 
 	// send tx to SendView api and value not set
 	tx, err := genContractTransaction(pb.TransactionData_BVM, suite.pk,
-		rpcx.StoreContractAddr, "Set", pb.String(string(randKey)), pb.String(valueForRand))
+		constant.StoreContractAddr.Address(), "Set", pb.String(string(randKey)), pb.String(valueForRand))
 	tx.Nonce = 1
 	queryKey, err := genContractTransaction(pb.TransactionData_BVM, suite.pk,
-		rpcx.StoreContractAddr, "Get", pb.String(string(randKey)))
+		constant.StoreContractAddr.Address(), "Get", pb.String(string(randKey)))
 	queryKey.Nonce = 1
 
 	receipt, err := suite.client.SendView(tx)
@@ -65,7 +65,7 @@ func (suite *Snake) TestSendTx2ReadOnlyApi() {
 
 func genContractTransaction(
 	vmType pb.TransactionData_VMType, privateKey crypto.PrivateKey,
-	address types.Address, method string, args ...*pb.Arg) (*pb.Transaction, error) {
+	address *types.Address, method string, args ...*pb.Arg) (*pb.Transaction, error) {
 	from, err := privateKey.PublicKey().Address()
 	if err != nil {
 		return nil, err
@@ -87,11 +87,14 @@ func genContractTransaction(
 		Payload: data,
 	}
 
+	payload, err := td.Marshal()
+
 	tx := &pb.Transaction{
 		From:      from,
 		To:        address,
-		Data:      td,
 		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Uint64(),
+		Payload:   payload,
 	}
 
 	if err := tx.Sign(privateKey); err != nil {

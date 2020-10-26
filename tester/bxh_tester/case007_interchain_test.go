@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/meshplus/bitxhub-model/constant"
 	"io/ioutil"
 	"time"
 
@@ -14,7 +15,7 @@ import (
 	rpcx "github.com/meshplus/go-bitxhub-client"
 )
 
-func (suite *Snake) prepare() (crypto.PrivateKey, crypto.PrivateKey, types.Address, types.Address) {
+func (suite *Snake) prepare() (crypto.PrivateKey, crypto.PrivateKey, *types.Address, *types.Address) {
 	kA, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	kB, err := asym.GenerateKeyPair(crypto.Secp256k1)
@@ -43,7 +44,7 @@ func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, chainType string) {
 		rpcx.String("1.8"),              //version
 		rpcx.String(pubKeyStr),          //public key
 	}
-	res, err := suite.client.InvokeBVMContract(rpcx.AppchainMgrContractAddr, "Register", nil, args...)
+	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
 	appChain := &rpcx.Appchain{}
 	err = json.Unmarshal(res.Ret, appChain)
@@ -64,7 +65,7 @@ func (suite *Snake) RegisterRule(pk crypto.PrivateKey, ruleFile string) {
 	suite.Require().Nil(err)
 
 	// register rule
-	res, err := suite.client.InvokeBVMContract(rpcx.RuleManagerContractAddr, "RegisterRule", nil, pb.String(from.Hex()), pb.String(addr.Hex()))
+	res, err := suite.client.InvokeBVMContract(constant.RoleContractAddr.Address(), "RegisterRule", nil, pb.String(from.String()), pb.String(addr.String()))
 	suite.Require().Nil(err)
 	suite.Require().True(res.IsSuccess())
 }
@@ -79,11 +80,11 @@ func (suite *Snake) TestHandleIBTPShouldSucceed() {
 	proofHash := sha256.Sum256([]byte(proof))
 
 	suite.client.SetPrivateKey(kA)
-	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
+	ib := &pb.IBTP{From: from.String(), To: to.String(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 	data, err := ib.Marshal()
 	suite.Require().Nil(err)
 
-	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, constant.InterchainContractAddr.Address(), "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
 	res, err := suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
 		From:      ib.From + ib.To,
@@ -100,11 +101,11 @@ func (suite *Snake) TestHandleIBTPWithNonexistentFrom() {
 	proofHash := sha256.Sum256([]byte(proof))
 
 	suite.client.SetPrivateKey(kA)
-	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
+	ib := &pb.IBTP{From: from.String(), To: to.String(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 	data, err := ib.Marshal()
 	suite.Require().Nil(err)
 
-	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, constant.InterchainContractAddr.Address(), "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
 	_, err = suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
 		From:      ib.From + ib.To,
@@ -120,11 +121,11 @@ func (suite *Snake) TestHandleIBTPWithNonexistentTo() {
 	proof := "test"
 	proofHash := sha256.Sum256([]byte(proof))
 
-	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
+	ib := &pb.IBTP{From: from.String(), To: to.String(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 	data, err := ib.Marshal()
 	suite.Require().Nil(err)
 
-	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, constant.InterchainContractAddr.Address(), "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
 	res, err := suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
 		From:      ib.From + ib.To,
@@ -142,11 +143,11 @@ func (suite *Snake) TestHandleIBTPWithNonexistentRule() {
 	proofHash := sha256.Sum256([]byte(proof))
 
 	suite.client.SetPrivateKey(kA)
-	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
+	ib := &pb.IBTP{From: from.String(), To: to.String(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 	data, err := ib.Marshal()
 	suite.Require().Nil(err)
 
-	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, constant.InterchainContractAddr.Address(), "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
 	_, err = suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
 		From:      ib.From + ib.To,
@@ -164,11 +165,11 @@ func (suite *Snake) TestHandleIBTPWithWrongIBTPIndex() {
 	proofHash := sha256.Sum256([]byte(proof))
 
 	suite.client.SetPrivateKey(kA)
-	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 2, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
+	ib := &pb.IBTP{From: from.String(), To: to.String(), Index: 2, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 	data, err := ib.Marshal()
 	suite.Require().Nil(err)
 
-	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, constant.InterchainContractAddr.Address(), "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
 	res, err := suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
 		From:      ib.From + ib.To,
@@ -187,11 +188,11 @@ func (suite *Snake) TestGetIBTPByID() {
 	proofHash := sha256.Sum256([]byte(proof))
 
 	suite.client.SetPrivateKey(kA)
-	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
+	ib := &pb.IBTP{From: from.String(), To: to.String(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 	data, err := ib.Marshal()
 	suite.Require().Nil(err)
 
-	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, constant.InterchainContractAddr.Address(), "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
 	res, err := suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
 		From:      ib.From + ib.To,
@@ -204,7 +205,7 @@ func (suite *Snake) TestGetIBTPByID() {
 	data, err = ib.Marshal()
 	suite.Require().Nil(err)
 
-	tx, _ = suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx, _ = suite.client.GenerateContractTx(pb.TransactionData_BVM, constant.InterchainContractAddr.Address(), "HandleIBTP", pb.Bytes(data))
 
 	tx.Extra = []byte(proof)
 	res, err = suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
@@ -217,7 +218,7 @@ func (suite *Snake) TestGetIBTPByID() {
 	ib.Index = 3
 	data, err = ib.Marshal()
 	suite.Require().Nil(err)
-	tx, _ = suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx, _ = suite.client.GenerateContractTx(pb.TransactionData_BVM, constant.InterchainContractAddr.Address(), "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
 	res, err = suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
 		From:      ib.From + ib.To,
@@ -228,7 +229,7 @@ func (suite *Snake) TestGetIBTPByID() {
 
 	// get IBTP by ID
 	ib.Index = 2
-	res, err = suite.client.InvokeBVMContract(rpcx.InterchainContractAddr, "GetIBTPByID", nil, pb.String(ib.ID()))
+	res, err = suite.client.InvokeBVMContract(constant.InterchainContractAddr.Address(), "GetIBTPByID", nil, pb.String(ib.ID()))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.client.SetPrivateKey(suite.pk)
@@ -243,11 +244,11 @@ func (suite *Snake) TestHandleIBTPWithWrongProof() {
 	proofHash := sha256.Sum256([]byte(proof))
 
 	suite.client.SetPrivateKey(kA)
-	ib := &pb.IBTP{From: from.Hex(), To: to.Hex(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
+	ib := &pb.IBTP{From: from.String(), To: to.String(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 	data, err := ib.Marshal()
 	suite.Require().Nil(err)
 
-	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, rpcx.InterchainContractAddr, "HandleIBTP", pb.Bytes(data))
+	tx, _ := suite.client.GenerateContractTx(pb.TransactionData_BVM, constant.InterchainContractAddr.Address(), "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
 	_, err = suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
 		From:      ib.From + ib.To,

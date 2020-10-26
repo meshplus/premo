@@ -1,6 +1,7 @@
 package bxh_tester
 
 import (
+	"math/rand"
 	"strings"
 	"time"
 
@@ -17,13 +18,18 @@ func (suite *Snake) TestTransferLessThanAmount() {
 	suite.Require().Nil(err)
 	amount := balance + 1
 
+	data := &pb.TransactionData{
+		Amount: amount,
+	}
+	payload, err := data.Marshal()
+	suite.Require().Nil(err)
+
 	tx := &pb.Transaction{
-		From: suite.from,
-		To:   suite.to,
-		Data: &pb.TransactionData{
-			Amount: amount,
-		},
+		From:      suite.from,
+		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Uint64(),
+		Payload:   payload,
 	}
 
 	err = tx.Sign(suite.pk)
@@ -41,16 +47,20 @@ func (suite *Snake) TestTransferLessThanAmount() {
 
 func (suite *Snake) TestToAddressIs0X000___000() {
 	to := "0x0000000000000000000000000000000000000000"
+
+	data := &pb.TransactionData{
+		Amount: 1,
+	}
+	payload, err := data.Marshal()
 	tx := &pb.Transaction{
-		From: suite.from,
-		To:   types.Bytes2Address([]byte(to)),
-		Data: &pb.TransactionData{
-			Amount: 1,
-		},
+		From:      suite.from,
+		To:        types.NewAddress([]byte(to)),
 		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Uint64(),
+		Payload:   payload,
 	}
 
-	err := tx.Sign(suite.pk)
+	err = tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
 	hash, err := suite.client.SendTransaction(tx, nil)
@@ -63,17 +73,20 @@ func (suite *Snake) TestToAddressIs0X000___000() {
 }
 
 func (suite *Snake) TestTypeIsXVM() {
+	data := &pb.TransactionData{
+		VmType: pb.TransactionData_XVM,
+		Amount: 1,
+	}
+	payload, err := data.Marshal()
 	tx := &pb.Transaction{
-		From: suite.from,
-		To:   suite.to,
-		Data: &pb.TransactionData{
-			VmType: pb.TransactionData_XVM,
-			Amount: 1,
-		},
+		From:      suite.from,
+		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Uint64(),
+		Payload:   payload,
 	}
 
-	err := tx.Sign(suite.pk)
+	err = tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
 	hash, err := suite.client.SendTransaction(tx, nil)
@@ -86,16 +99,19 @@ func (suite *Snake) TestTypeIsXVM() {
 }
 
 func (suite *Snake) TestTransfer() {
+	data := &pb.TransactionData{
+		Amount: 1,
+	}
+	payload, err := data.Marshal()
 	tx := &pb.Transaction{
-		From: suite.from,
-		To:   suite.to,
-		Data: &pb.TransactionData{
-			Amount: 1,
-		},
+		From:      suite.from,
+		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
+		Nonce:     rand.Uint64(),
+		Payload:   payload,
 	}
 
-	err := tx.Sign(suite.pk)
+	err = tx.Sign(suite.pk)
 	suite.Require().Nil(err)
 
 	hash, err := suite.client.SendTransaction(tx, nil)

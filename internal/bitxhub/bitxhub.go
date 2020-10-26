@@ -85,8 +85,12 @@ func New(config *Config) (*Broker, error) {
 		"number": len(bees),
 	}).Info("generate all bees")
 
+	node0 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[0]}
+	node1 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[1]}
+	node2 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[2]}
+	node3 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[3]}
 	client, err := rpcx.New(
-		rpcx.WithAddrs(config.BitxhubAddr),
+		rpcx.WithNodesInfo(node0,node1,node2,node3),
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(bees[0].xprivKey),
 	)
