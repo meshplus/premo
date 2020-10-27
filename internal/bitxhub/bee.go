@@ -15,6 +15,7 @@ import (
 	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
+	"github.com/meshplus/premo/internal/repo"
 	"github.com/wonderivan/logger"
 )
 
@@ -30,8 +31,6 @@ type bee struct {
 	xfrom       *types.Address
 	xid         string
 	client      rpcx.Client
-	privKey     crypto.PrivateKey
-	from        *types.Address
 	tps         int
 	count       uint64
 	norMalSeqNo uint64
@@ -42,8 +41,7 @@ type bee struct {
 }
 
 func NewBee(tps int, addrs []string, config *Config) (*bee, error) {
-	xpk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-
+	xpk, err := asym.RestorePrivateKey(config.KeyPath, repo.KeyPassword)
 	if err != nil {
 		return nil, err
 	}
@@ -53,29 +51,26 @@ func NewBee(tps int, addrs []string, config *Config) (*bee, error) {
 		return nil, err
 	}
 
-	// amount in transfer tx can be zero, so this source account can be arbitrary
-	privKey, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	if err != nil {
-		return nil, err
-	}
-
-	from, err := privKey.PublicKey().Address()
-	if err != nil {
-		return nil, err
-	}
-
 	node0 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[0]}
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(node0),
 		rpcx.WithLogger(cfg.logger),
-		rpcx.WithPrivateKey(privKey),
+		rpcx.WithPrivateKey(xpk),
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	// query pending nonce for privKey
-	normalNonce, err := client.GetPendingNonceByAccount(from.String())
+	normalNonce, err := client.GetPendingNonceByAccount(xfrom.String())
+	if err != nil {
+		return nil, err
+	}
+
+	// query ibtp nonce for init in case ibtp has been sent to bitxhub before
+	ibtp := mockIBTP(1, xfrom.String(), xfrom.String(), config.Proof)
+	ibtpNonce, err := client.GetPendingNonceByAccount(
+		fmt.Sprintf("%s-%s-%d", xfrom.String(), xfrom.String(), ibtp.Category()))
 	if err != nil {
 		return nil, err
 	}
@@ -86,14 +81,12 @@ func NewBee(tps int, addrs []string, config *Config) (*bee, error) {
 		client:      client,
 		xprivKey:    xpk,
 		xfrom:       xfrom,
-		privKey:     privKey,
-		from:        from,
 		tps:         tps,
 		ctx:         ctx,
 		cancel:      cancel,
 		xid:         "",
 		config:      config,
-		ibtpSeqNo:   1,
+		ibtpSeqNo:   ibtpNonce,
 		norMalSeqNo: normalNonce,
 	}, nil
 }
@@ -190,6 +183,9 @@ func (bee *bee) sendBVMTx(normalNo uint64) error {
 		Payload: data,
 	}
 	payload, err := td.Marshal()
+	if err != nil {
+		return err
+	}
 
 	tx := &pb.Transaction{
 		From:      bee.xfrom,
@@ -263,8 +259,6 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 }
 
 func (bee *bee) invokeContract(address *types.Address, nonce uint64, method string, args ...*pb.Arg) (*pb.Receipt, error) {
-	from := bee.xfrom
-
 	pl := &pb.InvokePayload{
 		Method: method,
 		Args:   args[:],
@@ -283,15 +277,11 @@ func (bee *bee) invokeContract(address *types.Address, nonce uint64, method stri
 	payload, err := td.Marshal()
 
 	tx := &pb.Transaction{
-		From:      from,
+		From:      bee.xfrom,
 		To:        address,
 		Payload:   payload,
 		Timestamp: time.Now().UnixNano(),
 		Nonce:     nonce,
-	}
-
-	if err := tx.Sign(bee.xprivKey); err != nil {
-		return nil, fmt.Errorf("tx sign: %w", err)
 	}
 
 	return bee.client.SendTransactionWithReceipt(tx, nil)
@@ -309,20 +299,19 @@ func (bee *bee) sendTransferTx(to *types.Address, normalNo uint64) error {
 		return err
 	}
 	tx := &pb.Transaction{
-		From:      bee.from,
+		From:      bee.xfrom,
 		To:        to,
 		Timestamp: time.Now().UnixNano(),
 		Payload:   payload,
 	}
 
 	_, err = bee.client.SendTransaction(tx, &rpcx.TransactOpts{
-		From:        bee.from.String(),
+		From:        bee.xfrom.String(),
 		NormalNonce: normalNo,
 	})
 	if err != nil {
 		return err
 	}
-
 	go bee.counterReceipt(tx)
 
 	return nil
@@ -358,7 +347,7 @@ func (bee *bee) sendInterchainTx(i uint64, ibtpNo uint64) error {
 	}
 
 	_, err = bee.client.SendTransaction(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ibtp.From, ibtp.To, ibtp.Type),
+		From:      fmt.Sprintf("%s-%s-%d", ibtp.From, ibtp.To, ibtp.Category()),
 		IBTPNonce: ibtpNo,
 	})
 	if err != nil {
