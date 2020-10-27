@@ -3,7 +3,9 @@ module github.com/meshplus/premo
 go 1.13
 
 require (
+	github.com/Knetic/govaluate v3.0.0+incompatible // indirect
 	github.com/Rican7/retry v0.1.0
+	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/cheynewallace/tabby v1.1.0
 	github.com/cloudflare/cfssl v0.0.0-20190409034051-768cd563887f // indirect
 	github.com/coreos/etcd v3.3.18+incompatible
@@ -19,9 +21,9 @@ require (
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/meshplus/bitxhub-kit v1.0.1-0.20200813124031-6f6bdc99564f
-	github.com/meshplus/bitxhub-model v1.0.0-rc4.0.20201009112846-79d2e6ddf10d
-	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20200927102636-d78bdd9d3220
+	github.com/meshplus/bitxhub-kit v1.1.2-0.20201023073721-052e6b89ea39
+	github.com/meshplus/bitxhub-model v1.1.2-0.20201023091417-b6445e44d535
+	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20201023092924-5f9a248146f9
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
@@ -36,6 +38,7 @@ require (
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/wonderivan/logger v1.0.0
 	go.etcd.io/etcd v3.3.13+incompatible
+	golang.org/x/exp v0.0.0-20190121172915-509febef88a4
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
 
@@ -57,7 +60,7 @@ replace github.com/pelletier/go-toml => github.com/pelletier/go-toml v1.2.0
 
 replace github.com/spf13/jwalterweatherman => github.com/spf13/jwalterweatherman v1.0.0
 
-replace github.com/mholt/archiver => github.com/mholt/archiver v0.0.0-20180417220235-e4ef56d48eb0
+//replace github.com/mholt/archiver => github.com/mholt/archiver v0.0.0-20180417220235-e4ef56d48eb0
 
 replace github.com/go-kit/kit => github.com/go-kit/kit v0.8.0
 
