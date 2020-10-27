@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"github.com/meshplus/bitxhub-model/constant"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -21,16 +22,16 @@ var counter int64
 var sender int64
 var delayer int64
 var ibtppd []byte
-var proofHash types.Hash
+var proofHash [32]byte
 var lock sync.Mutex
 
 type bee struct {
 	xprivKey    crypto.PrivateKey
-	xfrom       types.Address
+	xfrom       *types.Address
 	xid         string
 	client      rpcx.Client
 	privKey     crypto.PrivateKey
-	from        types.Address
+	from        *types.Address
 	tps         int
 	count       uint64
 	norMalSeqNo uint64
@@ -63,8 +64,9 @@ func NewBee(tps int, addrs []string, config *Config) (*bee, error) {
 		return nil, err
 	}
 
+	node0 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[0]}
 	client, err := rpcx.New(
-		rpcx.WithAddrs(addrs),
+		rpcx.WithNodesInfo(node0),
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(privKey),
 	)
@@ -73,7 +75,7 @@ func NewBee(tps int, addrs []string, config *Config) (*bee, error) {
 	}
 
 	// query pending nonce for privKey
-	normalNonce, err := client.GetPendingNonceByAccount(from.Hex())
+	normalNonce, err := client.GetPendingNonceByAccount(from.String())
 	if err != nil {
 		return nil, err
 	}
@@ -187,11 +189,12 @@ func (bee *bee) sendBVMTx(normalNo uint64) error {
 		VmType:  pb.TransactionData_BVM,
 		Payload: data,
 	}
+	payload, err := td.Marshal()
 
 	tx := &pb.Transaction{
 		From:      bee.xfrom,
-		To:        rpcx.StoreContractAddr,
-		Data:      td,
+		To:        constant.StoreContractAddr.Address(),
+		Payload:   payload,
 		Timestamp: time.Now().UnixNano(),
 		Nonce:     normalNo,
 	}
@@ -211,7 +214,7 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 	bee.client.SetPrivateKey(bee.xprivKey)
 	// register chain
 	pubKey, _ := bee.xprivKey.PublicKey().Bytes()
-	receipt, err := bee.invokeContract(rpcx.AppchainMgrContractAddr, atomic.LoadUint64(&bee.norMalSeqNo),
+	receipt, err := bee.invokeContract(constant.AppchainMgrContractAddr.Address(), atomic.LoadUint64(&bee.norMalSeqNo),
 		"Register", rpcx.String(validators), rpcx.Int32(1), rpcx.String(chainType),
 		rpcx.String(name), rpcx.String(desc), rpcx.String(version), rpcx.String(string(pubKey)))
 	if err != nil {
@@ -227,7 +230,7 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 	ID := appchain.ID
 
 	// Audit chain
-	receipt, err = bee.invokeContract(rpcx.AppchainMgrContractAddr, atomic.LoadUint64(&bee.norMalSeqNo),
+	receipt, err = bee.invokeContract(constant.AppchainMgrContractAddr.Address(), atomic.LoadUint64(&bee.norMalSeqNo),
 		"Audit", rpcx.String(ID), rpcx.Int32(1), rpcx.String(""))
 	if err != nil {
 		return fmt.Errorf("audit appchain error:%w", err)
@@ -259,7 +262,7 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 	return nil
 }
 
-func (bee *bee) invokeContract(address types.Address, nonce uint64, method string, args ...*pb.Arg) (*pb.Receipt, error) {
+func (bee *bee) invokeContract(address *types.Address, nonce uint64, method string, args ...*pb.Arg) (*pb.Receipt, error) {
 	from := bee.xfrom
 
 	pl := &pb.InvokePayload{
@@ -277,11 +280,12 @@ func (bee *bee) invokeContract(address types.Address, nonce uint64, method strin
 		VmType:  pb.TransactionData_BVM,
 		Payload: data,
 	}
+	payload, err := td.Marshal()
 
 	tx := &pb.Transaction{
 		From:      from,
 		To:        address,
-		Data:      td,
+		Payload:   payload,
 		Timestamp: time.Now().UnixNano(),
 		Nonce:     nonce,
 	}
@@ -293,21 +297,26 @@ func (bee *bee) invokeContract(address types.Address, nonce uint64, method strin
 	return bee.client.SendTransactionWithReceipt(tx, nil)
 }
 
-func (bee *bee) sendTransferTx(to types.Address, normalNo uint64) error {
+func (bee *bee) sendTransferTx(to *types.Address, normalNo uint64) error {
 	atomic.AddInt64(&sender, 1)
 
+	data := &pb.TransactionData{
+		Type:   pb.TransactionData_NORMAL,
+		Amount: 1,
+	}
+	payload, err := data.Marshal()
+	if err != nil {
+		return err
+	}
 	tx := &pb.Transaction{
 		From:      bee.from,
 		To:        to,
 		Timestamp: time.Now().UnixNano(),
-		Data: &pb.TransactionData{
-			Type:   pb.TransactionData_NORMAL,
-			Amount: 0,
-		},
+		Payload:   payload,
 	}
 
-	_, err := bee.client.SendTransaction(tx, &rpcx.TransactOpts{
-		From:        bee.from.Hex(),
+	_, err = bee.client.SendTransaction(tx, &rpcx.TransactOpts{
+		From:        bee.from.String(),
 		NormalNonce: normalNo,
 	})
 	if err != nil {
@@ -342,11 +351,12 @@ func (bee *bee) sendInterchainTx(i uint64, ibtpNo uint64) error {
 		VmType:  pb.TransactionData_BVM,
 		Payload: data,
 	}
+	payload, err := td.Marshal()
 
 	tx := &pb.Transaction{
 		From:      bee.xfrom,
-		To:        rpcx.InterchainContractAddr,
-		Data:      td,
+		To:        constant.InterchainContractAddr.Address(),
+		Payload:   payload,
 		Timestamp: time.Now().UnixNano(),
 		Extra:     bee.config.Proof,
 	}

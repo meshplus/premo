@@ -10,7 +10,7 @@ import (
 	"github.com/meshplus/premo/pkg/utils"
 )
 
-var ValidationContractAddr = types.String2Address("000000000000000000000000000000000000000c")
+var ValidationContractAddr = types.NewAddressByStr("000000000000000000000000000000000000000c")
 
 func DeployRules(path, key, addr string) error {
 	privKey, err := utils.PrivKeyFromKey(key)
@@ -19,7 +19,6 @@ func DeployRules(path, key, addr string) error {
 	}
 
 	cli, err := rpcx.New(
-		rpcx.WithAddrs([]string{addr}),
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(privKey),
 	)
