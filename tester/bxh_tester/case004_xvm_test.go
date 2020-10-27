@@ -13,6 +13,7 @@ import (
 func (suite *Snake) TestDeployContractIsNull() {
 	bytes := make([]byte, 0)
 	_, err := suite.client.DeployContract(bytes, nil)
+
 	suite.Require().NotNil(err)
 }
 
@@ -26,15 +27,15 @@ func (suite *Snake) TestDeployContractWithToAddress() {
 		Payload: contract,
 	}
 
+	payload, err := td.Marshal()
+	suite.Require().Nil(err)
 	tx := &pb.Transaction{
 		From:      suite.from,
 		To:        suite.to,
-		Data:      td,
 		Timestamp: time.Now().UnixNano(),
+		Payload:   payload,
 	}
 
-	err = tx.Sign(suite.pk)
-	suite.Require().Nil(err)
 	receipt, err := suite.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().True(receipt.Status == pb.Receipt_FAILED)
@@ -62,8 +63,9 @@ func (suite *Snake) TestInvokeContractNotExistMethod() {
 }
 
 func (suite *Snake) TestInvokeRandomAddressContract() {
-	bs := hexutil.Encode([]byte("random contract address"))
-	fakeAddr := types.String2Address(bs)
+	// random addr len should be 42
+	bs := hexutil.Encode([]byte("random contract addr"))
+	fakeAddr := types.NewAddressByStr(bs)
 
 	result, err := suite.client.InvokeXVMContract(fakeAddr, "bbb", nil, rpcx.Int32(1))
 	suite.Require().Nil(err)
@@ -107,7 +109,7 @@ func (suite *Snake) TestDeployContractWrongNumberArg() {
 	suite.Require().True(result.Status == pb.Receipt_FAILED)
 }
 
-func deployExampleContract(suite *Snake) types.Address {
+func deployExampleContract(suite *Snake) *types.Address {
 	contract, err := ioutil.ReadFile("testdata/example.wasm")
 	suite.Require().Nil(err)
 

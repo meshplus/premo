@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"github.com/meshplus/bitxhub-model/constant"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -13,6 +12,7 @@ import (
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-kit/types"
+	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	"github.com/wonderivan/logger"
@@ -331,14 +331,9 @@ func (bee *bee) sendTransferTx(to *types.Address, normalNo uint64) error {
 func (bee *bee) sendInterchainTx(i uint64, ibtpNo uint64) error {
 	atomic.AddInt64(&sender, 1)
 	ibtp := mockIBTP(i, bee.xfrom.String(), bee.xfrom.String(), bee.config.Proof)
-	b, err := ibtp.Marshal()
-	if err != nil {
-		return err
-	}
 
 	pl := &pb.InvokePayload{
 		Method: "HandleIBTP",
-		Args:   []*pb.Arg{pb.Bytes(b)}[:],
 	}
 
 	data, err := pl.Marshal()
@@ -359,6 +354,7 @@ func (bee *bee) sendInterchainTx(i uint64, ibtpNo uint64) error {
 		Payload:   payload,
 		Timestamp: time.Now().UnixNano(),
 		Extra:     bee.config.Proof,
+		IBTP:      ibtp,
 	}
 
 	_, err = bee.client.SendTransaction(tx, &rpcx.TransactOpts{
