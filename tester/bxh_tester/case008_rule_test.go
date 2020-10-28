@@ -3,6 +3,7 @@ package bxh_tester
 import (
 	"io/ioutil"
 
+	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 )
@@ -20,7 +21,7 @@ func (suite *Snake) TestRegisterRuleShouldSucceed() {
 		rpcx.String(suite.from.String()),
 		rpcx.String(contractAddr.String()),
 	}
-	res, err := suite.client.InvokeBVMContract(rpcx.RuleManagerContractAddr, "RegisterRule", nil, args...)
+	res, err := suite.client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, args...)
 	suite.Require().Nil(err)
 	suite.Require().True(res.Status == pb.Receipt_SUCCESS)
 }
@@ -38,7 +39,7 @@ func (suite *Snake) TestAuditRuleShouldSucceed() {
 		rpcx.String(suite.from.String()),
 		rpcx.String(contractAddr.String()),
 	}
-	res, err := suite.client.InvokeBVMContract(rpcx.RuleManagerContractAddr, "RegisterRule", nil, args...)
+	res, err := suite.client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, args...)
 	suite.Require().Nil(err)
 
 	args2 := []*pb.Arg{
@@ -46,7 +47,7 @@ func (suite *Snake) TestAuditRuleShouldSucceed() {
 		rpcx.Int32(1),               //audit approve
 		rpcx.String("Audit passed"), //desc
 	}
-	res, err = suite.client.InvokeBVMContract(rpcx.RuleManagerContractAddr, "Audit", nil, args2...)
+	res, err = suite.client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "Audit", nil, args2...)
 	suite.Require().Nil(err)
 	suite.Require().True(res.Status == pb.Receipt_SUCCESS)
 
@@ -58,7 +59,7 @@ func (suite *Snake) TestGetRuleAddressShouldSucceed() {
 		rpcx.String(suite.from.String()),
 		rpcx.String("ethereum"),
 	}
-	res, err := suite.client.InvokeBVMContract(rpcx.RuleManagerContractAddr, "GetRuleAddress", nil, args...)
+	res, err := suite.client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "GetRuleAddress", nil, args...)
 	suite.Require().Nil(err)
 	suite.Require().True(res.Status == pb.Receipt_SUCCESS)
 }
@@ -69,7 +70,7 @@ func (suite *Snake) TestGetRuleAddressShouldFail() {
 		rpcx.String(suite.to.String()),
 		rpcx.String("ethereum"),
 	}
-	res, err := suite.client.InvokeBVMContract(rpcx.RuleManagerContractAddr, "GetRuleAddress", nil, args...)
+	res, err := suite.client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "GetRuleAddress", nil, args...)
 	suite.Require().Nil(err)
 	suite.Require().True(res.Status == pb.Receipt_FAILED)
 }
@@ -79,7 +80,7 @@ func (suite *Snake) TestGetFabricRuleAddressShouldSucceed() {
 		rpcx.String(suite.to.String()),
 		rpcx.String("fabric"),
 	}
-	res, err := suite.client.InvokeBVMContract(rpcx.RuleManagerContractAddr, "GetRuleAddress", nil, args...)
+	res, err := suite.client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "GetRuleAddress", nil, args...)
 	suite.Require().Nil(err)
 	suite.Require().True(res.Status == pb.Receipt_SUCCESS)
 }
@@ -95,7 +96,7 @@ func (suite *Snake) TestRegisterUnexistedAppchainShouldFail() {
 		rpcx.String("1234"),
 		rpcx.String(contractAddr.String()),
 	}
-	res, err := suite.client.InvokeBVMContract(rpcx.RuleManagerContractAddr, "RegisterRule", nil, args...)
+	res, err := suite.client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, args...)
 
 	suite.Require().Nil(err)
 	suite.Require().True(res.Status == pb.Receipt_FAILED)

@@ -23,7 +23,7 @@ require (
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/meshplus/bitxhub-kit v1.1.2-0.20201023073721-052e6b89ea39
 	github.com/meshplus/bitxhub-model v1.1.2-0.20201023091417-b6445e44d535
-	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20201027081332-66bb7f53dced
+	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20201027091636-657ee0796ffb
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.4 // indirect

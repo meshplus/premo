@@ -17,17 +17,18 @@ func (suite *Snake) TestTransferLessThanAmount() {
 	suite.Require().Nil(err)
 	amount := balance + 1
 
-	tx := &pb.Transaction{
-		From: suite.from,
-		To:   suite.to,
-		Data: &pb.TransactionData{
-			Amount: amount,
-		},
-		Timestamp: time.Now().UnixNano(),
+	data := &pb.TransactionData{
+		Amount: amount,
 	}
-
-	err = tx.Sign(suite.pk)
+	payload, err := data.Marshal()
 	suite.Require().Nil(err)
+
+	tx := &pb.Transaction{
+		From:      suite.from,
+		To:        suite.to,
+		Timestamp: time.Now().UnixNano(),
+		Payload:   payload,
+	}
 
 	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
@@ -41,68 +42,69 @@ func (suite *Snake) TestTransferLessThanAmount() {
 
 func (suite *Snake) TestToAddressIs0X000___000() {
 	to := "0x0000000000000000000000000000000000000000"
-	tx := &pb.Transaction{
-		From: suite.from,
-		To:   types.Bytes2Address([]byte(to)),
-		Data: &pb.TransactionData{
-			Amount: 1,
-		},
-		Timestamp: time.Now().UnixNano(),
-	}
 
-	err := tx.Sign(suite.pk)
+	data := &pb.TransactionData{
+		Amount: 1,
+	}
+	payload, err := data.Marshal()
 	suite.Require().Nil(err)
+	tx := &pb.Transaction{
+		From:      suite.from,
+		To:        types.NewAddress([]byte(to)),
+		Timestamp: time.Now().UnixNano(),
+		Payload:   payload,
+	}
 
 	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
 	suite.Require().NotNil(ret)
-	suite.Require().True(ret.Status == pb.Receipt_SUCCESS)
+	suite.Require().True(ret.IsSuccess())
 	suite.Require().Equal(tx.Hash().String(), ret.TxHash.String())
 }
 
 func (suite *Snake) TestTypeIsXVM() {
-	tx := &pb.Transaction{
-		From: suite.from,
-		To:   suite.to,
-		Data: &pb.TransactionData{
-			VmType: pb.TransactionData_XVM,
-			Amount: 1,
-		},
-		Timestamp: time.Now().UnixNano(),
+	data := &pb.TransactionData{
+		VmType: pb.TransactionData_XVM,
+		Amount: 1,
 	}
-
-	err := tx.Sign(suite.pk)
+	payload, err := data.Marshal()
 	suite.Require().Nil(err)
+	tx := &pb.Transaction{
+		From:      suite.from,
+		To:        suite.to,
+		Timestamp: time.Now().UnixNano(),
+		Payload:   payload,
+	}
 
 	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
 	suite.Require().NotNil(ret)
-	suite.Require().True(ret.Status == pb.Receipt_SUCCESS)
+	suite.Require().True(ret.IsSuccess())
 	suite.Require().Equal(tx.Hash().String(), ret.TxHash.String())
 }
 
 func (suite *Snake) TestTransfer() {
-	tx := &pb.Transaction{
-		From: suite.from,
-		To:   suite.to,
-		Data: &pb.TransactionData{
-			Amount: 1,
-		},
-		Timestamp: time.Now().UnixNano(),
+	data := &pb.TransactionData{
+		Amount: 1,
 	}
-
-	err := tx.Sign(suite.pk)
+	payload, err := data.Marshal()
 	suite.Require().Nil(err)
+	tx := &pb.Transaction{
+		From:      suite.from,
+		To:        suite.to,
+		Timestamp: time.Now().UnixNano(),
+		Payload:   payload,
+	}
 
 	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
 	suite.Require().NotNil(ret)
-	suite.Require().True(ret.Status == pb.Receipt_SUCCESS)
+	suite.Require().True(ret.IsSuccess())
 	suite.Require().Equal(tx.Hash().String(), ret.TxHash.String())
 }

@@ -43,11 +43,11 @@ func (suite *Snake) TestGetBlockByNonexistentHeight() {
 
 	_, err = suite.client.GetBlock(strconv.Itoa(int(chainMeta.Height+1)), pb.GetBlockRequest_HEIGHT)
 	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "not found in DB")
+	suite.Require().Contains(err.Error(), "out of bounds")
 
 	_, err = suite.client.GetBlock("0", pb.GetBlockRequest_HEIGHT)
 	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "not found in DB")
+	suite.Require().Contains(err.Error(), "out of bounds")
 }
 
 func (suite *Snake) TestGetBlockByWrongHeight() {
@@ -76,13 +76,13 @@ func (suite *Snake) TestGetBlockByHash() {
 
 	block, err := suite.client.GetBlock(chainMeta.BlockHash.String(), pb.GetBlockRequest_HASH)
 	suite.Require().Nil(err)
-	suite.Require().Equal(chainMeta.BlockHash, block.BlockHash)
+	suite.Require().Equal(chainMeta.BlockHash.String(), block.BlockHash.String())
 }
 
 func (suite *Snake) TestGetBlockByWrongHash() {
 	_, err := suite.client.GetBlock(" ", pb.GetBlockRequest_HASH)
 	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "not found in DB")
+	suite.Require().Contains(err.Error(), "invalid format of block hash for querying block")
 }
 
 func (suite *Snake) TestGetBlockByParentHash() {
@@ -152,7 +152,7 @@ func (suite *Snake) TestGetChainMeta() {
 
 	_, err = suite.client.GetBlock(strconv.Itoa(int(chainMeta.Height+1)), pb.GetBlockRequest_HEIGHT)
 	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "not found in DB")
+	suite.Require().Contains(err.Error(), "out of bounds")
 }
 
 func (suite *Snake) TestGetBlocks() {

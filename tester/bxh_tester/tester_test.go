@@ -30,12 +30,13 @@ type config struct {
 
 type Snake struct {
 	suite.Suite
+	//client    rpcx.ChainClient
 	client    rpcx.Client
-	from      types.Address
+	from      *types.Address
 	fromIndex uint64
 	pk        crypto.PrivateKey
 	toIndex   uint64
-	to        types.Address
+	to        *types.Address
 }
 
 func TestTester(t *testing.T) {
@@ -53,9 +54,12 @@ func TestTester(t *testing.T) {
 
 	to, err := pk1.PublicKey().Address()
 	require.Nil(t, err)
-
+	node0 := &rpcx.NodeInfo{Addr: cfg.addrs[0]}
+	//node1 := &rpcx.NodeInfo{Addr: cfg.addrs[1]}
+	//node2 := &rpcx.NodeInfo{Addr: cfg.addrs[2]}
+	//node3 := &rpcx.NodeInfo{Addr: cfg.addrs[3]}
 	client, err := rpcx.New(
-		rpcx.WithAddrs(cfg.addrs),
+		rpcx.WithNodesInfo(node0),
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(pk),
 	)
