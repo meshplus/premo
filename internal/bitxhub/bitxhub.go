@@ -63,7 +63,7 @@ func New(config *Config) (*Broker, error) {
 		go func() {
 			defer wg.Done()
 
-			bee, err := NewBee(config.TPS/config.Concurrent, config.BitxhubAddr, config)
+			bee, err := NewBee(config.TPS/config.Concurrent, config)
 			if err != nil {
 				logger.Error(err)
 				return
@@ -89,7 +89,7 @@ func New(config *Config) (*Broker, error) {
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(node0),
 		rpcx.WithLogger(cfg.logger),
-		rpcx.WithPrivateKey(bees[0].xprivKey),
+		rpcx.WithPrivateKey(bees[0].adminPrivKey),
 	)
 	if err != nil {
 		return nil, err
