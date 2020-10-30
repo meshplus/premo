@@ -88,7 +88,7 @@ func New(config *Config) (*Broker, error) {
 	client, err := rpcx.New(
 		rpcx.WithAddrs(config.BitxhubAddr),
 		rpcx.WithLogger(cfg.logger),
-		rpcx.WithPrivateKey(bees[0].xprivKey),
+		rpcx.WithPrivateKey(bees[0].normalPrivKey),
 	)
 	if err != nil {
 		return nil, err
@@ -166,7 +166,7 @@ func (broker *Broker) Start(typ string) error {
 	if err != nil {
 		return err
 	}
-	log.Infof("the TPS from block %d to %d is %d", begin, end, tps)
+	log.Infof("the TPS adminFrom block %d to %d is %d", begin, end, tps)
 
 	return nil
 }
