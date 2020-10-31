@@ -16,7 +16,6 @@ import (
 	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
-	"github.com/meshplus/premo/internal/repo"
 	"github.com/wonderivan/logger"
 )
 
@@ -35,6 +34,7 @@ type bee struct {
 	client        rpcx.Client
 	tps           int
 	count         uint64
+	adminSeqNo    uint64
 	norMalSeqNo   uint64
 	ibtpSeqNo     uint64
 	ctx           context.Context
@@ -42,17 +42,7 @@ type bee struct {
 	config        *Config
 }
 
-func NewBee(tps int, config *Config) (*bee, error) {
-	adminPk, err := asym.RestorePrivateKey(config.KeyPath, repo.KeyPassword)
-	if err != nil {
-		return nil, err
-	}
-
-	adminFrom, err := adminPk.PublicKey().Address()
-	if err != nil {
-		return nil, err
-	}
-
+func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expectedNonce uint64, config *Config) (*bee, error) {
 	normalPk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	if err != nil {
 		return nil, err
@@ -68,12 +58,6 @@ func NewBee(tps int, config *Config) (*bee, error) {
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(normalPk),
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	// query pending nonce for privKey
-	normalNonce, err := client.GetPendingNonceByAccount(normalFrom.String())
 	if err != nil {
 		return nil, err
 	}
@@ -98,8 +82,9 @@ func NewBee(tps int, config *Config) (*bee, error) {
 		ctx:           ctx,
 		cancel:        cancel,
 		config:        config,
+		adminSeqNo:    expectedNonce,
 		ibtpSeqNo:     ibtpNonce,
-		norMalSeqNo:   normalNonce,
+		norMalSeqNo:   1,
 	}, nil
 }
 
@@ -240,8 +225,8 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 
 	// Audit chain and set adminPrivateKey for auditing
 	bee.client.SetPrivateKey(bee.adminPrivKey)
-	receipt, err = bee.invokeContract(bee.adminFrom, constant.AppchainMgrContractAddr.Address(), 0,
-		"Audit", rpcx.String(ID), rpcx.Int32(1), rpcx.String(""))
+	receipt, err = bee.invokeContract(bee.adminFrom, constant.AppchainMgrContractAddr.Address(), bee.adminSeqNo,
+		"Audit", rpcx.String(ID), rpcx.Int32(1), rpcx.String("Audit passed"))
 	if err != nil {
 		return fmt.Errorf("audit appchain error:%w", err)
 	}
