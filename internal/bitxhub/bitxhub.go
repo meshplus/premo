@@ -5,7 +5,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	rpcx "github.com/meshplus/go-bitxhub-client"
+	"github.com/meshplus/premo/internal/repo"
 	"github.com/sirupsen/logrus"
 	"github.com/wonderivan/logger"
 )
@@ -28,9 +30,10 @@ type config struct {
 }
 
 type Broker struct {
-	config *Config
-	bees   []*bee
-	client rpcx.Client
+	config     *Config
+	bees       []*bee
+	client     rpcx.Client
+	adminNonce uint64
 }
 
 type Config struct {
@@ -54,6 +57,32 @@ func New(config *Config) (*Broker, error) {
 		"type":       config.Type,
 	}).Info("Premo configuration")
 
+	adminPk, err := asym.RestorePrivateKey(config.KeyPath, repo.KeyPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	adminFrom, err := adminPk.PublicKey().Address()
+	if err != nil {
+		return nil, err
+	}
+
+	node0 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[0]}
+	client, err := rpcx.New(
+		rpcx.WithNodesInfo(node0),
+		rpcx.WithLogger(cfg.logger),
+		rpcx.WithPrivateKey(adminPk),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// query pending nonce for adminKey
+	adminNonce, err := client.GetPendingNonceByAccount(adminFrom.String())
+	if err != nil {
+		return nil, err
+	}
+
 	bees := make([]*bee, 0, config.Concurrent)
 
 	var wg sync.WaitGroup
@@ -63,9 +92,10 @@ func New(config *Config) (*Broker, error) {
 		go func() {
 			defer wg.Done()
 
-			bee, err := NewBee(config.TPS/config.Concurrent, config)
+			expectedNonce := atomic.AddUint64(&adminNonce, 1) - 1
+			bee, err := NewBee(config.TPS/config.Concurrent, adminPk, adminFrom, expectedNonce, config)
 			if err != nil {
-				logger.Error(err)
+				logger.Error("New bee: ", err.Error())
 				return
 			}
 
@@ -85,20 +115,11 @@ func New(config *Config) (*Broker, error) {
 		"number": len(bees),
 	}).Info("generate all bees")
 
-	node0 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[0]}
-	client, err := rpcx.New(
-		rpcx.WithNodesInfo(node0),
-		rpcx.WithLogger(cfg.logger),
-		rpcx.WithPrivateKey(bees[0].adminPrivKey),
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	return &Broker{
-		config: config,
-		bees:   bees,
-		client: client,
+		config:     config,
+		bees:       bees,
+		client:     client,
+		adminNonce: adminNonce,
 	}, nil
 }
 
