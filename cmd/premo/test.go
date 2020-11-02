@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -91,12 +92,21 @@ func benchmark(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+
+	keyPath := ctx.String("key_path")
+	if keyPath == "" {
+		rootPath, err := repo.PathRoot()
+		if err != nil {
+			return err
+		}
+		keyPath = filepath.Join(rootPath, "key.json")
+	}
 	config := &bitxhub.Config{
 		Concurrent:  ctx.Int("concurrent"),
 		TPS:         ctx.Int("tps"),
 		Duration:    ctx.Int("duration"),
 		Type:        ctx.String("type"),
-		KeyPath:     ctx.String("key_path"),
+		KeyPath:     keyPath,
 		BitxhubAddr: ctx.StringSlice("remote_bitxhub_addr"),
 		Validator:   string(val),
 		Proof:       proof,
