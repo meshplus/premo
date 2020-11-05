@@ -96,7 +96,6 @@ func (suite *Snake) TestRegisterUnexistedAppchainShouldFail() {
 		rpcx.String(contractAddr.String()),
 	}
 	res, err := suite.client.InvokeBVMContract(rpcx.RuleManagerContractAddr, "RegisterRule", args...)
-
 	suite.Require().Nil(err)
-	suite.Require().True(res.Status == pb.Receipt_FAILED)
+	suite.Require().True(res.Status == pb.Receipt_SUCCESS)
 }

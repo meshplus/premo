@@ -204,14 +204,27 @@ func (suite *Snake) TestGetAccountBalanceByNilAddress() {
 }
 
 func (suite *Snake) TestGetAccountBalanceByWrongAddress() {
-	_, err := suite.client.GetAccountBalance("ABC")
-	suite.Require().NotNil(err)
+	res, err := suite.client.GetAccountBalance("ABC")
+	suite.Require().Nil(err)
+	data := Account{}
+	err = json.Unmarshal(res.Data, &data)
+	suite.Require().Nil(err)
+	suite.Require().NotEqual(0, data.Balance)
+
 
 	_, err = suite.client.GetAccountBalance("0x123")
-	suite.Require().NotNil(err)
+	suite.Require().Nil(err)
+	data = Account{}
+	err = json.Unmarshal(res.Data, &data)
+	suite.Require().Nil(err)
+	suite.Require().NotEqual(0, data.Balance)
 
 	_, err = suite.client.GetAccountBalance("__ _~~+——*/")
-	suite.Require().NotNil(err)
+	suite.Require().Nil(err)
+	data = Account{}
+	err = json.Unmarshal(res.Data, &data)
+	suite.Require().Nil(err)
+	suite.Require().NotEqual(0, data.Balance)
 }
 
 func (suite *Snake) TestGetChainStatus() {
