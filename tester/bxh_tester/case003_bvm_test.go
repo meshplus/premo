@@ -17,17 +17,15 @@ func (suite *Snake) TestSet10MData() {
 }
 
 func (suite *Snake) TestGetEmptyKey() {
-	receipt1, err := suite.client.InvokeBVMContract(rpcx.StoreContractAddr, "Get", pb.String(""))
-	suite.Require().Nil(err)
-
-	suite.Require().Equal(pb.Receipt_FAILED, receipt1.Status)
-	suite.Require().Contains(string(receipt1.Ret), "there is not exist key")
-}
-
-func (suite *Snake) TestSetEmptyKey() {
 	receipt, err := suite.client.InvokeBVMContract(rpcx.StoreContractAddr, "Set", pb.String(""), pb.String("value_for_empty"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
+	receipt2, err := suite.client.InvokeBVMContract(rpcx.StoreContractAddr, "Get", pb.String(""))
+	suite.Require().Nil(err)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt2.Status)
+}
+
+func (suite *Snake) TestSetEmptyKey() {
 }
 
 func (suite *Snake) TestSetEmptyValue() {
