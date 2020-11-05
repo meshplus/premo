@@ -21,6 +21,7 @@ func (suite *Snake) TestGetEmptyKey() {
 	suite.Require().Nil(err)
 
 	suite.Require().Equal(pb.Receipt_FAILED, receipt1.Status)
+	suite.Require().Contains(string(receipt1.Ret), "there is not exist key")
 }
 
 func (suite *Snake) TestSetEmptyKey() {
