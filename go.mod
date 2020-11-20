@@ -7,13 +7,14 @@ require (
 	github.com/Rican7/retry v0.1.0
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/cheynewallace/tabby v1.1.0
-	github.com/cloudflare/cfssl v0.0.0-20190409034051-768cd563887f // indirect
+	github.com/cloudflare/cfssl v0.0.0-20190409034051-768cd563887f
 	github.com/coreos/etcd v3.3.18+incompatible
 	github.com/ethereum/go-ethereum v1.9.18
 	github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5 // indirect
 	github.com/gballet/go-libpcsclite v0.0.0-20191108122812-4678299bea08 // indirect
 	github.com/gobuffalo/packd v1.0.0
 	github.com/gobuffalo/packr v1.30.1
+	github.com/gobuffalo/packr/v2 v2.5.1
 	github.com/golangci/golangci-lint v1.23.0 // indirect
 	github.com/google/certificate-transparency-go v1.1.0 // indirect
 	github.com/hyperledger/fabric-lib-go v1.0.0 // indirect
@@ -21,7 +22,7 @@ require (
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/meshplus/bitxhub-kit v1.1.2-0.20201023073721-052e6b89ea39
+	github.com/meshplus/bitxhub-kit v1.1.2-0.20201027090548-41dfc41037af
 	github.com/meshplus/bitxhub-model v1.1.2-0.20201023091417-b6445e44d535
 	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20201027091636-657ee0796ffb
 	github.com/mitchellh/go-homedir v1.1.0

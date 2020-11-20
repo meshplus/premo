@@ -44,9 +44,13 @@ test-coverage:
 bitxhub-tester:
 	cd tester/bxh_tester && $(GO) test -v -run TestTester
 
-## make tester: Run interchain test
+## make interchain-tester: Run interchain test
 interchain-tester:
 	cd tester/interchain_tester && $(GO) test -v -run TestTester
+
+## make gosdk-tester: Run gosdk test
+gosdk-tester:
+	cd tester/gosdk_tester && $(GO) test -v -run TestTester
 
 ## make install: Go install the project
 install:
