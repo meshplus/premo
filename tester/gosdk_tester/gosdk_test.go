@@ -23,7 +23,7 @@ func (suite *Snake) TestStopClient() {
 	keyPath, err := repo.KeyPath()
 	suite.Require().Nil(err)
 
-	node0 := &rpcx.NodeInfo{Addr: "172.27.189.206:60011"}
+	node0 := &rpcx.NodeInfo{Addr: "localhost:60011"}
 
 	pk, err := asym.RestorePrivateKey(keyPath, repo.KeyPassword)
 
