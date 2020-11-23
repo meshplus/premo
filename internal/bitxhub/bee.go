@@ -1,5 +1,6 @@
 package bitxhub
 
+import "C"
 import (
 	"context"
 	"crypto/sha256"
@@ -87,14 +88,16 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expect
 		norMalSeqNo:   1,
 	}, nil
 }
-
 func (bee *bee) start(typ string) error {
+	var wg sync.WaitGroup
+	wg.Add(bee.tps)
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-bee.ctx.Done():
+			wg.Wait()
 			err := bee.client.Stop()
 			if err != nil {
 				panic(err)
@@ -114,12 +117,17 @@ func (bee *bee) start(typ string) error {
 					normalNo = atomic.LoadUint64(&bee.norMalSeqNo)
 					atomic.AddUint64(&bee.norMalSeqNo, 1)
 				}
-				go func(count, ibtpNo, normalNo uint64) {
-					err := bee.sendTx(typ, count, ibtpNo, normalNo)
-					if err != nil {
-						logger.Error(err)
+				go func(ctx context.Context, count, ibtpNo, normalNo uint64) {
+					select {
+					case <-bee.ctx.Done():
+						wg.Done()
+					default:
+						err := bee.sendTx(typ, count, ibtpNo, normalNo)
+						if err != nil {
+							logger.Error(err)
+						}
 					}
-				}(bee.count, ibtpNo, normalNo)
+				}(bee.ctx, bee.count, ibtpNo, normalNo)
 			}
 		}
 	}
