@@ -47,7 +47,7 @@ func (suite *Snake) TestSetPrivateKey() {
 	pk, err := asym.RestorePrivateKey(keyPath, "bitxhub")
 
 	suite.client.SetPrivateKey(pk)
-	suite.Require().Equal(suite.pk, pk)
+	suite.Require().Equal(pk, suite.pk)
 }
 
 func (suite *Snake) TestSendViewIsTrue() {
@@ -68,7 +68,7 @@ func (suite *Snake) TestSendViewIsTrue() {
 
 	receipt1, err := suite.client.SendView(tx1)
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt1.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt1.Status)
 
 	tx2, err := genContractTransaction(pb.TransactionData_BVM, suite.pk,
 		types.NewAddressByStr(BoltContractAddress), "Get", pb.String(string(randKey)))
@@ -80,7 +80,7 @@ func (suite *Snake) TestSendViewIsTrue() {
 
 	receipt2, err := suite.client.SendView(tx2)
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt2.Status, pb.Receipt_FAILED)
+	suite.Require().Equal(pb.Receipt_FAILED, receipt2.Status)
 }
 
 func (suite *Snake) TestSendViewIsFalse() {
@@ -113,7 +113,7 @@ func (suite *Snake) TestSendViewIsFalse() {
 
 	receipt, err := suite.client.SendView(tx2)
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_FAILED)
+	suite.Require().Equal(pb.Receipt_FAILED, receipt.Status)
 }
 
 func (suite Snake) TestSendTransactionIsTrue() {
@@ -139,7 +139,7 @@ func (suite Snake) TestSendTransactionIsTrue() {
 
 	receipt, err := suite.client.GetReceipt(hash)
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 }
 
 func (suite Snake) TestSendTransactionIsFalse() {
@@ -184,7 +184,7 @@ func (suite Snake) TestSendTransactionWithReceiptIsTrue() {
 
 	receipt, err := suite.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 }
 
 func (suite *Snake) TestSendTransactionWithReceiptIsFalse() {
@@ -233,6 +233,7 @@ func (suite *Snake) TestGetReceiptByHashIsFalse() {
 
 	receipt, err := suite.client.GetReceipt(hash + "1")
 	suite.Require().Nil(err)
+	suite.Require().Nil(receipt.Ret)
 	fmt.Println(string(receipt.Ret))
 }
 
@@ -259,7 +260,7 @@ func (suite *Snake) TestGetTransactionIsTrue() {
 
 	receipt, err := suite.client.GetReceipt(hash)
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 
 	_, err = suite.client.GetTransaction(receipt.TxHash.String())
 	suite.Require().Nil(err)
@@ -288,7 +289,7 @@ func (suite *Snake) TestGetTransactionIsFalse() {
 
 	receipt, err := suite.client.GetReceipt(hash)
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 
 	wronghash := receipt.TxHash.String() + "a"
 	transaction, err := suite.client.GetTransaction(wronghash)
@@ -322,7 +323,7 @@ func (suite Snake) TestGetBlocksIsTrue() {
 
 	receipt1, err := suite.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt1.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt1.Status)
 
 	transaction1, err := suite.client.GetTransaction(receipt1.TxHash.String())
 	suite.Require().Nil(err)
@@ -330,7 +331,7 @@ func (suite Snake) TestGetBlocksIsTrue() {
 
 	receipt2, err := suite.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt2.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt2.Status)
 
 	transaction2, err := suite.client.GetTransaction(receipt2.TxHash.String())
 	suite.Require().Nil(err)
@@ -339,7 +340,7 @@ func (suite Snake) TestGetBlocksIsTrue() {
 	blocks, err := suite.client.GetBlocks(height1, height2)
 	suite.Require().Nil(err)
 	l := len(blocks.Blocks)
-	suite.Require().Equal(l, 2)
+	suite.Require().Equal(2, l)
 }
 
 func (suite Snake) TestGetBlocksIsFalse() {
@@ -362,7 +363,7 @@ func (suite Snake) TestGetBlocksIsFalse() {
 
 	receipt1, err := suite.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt1.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt1.Status)
 
 	transaction1, err := suite.client.GetTransaction(receipt1.TxHash.String())
 	suite.Require().Nil(err)
@@ -370,7 +371,7 @@ func (suite Snake) TestGetBlocksIsFalse() {
 
 	receipt2, err := suite.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt2.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt2.Status)
 
 	transaction2, err := suite.client.GetTransaction(receipt2.TxHash.String())
 	suite.Require().Nil(err)
@@ -380,25 +381,25 @@ func (suite Snake) TestGetBlocksIsFalse() {
 	blocks, err := suite.client.GetBlocks(height2, height1)
 	suite.Require().Nil(err)
 	l := len(blocks.Blocks)
-	suite.Require().Equal(l, 0)
+	suite.Require().Equal(0, l)
 
 	//get more blocks
 	blocks, err = suite.client.GetBlocks(height1, height2+100)
 	suite.Require().Nil(err)
 	l = len(blocks.Blocks)
-	suite.Require().Equal(l, 2)
+	suite.Require().Equal(2, l)
 
 	//get does not exist blocks
 	blocks, err = suite.client.GetBlocks(height1+100, height2+100)
 	suite.Require().Nil(err)
 	l = len(blocks.Blocks)
-	suite.Require().Equal(l, 0)
+	suite.Require().Equal(0, l)
 
 	//get Illegal height blocks
 	blocks, err = suite.client.GetBlocks(0, 0)
 	suite.Require().Nil(err)
 	l = len(blocks.Blocks)
-	suite.Require().Equal(l, 0)
+	suite.Require().Equal(0, l)
 }
 
 func (suite *Snake) TestGetBlockIsTrue() {
@@ -421,7 +422,7 @@ func (suite *Snake) TestGetBlockIsTrue() {
 
 	receipt, err := suite.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 
 	transaction, err := suite.client.GetTransaction(receipt.TxHash.String())
 	suite.Require().Nil(err)
@@ -455,7 +456,7 @@ func (suite *Snake) TestGetBlockIsFalse() {
 
 	receipt, err := suite.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 
 	transaction, err := suite.client.GetTransaction(receipt.TxHash.String())
 	suite.Require().Nil(err)
@@ -516,8 +517,8 @@ func (suite *Snake) TestGetBlockHeaderIsTrue() {
 	for {
 		select {
 		case header, ok := <-headers:
-			suite.Require().Equal(ok, true)
-			suite.Require().Equal(header.Number, uint64(1))
+			suite.Require().Equal(true, ok)
+			suite.Require().Equal(uint64(1), header.Number)
 			return
 		case <-ctx.Done():
 			return
@@ -535,7 +536,7 @@ func (suite *Snake) TestGetBlockHeaderIsFalse() {
 	for {
 		select {
 		case header, ok := <-headers:
-			suite.Require().Equal(ok, false)
+			suite.Require().Equal(false, ok)
 			suite.Require().Nil(header)
 			return
 		case <-ctx.Done():
@@ -551,7 +552,7 @@ func (suite *Snake) TestGetInterchainTxWrappersIsTrue() {
 	//sendInterchain
 	_, _, _, to, receipt, err := suite.sendInterchain()
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 	//get
 	meta, err := suite.client.GetChainMeta()
 	ch := make(chan *pb.InterchainTxWrappers, 10)
@@ -561,10 +562,10 @@ func (suite *Snake) TestGetInterchainTxWrappersIsTrue() {
 	for {
 		select {
 		case wrappers, ok := <-ch:
-			suite.Require().Equal(ok, true)
+			suite.Require().Equal(true, ok)
 			suite.Require().NotNil(wrappers.InterchainTxWrappers[0])
 			wrapper := wrappers.InterchainTxWrappers[0]
-			suite.Require().GreaterOrEqual(wrapper.Height, meta.Height)
+			suite.Require().GreaterOrEqual(meta.Height, wrapper.Height)
 			return
 		case <-ctx.Done():
 			return
@@ -579,7 +580,7 @@ func (suite *Snake) TestGetInterchainTxWrappersIsFalse() {
 	//sendInterchain
 	_, _, _, to, receipt, err := suite.sendInterchain()
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 
 	//get
 	meta, err := suite.client.GetChainMeta()
@@ -590,7 +591,7 @@ func (suite *Snake) TestGetInterchainTxWrappersIsFalse() {
 	for {
 		select {
 		case wrappers, ok := <-ch:
-			suite.Require().Equal(ok, false)
+			suite.Require().Equal(false, ok)
 			suite.Require().Nil(wrappers)
 			goto label1
 		case <-ctx.Done():
@@ -605,7 +606,7 @@ label1:
 	for {
 		select {
 		case wrappers, ok := <-ch:
-			suite.Require().Equal(ok, true)
+			suite.Require().Equal(true, ok)
 			suite.Require().Nil(wrappers.InterchainTxWrappers[0].Transactions)
 			goto label2
 		case <-ctx.Done():
@@ -620,7 +621,7 @@ label2:
 	for {
 		select {
 		case wrappers, ok := <-ch:
-			suite.Require().Equal(ok, false)
+			suite.Require().Equal(false, ok)
 			suite.Require().Nil(wrappers)
 			return
 		case <-ctx.Done():
@@ -654,12 +655,12 @@ func (suite *Snake) TestSubscribe_BLOCK() {
 
 	receipt, err := suite.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 
 	for {
 		select {
 		case block, ok := <-c:
-			suite.Require().Equal(ok, true)
+			suite.Require().Equal(true, ok)
 			suite.Require().NotNil(block)
 			return
 		case <-ctx.Done():
@@ -693,12 +694,12 @@ func (suite *Snake) TestSubscribe_BLOCK_HEADER() {
 
 	receipt, err := suite.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 
 	for {
 		select {
 		case block_header, ok := <-c:
-			suite.Require().Equal(ok, true)
+			suite.Require().Equal(true, ok)
 			suite.Require().NotNil(block_header)
 			fmt.Println(block_header)
 			return
@@ -716,11 +717,11 @@ func (suite *Snake) TestSubscribe_BLOCK_HEADER() {
 	//sendInterchain
 	_, _, _, _, receipt, err := suite.sendInterchain()
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS,receipt.Status)
 	for {
 		select {
 		case interchainTx, ok := <-c:
-			suite.Require().Equal(ok, true)
+			suite.Require().Equal(true,ok)
 			suite.Require().NotNil(interchainTx)
 			fmt.Println(interchainTx)
 			return
@@ -740,12 +741,12 @@ func (suite *Snake) TestSubscribe_INTERCHAIN_TX_WRAPPER() {
 	//sendInterchain
 	_, _, _, _, receipt, err := suite.sendInterchain()
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 
 	for {
 		select {
 		case interchainTxWrapper, ok := <-c:
-			suite.Require().Equal(ok, true)
+			suite.Require().Equal(true, ok)
 			suite.Require().NotNil(interchainTxWrapper)
 			fmt.Println(interchainTxWrapper)
 			return
@@ -765,12 +766,12 @@ func (suite *Snake) TestSubscribe_UNION_INTERCHAIN_TX_WRAPPER() {
 	//sendInterchain
 	_, _, _, _, receipt, err := suite.sendInterchain()
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 
 	for {
 		select {
 		case interchainTxWrapper, ok := <-c:
-			suite.Require().Equal(ok, true)
+			suite.Require().Equal(true, ok)
 			suite.Require().NotNil(interchainTxWrapper)
 			fmt.Println(interchainTxWrapper)
 			return
@@ -804,7 +805,7 @@ func (suite *Snake) TestGenerateContractTx() {
 	suite.Require().Nil(err)
 	receipt1, err := suite.client.SendView(tx1)
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt1.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS,receipt1.Status)
 	tx2, err := suite.client.GenerateContractTx(pb.TransactionData_BVM,
 		types.NewAddressByStr(BoltContractAddress), "Get", pb.String(string(randKey)))
 	suite.Require().Nil(err)
@@ -813,7 +814,7 @@ func (suite *Snake) TestGenerateContractTx() {
 	suite.Require().Nil(err)
 	receipt2, err := suite.client.SendView(tx2)
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt2.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS,receipt2.Status)
 }
 */
 
@@ -827,7 +828,7 @@ func (suite *Snake) TestInvokeXVMContractIsTrue() {
 
 	receipt, err := suite.client.InvokeXVMContract(address, "a", nil, rpcx.Int32(1), rpcx.Int32(2))
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 	suite.Require().Equal("336", string(receipt.Ret))
 }
 
@@ -841,32 +842,32 @@ func (suite *Snake) TestInvokeXVMContractIsFalse() {
 
 	receipt, err := suite.client.InvokeXVMContract(address, "abc", nil, rpcx.Int32(1), rpcx.Int32(2))
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_FAILED)
+	suite.Require().Equal(pb.Receipt_FAILED, receipt.Status)
 }
 
 func (suite Snake) TestInvokeBVMContractIsTrue() {
 	receipt, err := suite.client.InvokeBVMContract(constant.StoreContractAddr.Address(),
 		"Set", nil, rpcx.String("a"), rpcx.String("10"))
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 
 	receipt, err = suite.client.InvokeBVMContract(constant.StoreContractAddr.Address(),
 		"Get", nil, rpcx.String("a"))
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_SUCCESS)
-	suite.Require().Equal(string(receipt.Ret), "10")
+	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
+	suite.Require().Equal("10", string(receipt.Ret))
 }
 
 func (suite Snake) TestInvokeBVMContractIsFalse() {
 	receipt, err := suite.client.InvokeBVMContract(constant.StoreContractAddr.Address(),
 		"set", nil, rpcx.String("a"), rpcx.String("10"))
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_FAILED)
+	suite.Require().Equal(pb.Receipt_FAILED, receipt.Status)
 
 	receipt, err = suite.client.InvokeBVMContract(constant.StoreContractAddr.Address(),
 		"get", nil, rpcx.String("a"))
 	suite.Require().Nil(err)
-	suite.Require().Equal(receipt.Status, pb.Receipt_FAILED)
+	suite.Require().Equal(pb.Receipt_FAILED, receipt.Status)
 }
 
 func (suite *Snake) TestGetTPSIsTrue() {
@@ -938,13 +939,14 @@ func (suite *Snake) TestGetTPSIsFalse() {
 func (suite Snake) TestGetPendingNonceByAccountIsTrue() {
 	account, err := suite.client.GetPendingNonceByAccount(suite.from.String())
 	suite.Require().Nil(err)
+	suite.Require().NotNil(account)
 	fmt.Println(account)
 }
 
 func (suite Snake) TestGetPendingNonceByAccountIsFalse() {
 	account, err := suite.client.GetPendingNonceByAccount(suite.from.String() + "123")
 	suite.Require().Nil(err)
-	suite.Require().Equal(account, uint64(1))
+	suite.Require().Equal(uint64(1), account)
 }
 
 func genContractTransaction(
