@@ -21,7 +21,7 @@ require (
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/meshplus/bitxhub-kit v1.1.2-0.20201023073721-052e6b89ea39
+	github.com/meshplus/bitxhub-kit v1.1.2-0.20201027090548-41dfc41037af
 	github.com/meshplus/bitxhub-model v1.1.2-0.20201023091417-b6445e44d535
 	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20201027091636-657ee0796ffb
 	github.com/mitchellh/go-homedir v1.1.0
