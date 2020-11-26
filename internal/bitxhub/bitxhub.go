@@ -1,6 +1,7 @@
 package bitxhub
 
 import (
+	"context"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -34,6 +35,8 @@ type Broker struct {
 	bees       []*bee
 	client     rpcx.Client
 	adminNonce uint64
+	ctx        context.Context
+	cancel     context.CancelFunc
 }
 
 type Config struct {
@@ -85,6 +88,7 @@ func New(config *Config) (*Broker, error) {
 
 	bees := make([]*bee, 0, config.Concurrent)
 
+	ctx, cancel := context.WithCancel(context.Background())
 	var wg sync.WaitGroup
 	wg.Add(config.Concurrent)
 
@@ -93,7 +97,7 @@ func New(config *Config) (*Broker, error) {
 			defer wg.Done()
 
 			expectedNonce := atomic.AddUint64(&adminNonce, 1) - 1
-			bee, err := NewBee(config.TPS/config.Concurrent, adminPk, adminFrom, expectedNonce, config)
+			bee, err := NewBee(config.TPS/config.Concurrent, adminPk, adminFrom, expectedNonce, config, ctx)
 			if err != nil {
 				logger.Error("New bee: ", err.Error())
 				return
@@ -120,6 +124,8 @@ func New(config *Config) (*Broker, error) {
 		bees:       bees,
 		client:     client,
 		adminNonce: adminNonce,
+		ctx:        ctx,
+		cancel:     cancel,
 	}, nil
 }
 
@@ -139,18 +145,17 @@ func (broker *Broker) Start(typ string) error {
 
 	for i := 0; i < len(broker.bees); i++ {
 		go func(i int) {
+			wg.Done()
 			err := broker.bees[i].start(typ)
 			if err != nil {
 				logger.Error(err)
 				return
 			}
+			log.WithFields(logrus.Fields{
+				"index": i + 1,
+			}).Debug("start bee")
 		}(i)
-		log.WithFields(logrus.Fields{
-			"index": i + 1,
-		}).Debug("start bee")
-		wg.Done()
 	}
-	wg.Wait()
 	log.WithFields(logrus.Fields{
 		"number": len(broker.bees),
 	}).Info("start all bees")
@@ -158,19 +163,24 @@ func (broker *Broker) Start(typ string) error {
 	go func() {
 		ticker := time.NewTicker(time.Second)
 		for {
-			<-ticker.C
-			currentCounter := atomic.LoadInt64(&counter)
-			c := float64(currentCounter - lastCounter)
-			lastCounter = currentCounter
+			select {
+			case <-broker.ctx.Done():
+				return
+			case <-ticker.C:
+				currentCounter := atomic.LoadInt64(&counter)
+				c := float64(currentCounter - lastCounter)
+				lastCounter = currentCounter
 
-			currentDelayer := atomic.LoadInt64(&delayer)
-			d := float64(currentDelayer-lastDelayer) / float64(time.Millisecond)
-			lastDelayer = currentDelayer
-			log.Infof("current tps is %f, tx_delay is %fms", c, d/c)
+				currentDelayer := atomic.LoadInt64(&delayer)
+				d := float64(currentDelayer-lastDelayer) / float64(time.Millisecond)
+				lastDelayer = currentDelayer
+				log.Infof("current tps is %f, tx_delay is %fms", c, d/c)
+			}
 		}
 	}()
 
 	time.Sleep(time.Duration(broker.config.Duration) * time.Second)
+	wg.Wait()
 
 	_ = broker.Stop(current)
 
@@ -178,7 +188,7 @@ func (broker *Broker) Start(typ string) error {
 	if err != nil {
 		return err
 	}
-
+	logger.Info("Collecting tps info, please wait...")
 	time.Sleep(20 * time.Second)
 
 	skip := (meta1.Height - meta0.Height) / 8
@@ -194,8 +204,17 @@ func (broker *Broker) Start(typ string) error {
 }
 
 func (broker *Broker) Stop(current time.Time) error {
+	broker.cancel()
+	// wait for goroutines inside bees to stop
+	time.Sleep(3 * time.Second)
+
+	logger.Info("Bees are quiting, please wait...")
 	for i := 0; i < len(broker.bees); i++ {
 		broker.bees[i].stop()
+	}
+	err := broker.client.Stop()
+	if err != nil {
+		panic(err)
 	}
 	delayerAvg := float64(delayer) / float64(counter)
 	log.WithFields(logrus.Fields{
@@ -204,6 +223,5 @@ func (broker *Broker) Stop(current time.Time) error {
 		"tps":      float64(counter) / time.Since(current).Seconds(),
 		"tx_delay": delayerAvg / float64(time.Millisecond),
 	}).Info("finish testing")
-
 	return nil
 }

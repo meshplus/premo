@@ -38,11 +38,10 @@ type bee struct {
 	norMalSeqNo   uint64
 	ibtpSeqNo     uint64
 	ctx           context.Context
-	cancel        context.CancelFunc
 	config        *Config
 }
 
-func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expectedNonce uint64, config *Config) (*bee, error) {
+func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expectedNonce uint64, config *Config, ctx context.Context) (*bee, error) {
 	normalPk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	if err != nil {
 		return nil, err
@@ -70,8 +69,6 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expect
 		return nil, err
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-
 	return &bee{
 		client:        client,
 		adminPrivKey:  adminPk,
@@ -80,7 +77,6 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expect
 		normalFrom:    normalFrom,
 		tps:           tps,
 		ctx:           ctx,
-		cancel:        cancel,
 		config:        config,
 		adminSeqNo:    expectedNonce,
 		ibtpSeqNo:     ibtpNonce,
@@ -95,10 +91,6 @@ func (bee *bee) start(typ string) error {
 	for {
 		select {
 		case <-bee.ctx.Done():
-			err := bee.client.Stop()
-			if err != nil {
-				panic(err)
-			}
 			return nil
 		case <-ticker.C:
 			for i := 0; i < bee.tps; i++ {
@@ -115,9 +107,14 @@ func (bee *bee) start(typ string) error {
 					atomic.AddUint64(&bee.norMalSeqNo, 1)
 				}
 				go func(count, ibtpNo, normalNo uint64) {
-					err := bee.sendTx(typ, count, ibtpNo, normalNo)
-					if err != nil {
-						logger.Error(err)
+					select {
+					case <-bee.ctx.Done():
+						return
+					default:
+						err := bee.sendTx(typ, count, ibtpNo, normalNo)
+						if err != nil {
+							logger.Error(err)
+						}
 					}
 				}(bee.count, ibtpNo, normalNo)
 			}
@@ -156,7 +153,8 @@ func (bee *bee) sendTx(typ string, count, ibtpNo, normalNo uint64) error {
 }
 
 func (bee *bee) stop() {
-	bee.cancel()
+	bee.client.Stop()
+	return
 }
 
 func (bee *bee) sendBVMTx(normalNo uint64) error {
