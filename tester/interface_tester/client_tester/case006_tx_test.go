@@ -23,13 +23,11 @@ func (suite *Snake) TestTxGetIsTrue() {
 
 	//wait for bitxhub
 	time.Sleep(time.Second * 3)
-	url, err := getURL("transaction/" + hash)
-	suite.Require().Nil(err)
+	url := getURL("transaction/" + hash)
 
 	data, err := httpGet(url)
 	suite.Require().Nil(err)
-
-	fmt.Println(string(data))
+	suite.Require().NotContains(string(data), "error")
 }
 
 func (suite *Snake) TestTxGetIsFalse() {
@@ -41,8 +39,7 @@ func (suite *Snake) TestTxGetIsFalse() {
 	hashByte := []byte(hash)
 	hashByte[len(hash)-1] = hashByte[len(hash)-1] + 1
 
-	url, err := getURL("transaction/" + string(hashByte))
-	suite.Require().Nil(err)
+	url := getURL("transaction/" + string(hashByte))
 
 	data, err := httpGet(url)
 	suite.Require().Nil(err)
@@ -80,8 +77,7 @@ func (suite Snake) TestTxSendIsTrue() {
 	reqData, err := json.Marshal(tx)
 	suite.Require().Nil(err)
 
-	url, err := getURL("transaction")
-	suite.Require().Nil(err)
+	url := getURL("transaction")
 
 	ret, err := httpPost(url, reqData)
 	suite.Require().Nil(err)
@@ -119,8 +115,7 @@ func (suite Snake) TestTxSendIsFalse() {
 	reqData, err := json.Marshal(tx)
 	suite.Require().Nil(err)
 
-	url, err := getURL("transaction")
-	suite.Require().Nil(err)
+	url := getURL("transaction")
 
 	ret, err := httpPost(url, reqData)
 	suite.Require().Nil(err)

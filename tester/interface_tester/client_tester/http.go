@@ -47,6 +47,6 @@ func httpPost(url string, data []byte) ([]byte, error) {
 	return c, nil
 }
 
-func getURL(path string) (string, error) {
-	return "http://localhost:9091/v1/" + path, nil
+func getURL(path string) string {
+	return "http://localhost:9091/v1/" + path
 }

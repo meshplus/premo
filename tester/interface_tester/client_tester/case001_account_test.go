@@ -1,17 +1,11 @@
 package interface_tester
 
-import (
-	"github.com/meshplus/bitxhub-model/pb"
-)
-
 func (suite *Snake) TestGetAccount() {
-	//sendInterchain
-	_, _, from, _, receipt, err := suite.sendInterchainWithReceipt()
+	suite.registerAppchain(suite.pk, "fabric")
+	from, err := suite.pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 
-	url, err := getURL("account_balance/" + from.Address)
-	suite.Require().Nil(err)
+	url := getURL("account_balance/" + from.String())
 
 	data, err := httpGet(url)
 	suite.Require().Nil(err)

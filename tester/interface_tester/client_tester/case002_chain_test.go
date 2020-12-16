@@ -12,8 +12,7 @@ type Meta struct {
 }
 
 func (suite *Snake) TestGetChainMeta() {
-	url, err := getURL("chain_meta")
-	suite.Require().Nil(err)
+	url := getURL("chain_meta")
 
 	data, err := httpGet(url)
 	suite.Require().Nil(err)
@@ -25,8 +24,7 @@ func (suite *Snake) TestGetChainMeta() {
 }
 
 func (suite *Snake) TestGetChainStatus() {
-	url, err := getURL("info?type=0")
-	suite.Require().Nil(err)
+	url := getURL("info?type=0")
 
 	data, err := httpGet(url)
 	suite.Require().Nil(err)
@@ -38,10 +36,7 @@ func (suite *Snake) TestGetChainStatus() {
 
 func getMeta() (Meta, error) {
 	var meta Meta
-	url, err := getURL("chain_meta")
-	if err != nil {
-		return meta, fmt.Errorf("get url error: %w", err)
-	}
+	url := getURL("chain_meta")
 
 	data, err := httpGet(url)
 	if err != nil {

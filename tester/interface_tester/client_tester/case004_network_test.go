@@ -1,8 +1,7 @@
 package interface_tester
 
 func (suite *Snake) TestGetNetwork() {
-	url, err := getURL("info?type=1")
-	suite.Require().Nil(err)
+	url := getURL("info?type=1")
 
 	data, err := httpGet(url)
 	suite.Require().Nil(err)

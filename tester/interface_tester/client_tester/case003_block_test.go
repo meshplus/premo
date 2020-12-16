@@ -16,8 +16,7 @@ func (suite *Snake) TestGetBlockByHeightIsTrue() {
 	height, err := getHeight()
 	suite.Require().Nil(err)
 
-	url, err := getURL(fmt.Sprintf("block?type=0&value=%s", height))
-	suite.Require().Nil(err)
+	url := getURL(fmt.Sprintf("block?type=0&value=%s", height))
 
 	data, err := httpGet(url)
 	suite.Require().Nil(err)
@@ -31,8 +30,7 @@ func (suite *Snake) TestGetBlockByHeightIsFalse() {
 
 	wrongHeight, err := strconv.Atoi(height)
 
-	url, err := getURL(fmt.Sprintf("block?type=0&value=%d", wrongHeight+1))
-	suite.Require().Nil(err)
+	url := getURL(fmt.Sprintf("block?type=0&value=%d", wrongHeight+1))
 
 	data, err := httpGet(url)
 	suite.Require().Nil(err)
@@ -48,8 +46,7 @@ func (suite *Snake) TestGetBlockByHashIsTrue() {
 	hash, err := getBlockHash()
 	suite.Require().Nil(err)
 
-	url, err := getURL(fmt.Sprintf("block?type=1&value=%s", hash))
-	suite.Require().Nil(err)
+	url := getURL(fmt.Sprintf("block?type=1&value=%s", hash))
 
 	data, err := httpGet(url)
 	suite.Require().Nil(err)
@@ -61,8 +58,7 @@ func (suite *Snake) TestGetBlockByHashIsFalse() {
 	hash, err := getBlockHash()
 	suite.Require().Nil(err)
 
-	url, err := getURL(fmt.Sprintf("block?type=1&value=%s", hash+"123"))
-	suite.Require().Nil(err)
+	url := getURL(fmt.Sprintf("block?type=1&value=%s", hash+"123"))
 
 	data, err := httpGet(url)
 	suite.Require().Nil(err)

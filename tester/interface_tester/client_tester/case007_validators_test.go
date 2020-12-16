@@ -1,8 +1,7 @@
 package interface_tester
 
 func (suite Snake) TestGetValidators() {
-	url, err := getURL("info?type=2")
-	suite.Require().Nil(err)
+	url := getURL("info?type=2")
 
 	data, err := httpGet(url)
 	suite.Require().Nil(err)
