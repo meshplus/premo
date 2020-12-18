@@ -237,7 +237,7 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 		if err != nil {
 			return fmt.Errorf("deploy contract error:%w", err)
 		}
-
+		atomic.AddUint64(&bee.norMalSeqNo, 1)
 		ruleAddr = contractAddr.String()
 	} else if chainType == "fabric:complex" {
 		ruleAddr = "0x00000000000000000000000000000000000000a0"
