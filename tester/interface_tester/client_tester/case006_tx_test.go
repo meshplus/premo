@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"time"
 
 	"github.com/meshplus/bitxhub-kit/crypto"
@@ -67,7 +66,6 @@ func (suite Snake) TestTxSendIsTrue() {
 		From:      from,
 		To:        to,
 		Timestamp: time.Now().UnixNano(),
-		Nonce:     rand.Uint64(),
 		Payload:   payload,
 	}
 
@@ -105,7 +103,6 @@ func (suite Snake) TestTxSendIsFalse() {
 		//From: from,
 		To:        to,
 		Timestamp: time.Now().UnixNano(),
-		Nonce:     rand.Uint64(),
 		Payload:   payload,
 	}
 
