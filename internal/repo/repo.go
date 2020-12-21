@@ -16,6 +16,9 @@ const (
 	DefaultPathRoot = "~/" + DefaultPathName
 
 	KeyPassword = "bitxhub"
+
+	// API name
+	APIName = "api"
 )
 
 var RootPath string
