@@ -1042,7 +1042,7 @@ func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, chainType string) {
 	pubBytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 
-	//suite.client.SetPrivateKey(pk)
+	suite.client.SetPrivateKey(pk)
 	var pubKeyStr = hex.EncodeToString(pubBytes)
 	args := []*pb.Arg{
 		rpcx.String(""),                 //validators
@@ -1062,7 +1062,7 @@ func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, chainType string) {
 }
 
 func (suite *Snake) RegisterRule(pk crypto.PrivateKey, ruleFile string) {
-	//suite.client.SetPrivateKey(pk)
+	suite.client.SetPrivateKey(pk)
 
 	from, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)

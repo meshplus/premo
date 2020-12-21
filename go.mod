@@ -21,9 +21,9 @@ require (
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/meshplus/bitxhub-kit v1.1.2-0.20201027090548-41dfc41037af
-	github.com/meshplus/bitxhub-model v1.1.2-0.20201023091417-b6445e44d535
-	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20201027091636-657ee0796ffb
+	github.com/meshplus/bitxhub-kit v1.1.2-0.20201203072410-8a0383a6870d
+	github.com/meshplus/bitxhub-model v1.1.2-0.20201209072914-6846fa78ff35
+	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20201209081557-adc85050fa61
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
@@ -31,9 +31,9 @@ require (
 	github.com/prometheus/client_golang v1.7.2-0.20200724220135-c650ae9fa103 // indirect
 	github.com/rjeczalik/notify v0.9.2 // indirect
 	github.com/shirou/gopsutil v2.20.5+incompatible
-	github.com/sirupsen/logrus v1.5.0
+	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/viper v1.6.1
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.6.0
 	github.com/tidwall/gjson v1.3.5
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/wonderivan/logger v1.0.0
