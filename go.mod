@@ -6,7 +6,7 @@ require (
 	github.com/Knetic/govaluate v3.0.0+incompatible // indirect
 	github.com/Rican7/retry v0.1.0
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
-	github.com/bitxhub/bitxid v0.1.1-0.20201215061901-be68635673d6
+	//github.com/bitxhub/bitxid v0.1.1-0.20201215061901-be68635673d6
 	github.com/cheynewallace/tabby v1.1.0
 	github.com/cloudflare/cfssl v0.0.0-20190409034051-768cd563887f // indirect
 	github.com/coreos/etcd v3.3.18+incompatible
@@ -39,7 +39,6 @@ require (
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/wonderivan/logger v1.0.0
 	go.etcd.io/etcd v3.3.13+incompatible
-	golang.org/x/tools v0.0.0-20200102140908-9497f49d5709
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
 
