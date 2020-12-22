@@ -27,22 +27,28 @@ func (suite *Snake) TestTxGetIsTrue() {
 	data, err := httpGet(url)
 	suite.Require().Nil(err)
 	suite.Require().NotContains(string(data), "error")
+	suite.Require().Contains(string(data), "tx_meta")
 }
 
-func (suite *Snake) TestTxGetIsFalse() {
-	hash, err := suite.sendInterchain()
-	suite.Require().Nil(err)
+func (suite *Snake) TestTxGetWithNonexistent() {
+	wrongHash := "0x0000000000000000000000000000000012345678900000000000000000000000"
 
-	//wait for bitxhub
-	time.Sleep(time.Second * 3)
-	hashByte := []byte(hash)
-	hashByte[len(hash)-1] = hashByte[len(hash)-1] + 1
-
-	url := getURL("transaction/" + string(hashByte))
+	url := getURL("transaction/" + wrongHash)
 
 	data, err := httpGet(url)
 	suite.Require().Nil(err)
 	suite.Require().Contains(string(data), "error")
+	suite.Require().Contains(string(data), "not found in DB")
+}
+
+func (suite *Snake) TestTxGetWithInvalidFormat() {
+	wrongHash := "0x0000000000000000000000000000000012345678900000000000000000000000"
+	url := getURL("transaction/" + wrongHash + "123!@#")
+
+	data, err := httpGet(url)
+	suite.Require().Nil(err)
+	suite.Require().Contains(string(data), "error")
+	suite.Require().Contains(string(data), "invalid format of tx hash for querying transaction")
 }
 
 func (suite Snake) TestTxSendIsTrue() {
@@ -67,6 +73,7 @@ func (suite Snake) TestTxSendIsTrue() {
 		To:        to,
 		Timestamp: time.Now().UnixNano(),
 		Payload:   payload,
+		Nonce:     1,
 	}
 
 	err = tx.Sign(kA)
@@ -82,7 +89,7 @@ func (suite Snake) TestTxSendIsTrue() {
 	suite.Require().Contains(string(ret), "tx_hash")
 }
 
-func (suite Snake) TestTxSendIsFalse() {
+func (suite Snake) TestTxSendWithFromAddressIsNil() {
 	txType := 0
 	amount := uint64(1)
 
@@ -104,6 +111,7 @@ func (suite Snake) TestTxSendIsFalse() {
 		To:        to,
 		Timestamp: time.Now().UnixNano(),
 		Payload:   payload,
+		Nonce:     1,
 	}
 
 	err = tx.Sign(kA)
@@ -117,6 +125,262 @@ func (suite Snake) TestTxSendIsFalse() {
 	ret, err := httpPost(url, reqData)
 	suite.Require().Nil(err)
 	suite.Require().Contains(string(ret), "tx from address is nil")
+}
+
+func (suite Snake) TestTxSendWithToAddressIsNil() {
+	txType := 0
+	amount := uint64(1)
+
+	kA, kB, from, _ := suite.prepare()
+	suite.registerAppchain(kA, "hyperchain")
+	suite.registerAppchain(kB, "fabric")
+	suite.registerRule(kA, "../../../config/rule.wasm")
+
+	data := &pb.TransactionData{
+		Type:   pb.TransactionData_Type(txType),
+		Amount: amount,
+	}
+
+	payload, err := data.Marshal()
+	suite.Require().Nil(err)
+
+	tx := &pb.Transaction{
+		From: from,
+		//To:        to,
+		Timestamp: time.Now().UnixNano(),
+		Payload:   payload,
+		Nonce:     1,
+	}
+
+	err = tx.Sign(kA)
+	suite.Require().Nil(err)
+
+	reqData, err := json.Marshal(tx)
+	suite.Require().Nil(err)
+
+	url := getURL("transaction")
+
+	ret, err := httpPost(url, reqData)
+	suite.Require().Nil(err)
+	suite.Require().Contains(string(ret), "tx to address is nil")
+}
+
+func (suite Snake) TestTxSendWithEmptySign() {
+	txType := 0
+	amount := uint64(1)
+
+	kA, kB, from, to := suite.prepare()
+	suite.registerAppchain(kA, "hyperchain")
+	suite.registerAppchain(kB, "fabric")
+	suite.registerRule(kA, "../../../config/rule.wasm")
+
+	data := &pb.TransactionData{
+		Type:   pb.TransactionData_Type(txType),
+		Amount: amount,
+	}
+
+	payload, err := data.Marshal()
+	suite.Require().Nil(err)
+
+	tx := &pb.Transaction{
+		From:      from,
+		To:        to,
+		Timestamp: time.Now().UnixNano(),
+		Payload:   payload,
+		Nonce:     1,
+	}
+
+	//err = tx.Sign(kA)
+	//suite.Require().Nil(err)
+
+	reqData, err := json.Marshal(tx)
+	suite.Require().Nil(err)
+
+	url := getURL("transaction")
+
+	ret, err := httpPost(url, reqData)
+	suite.Require().Nil(err)
+	suite.Require().Contains(string(ret), "signature can't be empty")
+}
+
+func (suite Snake) TestTxSendWithInvalidSign() {
+	txType := 0
+	amount := uint64(1)
+
+	kA, kB, from, to := suite.prepare()
+	suite.registerAppchain(kA, "hyperchain")
+	suite.registerAppchain(kB, "fabric")
+	suite.registerRule(kA, "../../../config/rule.wasm")
+
+	data := &pb.TransactionData{
+		Type:   pb.TransactionData_Type(txType),
+		Amount: amount,
+	}
+
+	payload, err := data.Marshal()
+	suite.Require().Nil(err)
+
+	tx := &pb.Transaction{
+		From:      from,
+		To:        to,
+		Timestamp: time.Now().UnixNano(),
+		Payload:   payload,
+		Nonce:     1,
+	}
+
+	err = tx.Sign(kB)
+	suite.Require().Nil(err)
+
+	reqData, err := json.Marshal(tx)
+	suite.Require().Nil(err)
+
+	url := getURL("transaction")
+
+	ret, err := httpPost(url, reqData)
+	suite.Require().Nil(err)
+	suite.Require().Contains(string(ret), "invalid signature")
+}
+
+func (suite Snake) TestTxSendWithEmptyTimestamp() {
+	txType := 0
+	amount := uint64(1)
+
+	kA, kB, from, to := suite.prepare()
+	suite.registerAppchain(kA, "hyperchain")
+	suite.registerAppchain(kB, "fabric")
+	suite.registerRule(kA, "../../../config/rule.wasm")
+
+	data := &pb.TransactionData{
+		Type:   pb.TransactionData_Type(txType),
+		Amount: amount,
+	}
+
+	payload, err := data.Marshal()
+	suite.Require().Nil(err)
+
+	tx := &pb.Transaction{
+		From: from,
+		To:   to,
+		//Timestamp: time.Now().UnixNano(),
+		Payload: payload,
+		Nonce:   1,
+	}
+
+	err = tx.Sign(kA)
+	suite.Require().Nil(err)
+
+	reqData, err := json.Marshal(tx)
+	suite.Require().Nil(err)
+
+	url := getURL("transaction")
+
+	ret, err := httpPost(url, reqData)
+	suite.Require().Nil(err)
+	suite.Require().Contains(string(ret), "timestamp is illegal")
+}
+
+func (suite Snake) TestTxSendWithErrorTimestamp() {
+	txType := 0
+	amount := uint64(1)
+
+	kA, kB, from, to := suite.prepare()
+	suite.registerAppchain(kA, "hyperchain")
+	suite.registerAppchain(kB, "fabric")
+	suite.registerRule(kA, "../../../config/rule.wasm")
+
+	data := &pb.TransactionData{
+		Type:   pb.TransactionData_Type(txType),
+		Amount: amount,
+	}
+
+	payload, err := data.Marshal()
+	suite.Require().Nil(err)
+
+	tx := &pb.Transaction{
+		From:      from,
+		To:        to,
+		Timestamp: 1608624000, // 2020/12/22 16:00:00
+		Payload:   payload,
+		Nonce:     1,
+	}
+
+	err = tx.Sign(kA)
+	suite.Require().Nil(err)
+
+	reqData, err := json.Marshal(tx)
+	suite.Require().Nil(err)
+
+	url := getURL("transaction")
+
+	ret, err := httpPost(url, reqData)
+	suite.Require().Nil(err)
+	suite.Require().Contains(string(ret), "timestamp is illegal")
+}
+
+func (suite Snake) TestTxSendWithEmptyNonce() {
+	txType := 0
+	amount := uint64(1)
+
+	kA, kB, from, to := suite.prepare()
+	suite.registerAppchain(kA, "hyperchain")
+	suite.registerAppchain(kB, "fabric")
+	suite.registerRule(kA, "../../../config/rule.wasm")
+
+	data := &pb.TransactionData{
+		Type:   pb.TransactionData_Type(txType),
+		Amount: amount,
+	}
+
+	payload, err := data.Marshal()
+	suite.Require().Nil(err)
+
+	tx := &pb.Transaction{
+		From:      from,
+		To:        to,
+		Timestamp: time.Now().UnixNano(),
+		Payload:   payload,
+		//Nonce:     1,
+	}
+
+	err = tx.Sign(kA)
+	suite.Require().Nil(err)
+
+	reqData, err := json.Marshal(tx)
+	suite.Require().Nil(err)
+
+	url := getURL("transaction")
+
+	ret, err := httpPost(url, reqData)
+	suite.Require().Nil(err)
+	suite.Require().Contains(string(ret), "nonce is illegal")
+}
+
+func (suite Snake) TestTxSendWithEmptyPayload() {
+
+	kA, kB, from, to := suite.prepare()
+	suite.registerAppchain(kA, "hyperchain")
+	suite.registerAppchain(kB, "fabric")
+	suite.registerRule(kA, "../../../config/rule.wasm")
+
+	tx := &pb.Transaction{
+		From:      from,
+		To:        to,
+		Timestamp: time.Now().UnixNano(),
+		//Payload:   payload,
+		Nonce: 1,
+	}
+
+	err := tx.Sign(kA)
+	suite.Require().Nil(err)
+
+	reqData, err := json.Marshal(tx)
+	suite.Require().Nil(err)
+
+	url := getURL("transaction")
+
+	ret, err := httpPost(url, reqData)
+	suite.Require().Nil(err)
+	suite.Require().Contains(string(ret), "tx payload and ibtp can't both be nil")
 }
 
 func (suite *Snake) prepare() (crypto.PrivateKey, crypto.PrivateKey, *types.Address, *types.Address) {

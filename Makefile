@@ -52,6 +52,10 @@ interchain-tester:
 gosdk-tester:
 	cd tester/gosdk_tester && $(GO) test -v -run TestTester
 
+## make http-tester: Run http test
+http-tester:
+	cd tester/interface_tester/client_tester && $(GO) test -v -run TestTester
+
 ## make install: Go install the project
 install:
 	cd internal/repo && packr
