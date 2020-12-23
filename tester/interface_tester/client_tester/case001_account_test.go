@@ -1,5 +1,12 @@
 package interface_tester
 
+import "encoding/json"
+
+type account struct {
+	Type    string `json:"type"`
+	Balance uint64 `json:"balance"`
+}
+
 func (suite *Snake) TestGetAccount() {
 	suite.registerAppchain(suite.pk, "fabric")
 	from, err := suite.pk.PublicKey().Address()
@@ -13,9 +20,10 @@ func (suite *Snake) TestGetAccount() {
 	ret, err := parseResponse(data)
 	suite.Require().Nil(err)
 
-	retJson, err := prettyJson(ret)
-	suite.Require().Nil(err)
-	suite.Require().Contains(retJson, "normal")
+	accountInfo := &account{}
+	suite.Require().Nil(json.Unmarshal([]byte(ret), accountInfo))
+	suite.Equal(accountInfo.Type, "normal")
+	suite.True(accountInfo.Balance > 0)
 }
 
 func (suite *Snake) TestGetAccountWithInvalidAddress01() {
