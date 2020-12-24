@@ -203,12 +203,10 @@ func (suite *Snake) TestSendTransactionWithReceiptWhenToIsNull() {
 		Nonce:     1,
 		Payload:   payload,
 	}
-	err = tx.Sign(suite.pk)
-	suite.Require().Nil(err)
 
 	_, err = suite.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "to address can't be empty")
+	suite.Require().Contains(err.Error(), "tx to address is nil")
 }
 
 func (suite *Snake) TestSendTransactionWithReceiptWhenFromIsNull() {

@@ -68,12 +68,15 @@ func (suite Snake) TestTxSendIsTrue() {
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
 
+	// get nonce for this account
+	nonce, err := suite.client.GetPendingNonceByAccount(from.String())
+	suite.Require().Nil(err)
 	tx := &pb.Transaction{
 		From:      from,
 		To:        to,
 		Timestamp: time.Now().UnixNano(),
 		Payload:   payload,
-		Nonce:     1,
+		Nonce:     nonce,
 	}
 
 	err = tx.Sign(kA)
