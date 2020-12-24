@@ -90,7 +90,7 @@ func (suite *Snake) TestHandleIBTPShouldSucceed() {
 		IBTPNonce: ib.Index,
 	})
 	suite.Require().Nil(err)
-	suite.Require().True(res.IsSuccess())
+	suite.Require().Equal(res.Status, pb.Receipt_SUCCESS)
 }
 
 func (suite *Snake) TestHandleIBTPWithNonexistentFrom() {
@@ -109,6 +109,7 @@ func (suite *Snake) TestHandleIBTPWithNonexistentFrom() {
 		IBTPNonce: ib.Index,
 	})
 	suite.Require().NotNil(err)
+	suite.Require().Contains(err.Error(), "not found in DB")
 }
 
 func (suite *Snake) TestHandleIBTPWithNonexistentTo() {
@@ -127,7 +128,7 @@ func (suite *Snake) TestHandleIBTPWithNonexistentTo() {
 		IBTPNonce: ib.Index,
 	})
 	suite.Require().Nil(err)
-	suite.Require().True(res.IsSuccess())
+	suite.Require().Equal(res.Status, pb.Receipt_SUCCESS)
 }
 
 func (suite *Snake) TestHandleIBTPWithNonexistentRule() {
@@ -147,6 +148,7 @@ func (suite *Snake) TestHandleIBTPWithNonexistentRule() {
 		IBTPNonce: ib.Index,
 	})
 	suite.Require().NotNil(err)
+	suite.Require().Contains(err.Error(), "not found in DB")
 }
 
 func (suite *Snake) TestHandleIBTPWithWrongIBTPIndex() {
@@ -167,6 +169,7 @@ func (suite *Snake) TestHandleIBTPWithWrongIBTPIndex() {
 		IBTPNonce: ib.Index,
 	})
 	suite.Require().NotNil(err)
+	suite.Require().Contains(err.Error(), "not found in DB")
 	suite.Require().Nil(res)
 }
 
@@ -198,7 +201,7 @@ func (suite *Snake) TestGetIBTPByID() {
 		IBTPNonce: ib.Index,
 	})
 	suite.Require().Nil(err)
-	suite.Require().True(res.IsSuccess())
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
 	ib.Index = 3
 	tx, _ = suite.client.GenerateIBTPTx(ib)
@@ -208,14 +211,14 @@ func (suite *Snake) TestGetIBTPByID() {
 		IBTPNonce: ib.Index,
 	})
 	suite.Require().Nil(err)
-	suite.Require().True(res.IsSuccess())
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
 	// get IBTP by ID
 	ib.Index = 2
 	res, err = suite.client.InvokeBVMContract(constant.InterchainContractAddr.Address(), "GetIBTPByID", nil, pb.String(ib.ID()))
 	suite.Require().Nil(err)
-	suite.Require().True(res.IsSuccess())
-	suite.client.SetPrivateKey(suite.pk)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+	suite.Require().NotNil(res.Ret)
 }
 
 func (suite *Snake) TestHandleIBTPWithWrongProof() {
@@ -238,4 +241,5 @@ func (suite *Snake) TestHandleIBTPWithWrongProof() {
 		IBTPNonce: ib.Index,
 	})
 	suite.Require().NotNil(err)
+	suite.Require().Contains(err.Error(), "not found in DB")
 }
