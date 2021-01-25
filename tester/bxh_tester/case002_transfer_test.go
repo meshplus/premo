@@ -1,7 +1,6 @@
 package bxh_tester
 
 import (
-	"strings"
 	"time"
 
 	"github.com/meshplus/bitxhub-kit/types"
@@ -37,7 +36,7 @@ func (suite *Snake) TestTransferLessThanAmount() {
 	suite.Require().NotNil(ret)
 	suite.Require().True(ret.Status == pb.Receipt_FAILED)
 	suite.Require().Equal(tx.Hash().String(), ret.TxHash.String())
-	suite.Require().True(strings.Contains(string(ret.Ret), "not sufficient funds"))
+	suite.Require().Contains(string(ret.Ret), "not sufficient funds")
 }
 
 func (suite *Snake) TestToAddressIs0X000___000() {
@@ -93,6 +92,7 @@ func (suite *Snake) TestTransfer() {
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
+
 	tx := &pb.Transaction{
 		From:      suite.from,
 		To:        suite.to,

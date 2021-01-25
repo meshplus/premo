@@ -23,7 +23,7 @@ func (suite *Snake) TestRegisterRuleShouldSucceed() {
 	}
 	res, err := suite.client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, args...)
 	suite.Require().Nil(err)
-	suite.Require().True(res.Status == pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 }
 
 func (suite *Snake) TestAuditRuleShouldSucceed() {
@@ -49,7 +49,7 @@ func (suite *Snake) TestAuditRuleShouldSucceed() {
 	}
 	res, err = suite.client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "Audit", nil, args2...)
 	suite.Require().Nil(err)
-	suite.Require().True(res.Status == pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
 }
 
@@ -61,7 +61,8 @@ func (suite *Snake) TestGetRuleAddressShouldSucceed() {
 	}
 	res, err := suite.client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "GetRuleAddress", nil, args...)
 	suite.Require().Nil(err)
-	suite.Require().True(res.Status == pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+	suite.Require().NotNil(res.Ret)
 }
 
 func (suite *Snake) TestGetRuleAddressShouldFail() {
@@ -72,7 +73,7 @@ func (suite *Snake) TestGetRuleAddressShouldFail() {
 	}
 	res, err := suite.client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "GetRuleAddress", nil, args...)
 	suite.Require().Nil(err)
-	suite.Require().True(res.Status == pb.Receipt_FAILED)
+	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 }
 
 func (suite *Snake) TestGetFabricRuleAddressShouldSucceed() {
@@ -82,7 +83,8 @@ func (suite *Snake) TestGetFabricRuleAddressShouldSucceed() {
 	}
 	res, err := suite.client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "GetRuleAddress", nil, args...)
 	suite.Require().Nil(err)
-	suite.Require().True(res.Status == pb.Receipt_SUCCESS)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+	suite.Require().NotNil(res.Ret)
 }
 
 func (suite *Snake) TestRegisterUnexistedAppchainShouldFail() {
@@ -99,5 +101,6 @@ func (suite *Snake) TestRegisterUnexistedAppchainShouldFail() {
 	res, err := suite.client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, args...)
 
 	suite.Require().Nil(err)
-	suite.Require().True(res.Status == pb.Receipt_FAILED)
+	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
+	suite.Require().Contains(string(res.Ret), "this appchain does not exist")
 }

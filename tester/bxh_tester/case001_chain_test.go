@@ -48,10 +48,18 @@ func (suite *Snake) TestGetBlockByNonexistentHeight() {
 	_, err = suite.client.GetBlock("0", pb.GetBlockRequest_HEIGHT)
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "out of bounds")
+
+	_, err = suite.client.GetBlock("-1", pb.GetBlockRequest_HEIGHT)
+	suite.Require().NotNil(err)
+	suite.Require().Contains(err.Error(), "wrong block number")
 }
 
 func (suite *Snake) TestGetBlockByWrongHeight() {
 	_, err := suite.client.GetBlock("a", pb.GetBlockRequest_HEIGHT)
+	suite.Require().NotNil(err)
+	suite.Require().Contains(err.Error(), "wrong block number")
+
+	_, err = suite.client.GetBlock("!我@#", pb.GetBlockRequest_HEIGHT)
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "wrong block number")
 }
@@ -83,6 +91,11 @@ func (suite *Snake) TestGetBlockByWrongHash() {
 	_, err := suite.client.GetBlock(" ", pb.GetBlockRequest_HASH)
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "invalid format of block hash for querying block")
+
+	_, err = suite.client.GetBlock("0x0000000000000000000000000000000012345678900000000000000000000000", pb.GetBlockRequest_HASH)
+	suite.Require().NotNil(err)
+	suite.Require().Contains(err.Error(), "not found in DB")
+
 }
 
 func (suite *Snake) TestGetBlockByParentHash() {
@@ -100,8 +113,9 @@ func (suite *Snake) TestGetBlockByParentHash() {
 }
 
 func (suite *Snake) TestGetValidators() {
-	_, err := suite.client.GetValidators()
+	Validator, err := suite.client.GetValidators()
 	suite.Require().Nil(err)
+	suite.Require().NotNil(Validator)
 }
 
 func (suite *Snake) TestGetBlockHeader() {
@@ -149,6 +163,7 @@ func (suite *Snake) TestGetNonexistentBlockHeader() {
 func (suite *Snake) TestGetChainMeta() {
 	chainMeta, err := suite.client.GetChainMeta()
 	suite.Require().Nil(err)
+	suite.Require().True(chainMeta.Height > 0)
 
 	_, err = suite.client.GetBlock(strconv.Itoa(int(chainMeta.Height+1)), pb.GetBlockRequest_HEIGHT)
 	suite.Require().NotNil(err)
@@ -221,6 +236,7 @@ func (suite *Snake) TestGetChainStatus() {
 }
 
 func (suite *Snake) TestGetNetworkMeta() {
-	_, err := suite.client.GetNetworkMeta()
+	networkInfo, err := suite.client.GetNetworkMeta()
 	suite.Require().Nil(err)
+	suite.Require().NotNil(networkInfo)
 }

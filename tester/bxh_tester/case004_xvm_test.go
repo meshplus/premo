@@ -15,6 +15,7 @@ func (suite *Snake) TestDeployContractIsNull() {
 	_, err := suite.client.DeployContract(bytes, nil)
 
 	suite.Require().NotNil(err)
+	suite.Require().Contains(err.Error(), "can't deploy empty contract")
 }
 
 func (suite *Snake) TestDeployContractWithToAddress() {
@@ -39,6 +40,7 @@ func (suite *Snake) TestDeployContractWithToAddress() {
 	receipt, err := suite.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().True(receipt.Status == pb.Receipt_FAILED)
+	suite.Require().Contains(string(receipt.Ret), "contract byte not correct")
 }
 
 func (suite *Snake) TestDeployContract() {
@@ -60,6 +62,7 @@ func (suite *Snake) TestInvokeContractNotExistMethod() {
 	result, err := suite.client.InvokeXVMContract(address, "bbb", nil, rpcx.Int32(1), rpcx.Int32(2))
 	suite.Require().Nil(err)
 	suite.Require().True(result.Status == pb.Receipt_FAILED)
+	suite.Require().Contains(string(result.Ret), "wrong rule contract")
 }
 
 func (suite *Snake) TestInvokeRandomAddressContract() {
@@ -70,6 +73,7 @@ func (suite *Snake) TestInvokeRandomAddressContract() {
 	result, err := suite.client.InvokeXVMContract(fakeAddr, "bbb", nil, rpcx.Int32(1))
 	suite.Require().Nil(err)
 	suite.Require().True(result.Status == pb.Receipt_FAILED)
+	suite.Require().Contains(string(result.Ret), "contract byte not correct")
 }
 
 func (suite *Snake) TestInvokeContractEmptyMethod() {
@@ -78,18 +82,20 @@ func (suite *Snake) TestInvokeContractEmptyMethod() {
 	result, err := suite.client.InvokeXVMContract(address, "", nil)
 	suite.Require().Nil(err)
 	suite.Require().True(result.Status == pb.Receipt_FAILED)
+	suite.Require().Contains(string(result.Ret), "lack of method name")
 }
 
 func (suite *Snake) TestDeploy10MContract() {
 	// todo: wait for bitxhub to limit contract size
 }
 
-func (suite *Snake) TestDeployContractWrongArg() {
+func (suite *Snake) TestInvokeContractWrongArg() {
 	address := deployExampleContract(suite)
 
 	result, err := suite.client.InvokeXVMContract(address, "a", nil, rpcx.String("1"), rpcx.Int32(2))
 	suite.Require().Nil(err)
 	suite.Require().True(result.Status == pb.Receipt_FAILED)
+	suite.Require().Contains(string(result.Ret), "not found allocate method")
 
 	// incorrect function params
 	result, err = suite.client.InvokeXVMContract(address, "a", nil, rpcx.Int32(1), rpcx.String("2"))
