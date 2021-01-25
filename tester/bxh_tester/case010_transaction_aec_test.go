@@ -133,11 +133,11 @@ func (suite *TransactionMgrSuite) Test001_One2One_AssetExchange_HappyPath() {
 		IBTPNonce: ib0.Index,
 	})
 	suite.Require().Nil(err)
-	suite.Require().True(res0.IsSuccess())
+	suite.Require().Equal(pb.Receipt_SUCCESS, res0.Status)
 
 	res, err := suite.client0.client.InvokeBVMContract(constant.AssetExchangeContractAddr.Address(), "GetStatus", nil, pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().True(res.IsSuccess())
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().Equal("0", string(res.Ret))
 
 	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
@@ -148,11 +148,11 @@ func (suite *TransactionMgrSuite) Test001_One2One_AssetExchange_HappyPath() {
 		IBTPNonce: ib1.Index,
 	})
 	suite.Require().Nil(err)
-	suite.Require().True(res1.IsSuccess())
+	suite.Require().Equal(pb.Receipt_SUCCESS, res1.Status)
 
 	res, err = suite.client1.client.InvokeBVMContract(constant.AssetExchangeContractAddr.Address(), "GetStatus", nil, pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().True(res.IsSuccess())
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().Equal("1", string(res.Ret))
 }
 
@@ -266,7 +266,7 @@ func (suite *TransactionMgrSuite) Test003_One2One_AssetExchange_ToRefund() {
 		IBTPNonce: ib1.Index,
 	})
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res1.Status, string(res1.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res1.Status)
 }
 
 func (suite *TransactionMgrSuite) Test004_AssetExchange_Signs() {
@@ -425,7 +425,7 @@ func (suite *TransactionMgrSuite) Test006_One2One_AssetExchange_SameId() {
 		IBTPNonce: ib1.Index,
 	})
 	suite.Require().Nil(err)
-	suite.Require().True(res1.IsSuccess())
+	suite.Require().Equal(pb.Receipt_SUCCESS, res1.Status)
 
 	res, err = suite.client0.client.InvokeBVMContract(constant.AssetExchangeContractAddr.Address(), "GetStatus", nil, pb.String(aei.Id))
 	suite.Require().Nil(err)
@@ -444,7 +444,7 @@ func (suite *TransactionMgrSuite) Test006_One2One_AssetExchange_SameId() {
 		IBTPNonce: ib0.Index,
 	})
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res0.Status, string(res0.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res0.Status)
 
 	res, err = suite.client0.client.InvokeBVMContract(constant.AssetExchangeContractAddr.Address(), "GetStatus", nil, pb.String(aei.Id))
 	suite.Require().Nil(err)
@@ -458,11 +458,11 @@ func (suite *TransactionMgrSuite) Test006_One2One_AssetExchange_SameId() {
 		IBTPNonce: ib1.Index,
 	})
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res1.Status, string(res1.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res1.Status)
 
 	res, err = suite.client0.client.InvokeBVMContract(constant.AssetExchangeContractAddr.Address(), "GetStatus", nil, pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().True(res.IsSuccess())
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
 }
 
@@ -544,11 +544,11 @@ func (suite *TransactionMgrSuite) Test008_One2One_AssetExchange_LoseFieldId() {
 		IBTPNonce: ib0.Index,
 	})
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res0.Status, string(res0.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res0.Status)
 
 	res, err := suite.client0.client.InvokeBVMContract(constant.AssetExchangeContractAddr.Address(), "GetStatus", nil, pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().True(res.IsSuccess())
+	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 
 	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	tx, _ = suite.client1.client.GenerateIBTPTx(ib1)
@@ -558,11 +558,11 @@ func (suite *TransactionMgrSuite) Test008_One2One_AssetExchange_LoseFieldId() {
 		IBTPNonce: ib1.Index,
 	})
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res1.Status, string(res1.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res1.Status)
 
 	res, err = suite.client0.client.InvokeBVMContract(constant.AssetExchangeContractAddr.Address(), "GetStatus", nil, pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().True(res.IsSuccess())
+	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 }
 
 func (suite *TransactionMgrSuite) Test008_One2One_AssetExchange_LoseFieldSender() {
@@ -592,11 +592,11 @@ func (suite *TransactionMgrSuite) Test008_One2One_AssetExchange_LoseFieldSender(
 		IBTPNonce: ib0.Index,
 	})
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res0.Status, string(res0.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res0.Status)
 
 	res, err := suite.client0.client.InvokeBVMContract(constant.AssetExchangeContractAddr.Address(), "GetStatus", nil, pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res.Status, string(res.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 
 	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	tx, _ = suite.client1.client.GenerateIBTPTx(ib1)
@@ -606,11 +606,11 @@ func (suite *TransactionMgrSuite) Test008_One2One_AssetExchange_LoseFieldSender(
 		IBTPNonce: ib1.Index,
 	})
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res1.Status, string(res1.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res1.Status)
 
 	res, err = suite.client0.client.InvokeBVMContract(constant.AssetExchangeContractAddr.Address(), "GetStatus", nil, pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res.Status, string(res.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 }
 
 func (suite *TransactionMgrSuite) Test009_One2One_AssetExchange_LoseFieldAsset() {
@@ -639,11 +639,11 @@ func (suite *TransactionMgrSuite) Test009_One2One_AssetExchange_LoseFieldAsset()
 		IBTPNonce: ib0.Index,
 	})
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res0.Status, string(res0.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res0.Status)
 
 	res, err := suite.client0.client.InvokeBVMContract(constant.AssetExchangeContractAddr.Address(), "GetStatus", nil, pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res.Status, string(res.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 
 	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	tx, _ = suite.client1.client.GenerateIBTPTx(ib1)
@@ -653,9 +653,9 @@ func (suite *TransactionMgrSuite) Test009_One2One_AssetExchange_LoseFieldAsset()
 		IBTPNonce: ib1.Index,
 	})
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res1.Status, string(res1.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res1.Status)
 
 	res, err = suite.client0.client.InvokeBVMContract(constant.AssetExchangeContractAddr.Address(), "GetStatus", nil, pb.String(aei.Id))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res.Status, string(res.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 }
