@@ -758,7 +758,7 @@ func (suite *Snake) TestSubscribe_INTERCHAIN_TX_WRAPPER() {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
 
-	c, err := suite.client.Subscribe(ctx, pb.SubscriptionRequest_INTERCHAIN_TX_WRAPPER, nil)
+	c, err := suite.client.Subscribe(ctx, pb.SubscriptionRequest_INTERCHAIN_TX_WRAPPER, []byte(suite.from.String()))
 	suite.Require().Nil(err)
 
 	//sendInterchain
@@ -782,7 +782,7 @@ func (suite *Snake) TestSubscribe_UNION_INTERCHAIN_TX_WRAPPER() {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
 
-	c, err := suite.client.Subscribe(ctx, pb.SubscriptionRequest_UNION_INTERCHAIN_TX_WRAPPER, nil)
+	c, err := suite.client.Subscribe(ctx, pb.SubscriptionRequest_UNION_INTERCHAIN_TX_WRAPPER, []byte(suite.from.String()))
 	suite.Require().Nil(err)
 
 	//sendInterchain
