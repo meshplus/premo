@@ -6,7 +6,7 @@ require (
 	github.com/Knetic/govaluate v3.0.0+incompatible // indirect
 	github.com/Rican7/retry v0.1.0
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
-	//github.com/bitxhub/bitxid v0.1.1-0.20201215061901-be68635673d6
+	github.com/bitxhub/bitxid v0.2.0
 	github.com/cheynewallace/tabby v1.1.0
 	github.com/cloudflare/cfssl v0.0.0-20190409034051-768cd563887f // indirect
 	github.com/coreos/etcd v3.3.18+incompatible
@@ -23,8 +23,8 @@ require (
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/meshplus/bitxhub-kit v1.1.2-0.20201203072410-8a0383a6870d
-	github.com/meshplus/bitxhub-model v1.1.2-0.20201209072914-6846fa78ff35
-	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20201209081557-adc85050fa61
+	github.com/meshplus/bitxhub-model v1.1.2-0.20210107045700-cee670a2e117
+	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20210121092538-e2be20ff26b8
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
