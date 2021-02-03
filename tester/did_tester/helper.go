@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 
-	"github.com/bitxhub/bitxid"
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-kit/types"
@@ -74,32 +73,4 @@ func (suite *Snake) RegisterAppchainWithReturn(pk crypto.PrivateKey, chainType s
 	suite.Require().Nil(err)
 	suite.Require().NotNil(appChain.ID)
 	return appChain.ID
-}
-
-func getMethodDoc(ran int) bitxid.MethodDoc {
-	docE := bitxid.MethodDoc{}
-	docE.ID = bitxid.DID("did:bitxhub:relaychain001:.")
-	docE.Type = "method"
-	pk1 := bitxid.PubKey{
-		ID:           "KEY#1",
-		Type:         "Ed25519",
-		PublicKeyPem: "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",
-	}
-	pk2 := bitxid.PubKey{
-		ID:           "KEY#1",
-		Type:         "Secp256k1",
-		PublicKeyPem: "02b97c30de767f084ce3080168ee293053ba33b235d7116a3263d29f1450936b71",
-	}
-	if ran == 0 {
-		docE.ID = bitxid.DID("did:bitxhub:relayroot:.")
-	} else if ran == 1 {
-		docE.PublicKey = []bitxid.PubKey{pk1}
-	} else {
-		docE.PublicKey = []bitxid.PubKey{pk2}
-	}
-	auth := bitxid.Auth{
-		PublicKey: []string{"KEY#1"},
-	}
-	docE.Authentication = []bitxid.Auth{auth}
-	return docE
 }

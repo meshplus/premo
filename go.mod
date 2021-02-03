@@ -6,7 +6,6 @@ require (
 	github.com/Knetic/govaluate v3.0.0+incompatible // indirect
 	github.com/Rican7/retry v0.1.0
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
-	github.com/bitxhub/bitxid v0.2.0
 	github.com/cheynewallace/tabby v1.1.0
 	github.com/cloudflare/cfssl v0.0.0-20190409034051-768cd563887f // indirect
 	github.com/coreos/etcd v3.3.18+incompatible
