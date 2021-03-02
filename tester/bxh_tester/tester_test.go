@@ -30,7 +30,7 @@ type config struct {
 
 type Snake struct {
 	suite.Suite
-	//client    rpcx.ChainClient
+	//client0   rpcx.ChainClient
 	client    rpcx.Client
 	from      *types.Address
 	fromIndex uint64
