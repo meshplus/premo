@@ -10,7 +10,8 @@ import (
 	rpcx "github.com/meshplus/go-bitxhub-client"
 )
 
-func (suite *Snake) TestDeployContractIsNull() {
+//tc:部署合约，合约数据为空，交易回执状态显示失败
+func (suite *Snake) Test0401_DeployContractIsNull() {
 	bytes := make([]byte, 0)
 	_, err := suite.client.DeployContract(bytes, nil)
 
@@ -18,7 +19,8 @@ func (suite *Snake) TestDeployContractIsNull() {
 	suite.Require().Contains(err.Error(), "can't deploy empty contract")
 }
 
-func (suite *Snake) TestDeployContractWithToAddress() {
+//tc:部署合约，to地址随机，交易回执状态显示失败
+func (suite *Snake) Test0402_DeployContractWithToAddress() {
 	contract, err := ioutil.ReadFile("testdata/example.wasm")
 	suite.Require().Nil(err)
 
@@ -43,11 +45,13 @@ func (suite *Snake) TestDeployContractWithToAddress() {
 	suite.Require().Contains(string(receipt.Ret), "contract byte not correct")
 }
 
-func (suite *Snake) TestDeployContract() {
+
+func (suite *Snake) Test0403_DeployContract() {
 	deployExampleContract(suite)
 }
 
-func (suite *Snake) TestInvokeContract() {
+//tc:调用合约，正常调用合约，返回正确结果
+func (suite *Snake) Test0404_InvokeContract() {
 	address := deployExampleContract(suite)
 
 	result, err := suite.client.InvokeXVMContract(address, "a", nil, rpcx.Int32(1), rpcx.Int32(2))
@@ -56,7 +60,8 @@ func (suite *Snake) TestInvokeContract() {
 	suite.Require().True("336" == string(result.Ret))
 }
 
-func (suite *Snake) TestInvokeContractNotExistMethod() {
+//tc:调用合约，调用方法名不存在，交易回执状态显示失败
+func (suite *Snake) Test0405_InvokeContractNotExistMethod() {
 	address := deployExampleContract(suite)
 
 	result, err := suite.client.InvokeXVMContract(address, "bbb", nil, rpcx.Int32(1), rpcx.Int32(2))
@@ -65,7 +70,8 @@ func (suite *Snake) TestInvokeContractNotExistMethod() {
 	suite.Require().Contains(string(result.Ret), "wrong rule contract")
 }
 
-func (suite *Snake) TestInvokeRandomAddressContract() {
+//tc:调用合约，合约地址不存在，交易回执显示失败
+func (suite *Snake) Test0406_InvokeRandomAddressContract() {
 	// random addr len should be 42
 	bs := hexutil.Encode([]byte("random contract addr"))
 	fakeAddr := types.NewAddressByStr(bs)
@@ -76,7 +82,8 @@ func (suite *Snake) TestInvokeRandomAddressContract() {
 	suite.Require().Contains(string(result.Ret), "contract byte not correct")
 }
 
-func (suite *Snake) TestInvokeContractEmptyMethod() {
+//tc:调用合约，调用方法名为空，交易回执状态显示失败
+func (suite *Snake) Test0407_InvokeContractEmptyMethod() {
 	address := deployExampleContract(suite)
 
 	result, err := suite.client.InvokeXVMContract(address, "", nil)
@@ -85,11 +92,12 @@ func (suite *Snake) TestInvokeContractEmptyMethod() {
 	suite.Require().Contains(string(result.Ret), "lack of method name")
 }
 
-func (suite *Snake) TestDeploy10MContract() {
+//tc:部署合约，合约数据大小为10M以上，返回回执状态失败（待定）
+func (suite *Snake) Test0408_Deploy10MContract() {
 	// todo: wait for bitxhub to limit contract size
 }
 
-func (suite *Snake) TestInvokeContractWrongArg() {
+func (suite *Snake) Test0409_InvokeContractWrongArg() {
 	address := deployExampleContract(suite)
 
 	result, err := suite.client.InvokeXVMContract(address, "a", nil, rpcx.String("1"), rpcx.Int32(2))
@@ -107,7 +115,8 @@ func (suite *Snake) TestInvokeContractWrongArg() {
 	suite.Require().True(result.Status == pb.Receipt_FAILED)
 }
 
-func (suite *Snake) TestDeployContractWrongNumberArg() {
+//tc:调用合约，调用参数个数不正确，交易回执显示失败
+func (suite *Snake) Test0410_InvokeContractWrongNumberArg() {
 	address := deployExampleContract(suite)
 
 	result, err := suite.client.InvokeXVMContract(address, "a", nil, rpcx.Int32(1), rpcx.Int32(2), rpcx.Int32(3))
