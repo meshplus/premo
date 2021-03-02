@@ -45,7 +45,7 @@ func (suite *Snake) Test0402_DeployContractWithToAddress() {
 	suite.Require().Contains(string(receipt.Ret), "contract byte not correct")
 }
 
-
+//tc:部署合约，注册部署合约，返回合约地址
 func (suite *Snake) Test0403_DeployContract() {
 	deployExampleContract(suite)
 }
@@ -97,6 +97,7 @@ func (suite *Snake) Test0408_Deploy10MContract() {
 	// todo: wait for bitxhub to limit contract size
 }
 
+//tc:调用合约，调用参数不正确，交易回执状态显示失败
 func (suite *Snake) Test0409_InvokeContractWrongArg() {
 	address := deployExampleContract(suite)
 
