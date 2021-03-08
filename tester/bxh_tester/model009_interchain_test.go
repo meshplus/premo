@@ -84,7 +84,6 @@ func (suite *Snake) RegisterRule(pk crypto.PrivateKey, ruleFile string) {
 }
 
 // ------ interchain tests ------
-//tc:发送跨链交易，正常发送跨链交易，返回回执状态成功
 func (suite *Snake) Test0901_HandleIBTPShouldSucceed() {
 	kA, kB, from, to := suite.prepare()
 	suite.RegisterAppchain(kA, "hyperchain")
@@ -107,7 +106,6 @@ func (suite *Snake) Test0901_HandleIBTPShouldSucceed() {
 	fmt.Println(string(res.Ret))
 }
 
-//tc:发送跨链交易，来源链不存在，返回回执状态失败
 func (suite *Snake) Test0902_HandleIBTPWithNonexistentFrom() {
 	kA, kB, from, to := suite.prepare()
 	suite.RegisterAppchain(kB, "fabric")
@@ -128,7 +126,6 @@ func (suite *Snake) Test0902_HandleIBTPWithNonexistentFrom() {
 	suite.Require().Contains(err.Error(), "not found in DB")
 }
 
-//tc:发送跨链交易，目的链不存在，返回回执状态失败
 func (suite *Snake) Test0903_HandleIBTPWithNonexistentTo() {
 	kA, _, from, to := suite.prepare()
 	suite.RegisterAppchain(kA, "hyperchain")
@@ -150,7 +147,6 @@ func (suite *Snake) Test0903_HandleIBTPWithNonexistentTo() {
 	suite.Require().Equal(res.Status, pb.Receipt_SUCCESS)
 }
 
-//tc:发送跨链交易，来源链验证规则不存在，返回回执状态失败
 func (suite *Snake) Test0904_HandleIBTPWithNonexistentRule() {
 	kA, kB, from, to := suite.prepare()
 	suite.RegisterAppchain(kA, "hyperchain")
@@ -171,7 +167,6 @@ func (suite *Snake) Test0904_HandleIBTPWithNonexistentRule() {
 	suite.Require().Contains(err.Error(), "not found in DB")
 }
 
-//tc:发送跨链交易，IBTP index不匹配，返回回执状态失败
 func (suite *Snake) Test0905_HandleIBTPWithWrongIBTPIndex() {
 	kA, kB, from, to := suite.prepare()
 	suite.RegisterAppchain(kA, "hyperchain")
@@ -194,7 +189,6 @@ func (suite *Snake) Test0905_HandleIBTPWithWrongIBTPIndex() {
 	suite.Require().Nil(res)
 }
 
-//tc:查询跨链交易，根据IBTP ID查询对应的IBTP，返回回执状态成功
 func (suite *Snake) Test0906_GetIBTPByID() {
 	kA, kB, from, to := suite.prepare()
 	suite.RegisterAppchain(kA, "hyperchain")
@@ -244,7 +238,6 @@ func (suite *Snake) Test0906_GetIBTPByID() {
 	suite.Require().NotNil(res.Ret)
 }
 
-//tc:发送跨链交易，验证规则无法验证proof，返回回执状态失败
 func (suite *Snake) Test0907_HandleIBTPWithWrongProof() {
 	kA, kB, from, to := suite.prepare()
 	suite.RegisterAppchain(kA, "hyperchain")
