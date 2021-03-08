@@ -12,6 +12,7 @@ import (
 	"github.com/meshplus/bitxhub-model/pb"
 )
 
+
 func (suite *Snake) Test0801_TXEmptyFrom() {
 	data := &pb.TransactionData{
 		Amount: 1,
@@ -27,6 +28,7 @@ func (suite *Snake) Test0801_TXEmptyFrom() {
 	_, err = suite.client.SendTransaction(tx, nil)
 	suite.Require().NotNil(err)
 }
+
 
 func (suite *Snake) Test0802_TXEmptyTo() {
 	data := &pb.TransactionData{
@@ -44,7 +46,7 @@ func (suite *Snake) Test0802_TXEmptyTo() {
 	suite.Require().NotNil(err)
 }
 
-/*增加form和to都为空*/
+
 func (suite *Snake) Test0803_TXEmptyFromAndTo() {
 	data := &pb.TransactionData{
 		Amount: 1,
@@ -60,7 +62,7 @@ func (suite *Snake) Test0803_TXEmptyFromAndTo() {
 	suite.Require().NotNil(err)
 }
 
-/*增加from和to相同*/
+
 func (suite *Snake) Test0804_TXSameFromAndTo() {
 	data := &pb.TransactionData{
 		Amount: 1,
