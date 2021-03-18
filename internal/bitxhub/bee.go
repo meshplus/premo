@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -379,7 +380,7 @@ func mockIBTP(index uint64, from, to string, proof []byte) *pb.IBTP {
 }
 
 func (bee *bee) counterReceipt(tx *pb.Transaction) {
-	/*for {
+	for {
 		receipt, err := bee.client.GetReceipt(tx.Hash().String())
 		if err != nil {
 			if strings.Contains(err.Error(), "not found in DB") {
@@ -394,7 +395,7 @@ func (bee *bee) counterReceipt(tx *pb.Transaction) {
 			return
 		}
 		break
-	} */
+	}
 	atomic.AddInt64(&delayer, time.Now().UnixNano()-tx.Timestamp)
 	atomic.AddInt64(&counter, 1)
 }
