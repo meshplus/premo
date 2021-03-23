@@ -1,6 +1,7 @@
 package bxh_tester
 
 import (
+	"fmt"
 	"io/ioutil"
 
 	"github.com/meshplus/bitxhub-model/constant"
@@ -46,29 +47,8 @@ func (suite *Snake) Test0702_RegisterUnexistedAppchainShouldFail() {
 	suite.Require().Contains(string(res.Ret), "this appchain does not exist")
 }
 
-//tc:注册规则，指定WASM合约地址与不存在的应用链ID绑定，返回回执状态失败
-func (suite Snake) Test0703_RegisterUnexistedContractAddrShouldFail() {
-	suite.RegisterAppchain(suite.pk, "hyperchain")
-
-	contract, err := ioutil.ReadFile("./testdata/simple_rule.wasm")
-	suite.Require().Nil(err)
-
-	contractAddr, err := suite.client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	args := []*pb.Arg{
-		rpcx.String(suite.from.String()),
-		rpcx.String(contractAddr.String() + "123"),
-	}
-	res, err := suite.client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, args...)
-	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
-}
-
 //tc:审核规则，指定WASM合约审核，返回回执状态成功
 func (suite *Snake) Test0704_AuditRuleShouldSucceed() {
-	suite.RegisterAppchain(suite.pk, "hyperchain")
-
 	contract, err := ioutil.ReadFile("./testdata/simple_rule.wasm")
 	suite.Require().Nil(err)
 
@@ -89,6 +69,7 @@ func (suite *Snake) Test0704_AuditRuleShouldSucceed() {
 	}
 	res, err = suite.client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "Audit", nil, args2...)
 	suite.Require().Nil(err)
+	fmt.Println(string(res.Ret))
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
 }

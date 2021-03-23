@@ -21,9 +21,10 @@ require (
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/meshplus/bitxhub-kit v1.1.2-0.20201203072410-8a0383a6870d
-	github.com/meshplus/bitxhub-model v1.1.2-0.20210107045700-cee670a2e117
-	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20210121092538-e2be20ff26b8
+	github.com/meshplus/bitxhub-core v0.1.0-rc1.0.20210323012328-bf23a08fd3e4
+	github.com/meshplus/bitxhub-kit v1.1.2-0.20210112075018-319e668d6359
+	github.com/meshplus/bitxhub-model v1.1.2-0.20210312014622-c3ad532b64ad
+	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20210319081343-102b2061fe4e
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
@@ -34,7 +35,7 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/viper v1.6.1
 	github.com/stretchr/testify v1.6.0
-	github.com/tidwall/gjson v1.3.5
+	github.com/tidwall/gjson v1.6.8
 	github.com/urfave/cli/v2 v2.2.0
 	github.com/wonderivan/logger v1.0.0
 	go.etcd.io/etcd v3.3.13+incompatible

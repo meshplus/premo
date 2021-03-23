@@ -56,3 +56,39 @@ func KeyPath() (string, error) {
 
 	return filepath.Join(repoRoot, "key.json"), nil
 }
+
+func Node1Path() (string, error) {
+	repoRoot, err := PathRoot()
+	if err != nil {
+		return "", nil
+	}
+
+	return filepath.Join(repoRoot, "node1.json"), nil
+}
+
+func Node2Path() (string,error) {
+	repoRoot, err := PathRoot()
+	if err != nil {
+		return "", nil
+	}
+
+	return filepath.Join(repoRoot, "node2.json"), nil
+}
+
+func Node3Path() (string,error) {
+	repoRoot, err := PathRoot()
+	if err != nil {
+		return "", nil
+	}
+
+	return filepath.Join(repoRoot, "node3.json"), nil
+}
+
+func Node4Path() (string,error) {
+	repoRoot, err := PathRoot()
+	if err != nil {
+		return "", nil
+	}
+
+	return filepath.Join(repoRoot, "node4.json"), nil
+}
