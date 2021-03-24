@@ -17,6 +17,9 @@ const (
 	DefaultTo = "000000000000000000000000000000000000000a"
 )
 
+var index1 uint64
+var index2 uint64
+var index3 uint64
 var log = logrus.New()
 var cfg = &config{
 	addrs: []string{
@@ -79,6 +82,52 @@ func New(config *Config) (*Broker, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	//query nodes nonce
+	node1, err := repo.Node1Path()
+	if err != nil {
+		return nil, err
+	}
+	key, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
+	if err != nil {
+		return nil, err
+	}
+	address, err := key.PublicKey().Address()
+	if err != nil {
+		return nil, err
+	}
+	index1, err = client.GetPendingNonceByAccount(address.String())
+
+	node2, err := repo.Node2Path()
+	if err != nil {
+		return nil, err
+	}
+	key, err = asym.RestorePrivateKey(node2, repo.KeyPassword)
+	if err != nil {
+		return nil, err
+	}
+	address, err = key.PublicKey().Address()
+	if err != nil {
+		return nil, err
+	}
+	index2, err = client.GetPendingNonceByAccount(address.String())
+
+	node3, err := repo.Node3Path()
+	if err != nil {
+		return nil, err
+	}
+	key, err = asym.RestorePrivateKey(node3, repo.KeyPassword)
+	if err != nil {
+		return nil, err
+	}
+	address, err = key.PublicKey().Address()
+	if err != nil {
+		return nil, err
+	}
+	index3, err = client.GetPendingNonceByAccount(address.String())
+	index1 -= 1
+	index2 -= 1
+	index3 -= 1
 
 	// query pending nonce for adminKey
 	adminNonce, err := client.GetPendingNonceByAccount(adminFrom.String())
