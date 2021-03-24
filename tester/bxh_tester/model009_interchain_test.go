@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"io/ioutil"
 	"time"
 
@@ -59,10 +60,19 @@ func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, chainType string) {
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
-	appChain := &rpcx.Appchain{}
-	err = json.Unmarshal(res.Ret, appChain)
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
 	suite.Require().Nil(err)
-	suite.Require().NotNil(appChain.ID)
+	suite.Require().NotNil(result.ChainID)
+	err = suite.VotePass(result.ProposalID)
+	suite.Require().Nil(err)
+
+	res, err = suite.GetChainStatusById(result.ChainID)
+	suite.Require().Nil(err)
+	appchain := &rpcx.Appchain{}
+	err = json.Unmarshal(res.Ret, appchain)
+	suite.Require().Nil(err)
+	suite.Require().Equal(appchain_mgr.AppchainAvailable, appchain.Status)
 }
 
 func (suite *Snake) RegisterRule(pk crypto.PrivateKey, ruleFile string) {
