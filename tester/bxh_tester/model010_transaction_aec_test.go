@@ -105,7 +105,8 @@ func (suite *TransactionMgrSuite) RegisterRule(client *ChainClient, ruleFile str
 	suite.Require().True(res.IsSuccess())
 }
 
-func (suite *TransactionMgrSuite) Test001_One2One_AssetExchange_HappyPath() {
+//tc:一对一跨链交易，跨链交易成功执行，中继链事务管理合约中该事务状态为成功
+func (suite *TransactionMgrSuite) Test1001_One2One_AssetExchange_HappyPath() {
 	index := uint64(1)
 	from := suite.client0.addr
 	to := suite.client1.addr
@@ -156,7 +157,8 @@ func (suite *TransactionMgrSuite) Test001_One2One_AssetExchange_HappyPath() {
 	suite.Require().Equal("1", string(res.Ret))
 }
 
-func (suite *TransactionMgrSuite) Test002_One2One_AssetExchange_FromRefund() {
+//tc:一对一跨链交易，来源链拒绝交易，中继链事务管理合约中该事务状态为错误
+func (suite *TransactionMgrSuite) Test1002_One2One_AssetExchange_FromRefund() {
 	index := uint64(1)
 	from := suite.client0.addr
 	to := suite.client1.addr
@@ -210,10 +212,11 @@ func (suite *TransactionMgrSuite) Test002_One2One_AssetExchange_FromRefund() {
 		IBTPNonce: ib1.Index,
 	})
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res1.Status, string(res1.Ret))
+	suite.Require().Equal(pb.Receipt_FAILED, res1.Status)
 }
 
-func (suite *TransactionMgrSuite) Test003_One2One_AssetExchange_ToRefund() {
+//tc:一对一跨链交易，目的链拒绝交易，中继链事务管理合约中该事务状态为错误
+func (suite *TransactionMgrSuite) Test1003_One2One_AssetExchange_ToRefund() {
 	index := uint64(1)
 	from := suite.client0.addr
 	to := suite.client1.addr
@@ -269,7 +272,8 @@ func (suite *TransactionMgrSuite) Test003_One2One_AssetExchange_ToRefund() {
 	suite.Require().Equal(pb.Receipt_FAILED, res1.Status)
 }
 
-func (suite *TransactionMgrSuite) Test004_AssetExchange_Signs() {
+//tc:一对一跨链交易，获取资产交换的多签
+func (suite *TransactionMgrSuite) Test1004_AssetExchange_Signs() {
 	index := uint64(1)
 	from := suite.client0.addr
 	to := suite.client1.addr
@@ -315,7 +319,8 @@ func (suite *TransactionMgrSuite) Test004_AssetExchange_Signs() {
 	}
 }
 
-func (suite *TransactionMgrSuite) Test005_One2One_AssetExchange_FromToRefund() {
+//tc:一对一跨链交易，来源链和目的链都拒绝交易，中继链事务管理合约中该事务状态为错误
+func (suite *TransactionMgrSuite) Test1005_One2One_AssetExchange_FromToRefund() {
 	index := uint64(1)
 	from := suite.client0.addr
 	to := suite.client1.addr
@@ -382,7 +387,8 @@ func (suite *TransactionMgrSuite) Test005_One2One_AssetExchange_FromToRefund() {
 	suite.Require().Equal(pb.Receipt_FAILED, res1.Status, string(res1.Ret))
 }
 
-func (suite *TransactionMgrSuite) Test006_One2One_AssetExchange_SameId() {
+//tc:一对一跨链交易，相同id重复注册，中继链事务管理合约中该事务状态为错误
+func (suite *TransactionMgrSuite) Test1006_One2One_AssetExchange_SameId() {
 	index := uint64(1)
 	from := suite.client0.addr
 	to := suite.client1.addr
@@ -466,7 +472,8 @@ func (suite *TransactionMgrSuite) Test006_One2One_AssetExchange_SameId() {
 
 }
 
-func (suite *TransactionMgrSuite) Test007_One2One_AssetExchange_FromToFrom() {
+//tc:一对一跨链交易，目的账户和来源账户相同，中继链事务管理合约中该事务状态为成功
+func (suite *TransactionMgrSuite) Test1007_One2One_AssetExchange_FromToFrom() {
 	index := uint64(1)
 	from := suite.client0.addr
 	to := suite.client1.addr
@@ -517,7 +524,8 @@ func (suite *TransactionMgrSuite) Test007_One2One_AssetExchange_FromToFrom() {
 	suite.Require().Equal("1", string(res.Ret))
 }
 
-func (suite *TransactionMgrSuite) Test008_One2One_AssetExchange_LoseFieldId() {
+//tc:一对一跨链交易，缺少id字段，中继链事务管理合约中该事务状态为失败
+func (suite *TransactionMgrSuite) Test1008_One2One_AssetExchange_LoseFieldId() {
 	index := uint64(1)
 	from := suite.client0.addr
 	to := suite.client1.addr
@@ -565,7 +573,8 @@ func (suite *TransactionMgrSuite) Test008_One2One_AssetExchange_LoseFieldId() {
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 }
 
-func (suite *TransactionMgrSuite) Test008_One2One_AssetExchange_LoseFieldSender() {
+//tc:一对一跨链交易，缺少sender字段，中继链事务管理合约中该事务状态为失败
+func (suite *TransactionMgrSuite) Test1009_One2One_AssetExchange_LoseFieldSender() {
 	index := uint64(1)
 	from := suite.client0.addr
 	to := suite.client1.addr
@@ -613,13 +622,15 @@ func (suite *TransactionMgrSuite) Test008_One2One_AssetExchange_LoseFieldSender(
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 }
 
-func (suite *TransactionMgrSuite) Test009_One2One_AssetExchange_LoseFieldAsset() {
+//tc:一对一跨链交易，缺少asset字段，中继链事务管理合约中该事务状态为失败
+func (suite *TransactionMgrSuite) Test1010_One2One_AssetExchange_LoseFieldAsset() {
 	index := uint64(1)
 	from := suite.client0.addr
 	to := suite.client1.addr
 
 	aei := pb.AssetExchangeInfo{
 		Id:            from + "123456",
+		SenderOnSrc:   "aaa",
 		ReceiverOnSrc: "bbb",
 		SenderOnDst:   "BBB",
 		ReceiverOnDst: "AAA",

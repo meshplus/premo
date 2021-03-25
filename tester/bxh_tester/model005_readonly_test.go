@@ -11,7 +11,8 @@ import (
 	"github.com/meshplus/bitxhub-model/pb"
 )
 
-func (suite *Snake) TestNormalReadOnly() {
+//tc:向中继链发送只读交易查询交易余额
+func (suite *Snake) Test0501_NormalReadOnly() {
 	keyForNormal := "key_for_normal"
 	valueForNormal := "value_for_normal"
 	receipt, err := suite.client.InvokeBVMContract(constant.StoreContractAddr.Address(), "Set", nil, pb.String(keyForNormal), pb.String(valueForNormal))
@@ -28,7 +29,8 @@ func (suite *Snake) TestNormalReadOnly() {
 	suite.Require().Equal(valueForNormal, string(receipt.Ret))
 }
 
-func (suite *Snake) TestSendTx2ReadOnlyApi() {
+//tc:向中继链提交只读交易接口发送可读写交易
+func (suite *Snake) Test0502_SendTx2ReadOnlyApi() {
 	rand.Seed(time.Now().UnixNano())
 	randKey := make([]byte, 20)
 	_, err := rand.Read(randKey)

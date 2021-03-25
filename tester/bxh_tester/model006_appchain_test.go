@@ -3,14 +3,15 @@ package bxh_tester
 import (
 	"encoding/hex"
 	"encoding/json"
-
+	"fmt"
 	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	"github.com/tidwall/gjson"
 )
 
-func (suite *Snake) TestRegisterAppchain() {
+//tc:正常注册应用链，返回回执状态成功
+func (suite *Snake) Test0601_RegisterAppchain() {
 	pubAddress, err := suite.pk.PublicKey().Address()
 	suite.Require().Nil(err)
 
@@ -32,7 +33,8 @@ func (suite *Snake) TestRegisterAppchain() {
 	suite.Require().NotNil(appChain.ID)
 }
 
-func (suite *Snake) TestRegisterAppchainLoseFields() {
+//tc:必填字段测试，返回回执状态失败
+func (suite *Snake) Test0602_RegisterAppchainLoseFields() {
 	args := []*pb.Arg{
 		rpcx.String(""),    //validators
 		rpcx.Int32(0),      //consensus_type
@@ -44,7 +46,8 @@ func (suite *Snake) TestRegisterAppchainLoseFields() {
 	suite.Require().Contains(string(res.Ret), "too few input arguments")
 }
 
-func (suite *Snake) TestRegisterReplicaAppchain() {
+//tc:重复注册应用链，返回回执状态成功
+func (suite *Snake) Test0603_RegisterReplicaAppchain() {
 	pubBytes, err := suite.pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 
@@ -60,16 +63,18 @@ func (suite *Snake) TestRegisterReplicaAppchain() {
 	}
 	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	appchainID := gjson.Get(string(res.Ret), "appchainID").String()
 
 	res1, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
-
+	suite.Require().Equal(pb.Receipt_SUCCESS, res1.Status)
 	appchainID1 := gjson.Get(string(res1.Ret), "appchainID").String()
 	suite.Require().Equal(appchainID, appchainID1)
 }
 
-func (suite *Snake) TestUpdateAppchain() {
+//tc:正常更新应用链
+func (suite *Snake) Test0604_UpdateAppchain() {
 	pubBytes, err := suite.pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 
@@ -101,7 +106,8 @@ func (suite *Snake) TestUpdateAppchain() {
 	suite.Require().Equal(res2.Status, pb.Receipt_SUCCESS)
 }
 
-func (suite *Snake) TestUpdateAppchainLoseFields() {
+//tc:必填字段测试，返回回执状态失败
+func (suite *Snake) Test0605_UpdateAppchainLoseFields() {
 	pubBytes, err := suite.pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 
@@ -119,7 +125,8 @@ func (suite *Snake) TestUpdateAppchainLoseFields() {
 	suite.Require().Contains(string(res.Ret), "too few input arguments")
 }
 
-func (suite *Snake) TestAuditAppchain() {
+//tc:应用链审核状态改变，返回回执状态成功
+func (suite *Snake) Test0606_AuditAppchain() {
 	pubBytes, err := suite.pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 
@@ -148,7 +155,8 @@ func (suite *Snake) TestAuditAppchain() {
 	suite.Require().Contains(string(res.Ret), "successfully")
 }
 
-func (suite *Snake) TestRepeatAuditAppchain() {
+//tc:多次审核，返回回执状态成功
+func (suite *Snake) Test0607_RepeatAuditAppchain() {
 	pubBytes, err := suite.pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 
@@ -184,7 +192,8 @@ func (suite *Snake) TestRepeatAuditAppchain() {
 	suite.Require().Equal(res2.Status, pb.Receipt_SUCCESS)
 }
 
-func (suite *Snake) TestFetchAuditRecord() {
+//tc:正确获取审核记录
+func (suite *Snake) Test0608_FetchAuditRecord() {
 	args := []*pb.Arg{
 		rpcx.String(suite.from.String()),
 	}
@@ -194,15 +203,18 @@ func (suite *Snake) TestFetchAuditRecord() {
 	suite.Require().NotNil(res.Ret)
 }
 
-func (suite *Snake) TestGetAppchain() {
+//tc:查询调用方的应用链信息
+func (suite *Snake) Test0609_GetAppchain() {
 	var args []*pb.Arg
 	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Appchain", nil, args...)
 	suite.Require().Nil(err)
 	suite.Require().Equal(res.Status, pb.Receipt_SUCCESS)
 	suite.Require().NotNil(res.Ret)
+	fmt.Println(string(res.Ret))
 }
 
-func (suite *Snake) TestGetAppchainByID() {
+//tc:根据指定ID查询应用链信息
+func (suite *Snake) Test0610_GetAppchainByID() {
 	args := []*pb.Arg{
 		rpcx.String(suite.from.String()),
 	}
@@ -210,4 +222,15 @@ func (suite *Snake) TestGetAppchainByID() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(res.Status, pb.Receipt_SUCCESS)
 	suite.Require().NotNil(res.Ret)
+}
+
+//tc:根据错误的ID查询应用链信息
+func (suite *Snake) Test0611_GetAppchainByErrorID() {
+	args := []*pb.Arg{
+		rpcx.String(suite.from.String() + "123"),
+	}
+	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "GetAppchain", nil, args...)
+	suite.Require().Nil(err)
+	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
+	suite.Require().Equal("call error: this appchain does not exist", string(res.Ret))
 }
