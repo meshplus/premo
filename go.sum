@@ -542,6 +542,8 @@ github.com/meshplus/bitxhub-core v0.1.0-rc1.0.20210318102029-494ee3060b0c h1:78b
 github.com/meshplus/bitxhub-core v0.1.0-rc1.0.20210318102029-494ee3060b0c/go.mod h1:G19Wrz1u66UmwaES/iLM19jmlv3APAZ5qfYOlNnIIZw=
 github.com/meshplus/bitxhub-core v0.1.0-rc1.0.20210323012328-bf23a08fd3e4 h1:cFfK+rWt/OjD0wGgbAa/CDChfkLdEjIcWA80Y0GNr7g=
 github.com/meshplus/bitxhub-core v0.1.0-rc1.0.20210323012328-bf23a08fd3e4/go.mod h1:G19Wrz1u66UmwaES/iLM19jmlv3APAZ5qfYOlNnIIZw=
+github.com/meshplus/bitxhub-core v0.1.0-rc1.0.20210330035001-b327cf056572 h1:kKcS6taPdH8fOi8kU35ciUlk5cbYCyKa4QbA+04OQ4s=
+github.com/meshplus/bitxhub-core v0.1.0-rc1.0.20210330035001-b327cf056572/go.mod h1:G19Wrz1u66UmwaES/iLM19jmlv3APAZ5qfYOlNnIIZw=
 github.com/meshplus/bitxhub-kit v1.0.1/go.mod h1:r4l4iqn0RPJreb/OmoYKfjCjQJrXpZX++6Qc31VG/1k=
 github.com/meshplus/bitxhub-kit v1.1.2-0.20201021105954-468d0a9d7957 h1:1a3wYo2HQw9/yg5LfAPJ1En90pPbMwRlaVssxOLG97w=
 github.com/meshplus/bitxhub-kit v1.1.2-0.20201021105954-468d0a9d7957/go.mod h1:r4l4iqn0RPJreb/OmoYKfjCjQJrXpZX++6Qc31VG/1k=
@@ -566,6 +568,8 @@ github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20210121092538-e2be20ff26b8 h
 github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20210121092538-e2be20ff26b8/go.mod h1:ZWklYGrAMQcknmMMyxZtRU1IiBRuoYy570QNTp3WJbI=
 github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20210319081343-102b2061fe4e h1:OGzfCqMOUx5Qu3q6fdbFGlpDIBPaV+/n7KfGAqfaCL4=
 github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20210319081343-102b2061fe4e/go.mod h1:tSvmN8oF7YqBDtYl+Apu/oMLGfX5tIQF8hMOdzF35mU=
+github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20210401070550-93124af0d1f2 h1:bD5UXFcabQyynauGtLVDIC0V6F5cqQUtLfd7HuSIY48=
+github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20210401070550-93124af0d1f2/go.mod h1:Bto0iwMC8NOjkw0YzqoAmlc8W7e8jzPpNqk7ZK5GimY=
 github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b/go.mod h1:01TrycV0kFyexm33Z7vhZRXopbI8J3TDReVlkTgMUxE=
 github.com/miekg/dns v1.1.12/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
 github.com/miekg/pkcs11 v1.0.2/go.mod h1:XsNlhZGX73bx86s2hdc/FuaLm2CPZJemRLMA+WTFxgs=

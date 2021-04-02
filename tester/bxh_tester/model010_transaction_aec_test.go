@@ -216,7 +216,7 @@ func (suite *TransactionMgrSuite) RegisterAppchain(client *ChainClient, chainTyp
 	var pubKeyStr = hex.EncodeToString(pubBytes)
 	args := []*pb.Arg{
 		rpcx.String(""),                 //validators
-		rpcx.Int32(0),                   //consensus_type
+		rpcx.String("raft"),                   //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
 		rpcx.String("AppChain1"),        //name
 		rpcx.String("Appchain for tax"), //desc
