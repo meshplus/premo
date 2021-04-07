@@ -1,9 +1,10 @@
 package bxh_tester
 
 import (
+	"math/rand"
+
 	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"
-	"math/rand"
 )
 
 //tc:调用store合约，set 10M数据，交易回执显示失败

@@ -5,17 +5,17 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
-	"github.com/meshplus/premo/internal/repo"
 	"io/ioutil"
 	"time"
 
+	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-kit/types"
 	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
+	"github.com/meshplus/premo/internal/repo"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -216,7 +216,7 @@ func (suite *TransactionMgrSuite) RegisterAppchain(client *ChainClient, chainTyp
 	var pubKeyStr = hex.EncodeToString(pubBytes)
 	args := []*pb.Arg{
 		rpcx.String(""),                 //validators
-		rpcx.String("raft"),                   //consensus_type
+		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
 		rpcx.String("AppChain1"),        //name
 		rpcx.String("Appchain for tax"), //desc

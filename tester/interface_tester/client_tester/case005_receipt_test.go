@@ -2,8 +2,9 @@ package interface_tester
 
 import (
 	"encoding/json"
-	"github.com/meshplus/bitxhub-model/pb"
 	"time"
+
+	"github.com/meshplus/bitxhub-model/pb"
 )
 
 func (suite Snake) TestGetReceipt() {
@@ -20,7 +21,7 @@ func (suite Snake) TestGetReceipt() {
 	res := &pb.Receipt{}
 	err = json.Unmarshal(data, res)
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_SUCCESS,res.Status)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
 }
 

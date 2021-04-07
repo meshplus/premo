@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-model/constant"
@@ -605,6 +606,7 @@ func (suite *Snake) Test027_MethodDeleteMethod() {
 	fmt.Println("Resolve res.Ret: ", mi)
 	fmt.Println(string(mi.DocHash))
 }
+
 //tc：重复删除Method
 func (suite *Snake) Test028_MethodDeleteMethodRepeat() {
 	args := []*pb.Arg{
@@ -720,7 +722,7 @@ func (suite *Snake) Test032_MethodAddAdminWithNoAdmin() {
 }
 
 //tc：超管增加自己为管理员
-func (suite *Snake) Test033_MethodAddAdminWithSuperAdminSelf()  {
+func (suite *Snake) Test033_MethodAddAdminWithSuperAdminSelf() {
 	admins, err := suite.getMethodAdmins()
 	suite.Require().Nil(err)
 	num1 := len(admins)
@@ -844,7 +846,7 @@ func (suite *Snake) Test037_MethodRemoveAdminWithNoAdmin() {
 }
 
 //tc：超管删除自己为管理员
-func (suite *Snake) Test038_MethodRemoveAdminWithSuperAdminSelf()  {
+func (suite *Snake) Test038_MethodRemoveAdminWithSuperAdminSelf() {
 	admins, err := suite.getMethodAdmins()
 	suite.Require().Nil(err)
 	num1 := len(admins)

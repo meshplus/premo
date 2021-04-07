@@ -2,10 +2,11 @@ package bxh_tester
 
 import (
 	"fmt"
+	"io/ioutil"
+
 	"github.com/meshplus/bitxhub-kit/types"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
-	"io/ioutil"
 )
 
 func (suite *Snake) Test0411_LegerSet() {
