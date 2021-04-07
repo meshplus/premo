@@ -6,16 +6,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 
+	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-kit/types"
 	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
+	"github.com/meshplus/premo/internal/repo"
 	"github.com/wonderivan/logger"
 )
 
@@ -24,7 +25,6 @@ var sender int64
 var delayer int64
 var ibtppd []byte
 var proofHash [32]byte
-var lock sync.Mutex
 
 type bee struct {
 	adminPrivKey  crypto.PrivateKey
@@ -39,6 +39,11 @@ type bee struct {
 	ibtpSeqNo     uint64
 	ctx           context.Context
 	config        *Config
+}
+
+type RegisterResult struct {
+	ChainID    string `json:"chain_id"`
+	ProposalID string `json:"proposal_id"`
 }
 
 func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expectedNonce uint64, config *Config, ctx context.Context) (*bee, error) {
@@ -214,20 +219,26 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 	}
 
 	atomic.AddUint64(&bee.norMalSeqNo, 1)
-
-	appchain := &rpcx.Appchain{}
-	if err := json.Unmarshal(receipt.Ret, appchain); err != nil {
-		return err
+	// vote chain
+	result := &RegisterResult{}
+	err = json.Unmarshal(receipt.Ret, result)
+	if err != nil || result.ProposalID == "" {
+		return fmt.Errorf("vote unmarshal error: %w", err)
 	}
-	ID := appchain.ID
-
-	// Audit chain and set adminPrivateKey for auditing
-	bee.client.SetPrivateKey(bee.adminPrivKey)
-	receipt, err = bee.invokeContract(bee.adminFrom, constant.AppchainMgrContractAddr.Address(), bee.adminSeqNo,
-		"Audit", rpcx.String(ID), rpcx.Int32(1), rpcx.String("Audit passed"))
+	err = bee.VotePass(result.ProposalID)
 	if err != nil {
-		return fmt.Errorf("audit appchain error:%w", err)
+		return fmt.Errorf("vote chain error: %w", err)
 	}
+	res, err := bee.GetChainStatusById(result.ChainID)
+	if err != nil {
+		return fmt.Errorf("getChainStatus error: %w", err)
+	}
+	appchain := &rpcx.Appchain{}
+	err = json.Unmarshal(res.Ret, appchain)
+	if err != nil || appchain.Status != appchain_mgr.AppchainAvailable {
+		return fmt.Errorf("chain error: %w", err)
+	}
+	ID := result.ChainID
 
 	ruleAddr := "0x00000000000000000000000000000000000000a1"
 	// deploy rule
@@ -398,4 +409,150 @@ func (bee *bee) counterReceipt(tx *pb.Transaction) {
 	}
 	atomic.AddInt64(&delayer, time.Now().UnixNano()-tx.Timestamp)
 	atomic.AddInt64(&counter, 1)
+}
+
+func (bee *bee) VotePass(id string) error {
+	node1, err := repo.Node1Path()
+	if err != nil {
+		return err
+	}
+
+	key, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
+	if err != nil {
+		return err
+	}
+
+	_, err = bee.vote(key, atomic.AddUint64(&index1, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
+	if err != nil {
+		return err
+	}
+
+	node2, err := repo.Node2Path()
+	if err != nil {
+		return err
+	}
+
+	key, err = asym.RestorePrivateKey(node2, repo.KeyPassword)
+	if err != nil {
+		return err
+	}
+
+	_, err = bee.vote(key, atomic.AddUint64(&index2, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
+	if err != nil {
+		return err
+	}
+
+	node3, err := repo.Node3Path()
+	if err != nil {
+		return err
+	}
+
+	key, err = asym.RestorePrivateKey(node3, repo.KeyPassword)
+	if err != nil {
+		return err
+	}
+
+	_, err = bee.vote(key, atomic.AddUint64(&index3, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (bee *bee) vote(key crypto.PrivateKey, index uint64, args ...*pb.Arg) (*pb.Receipt, error) {
+	client, err := rpcx.New(
+		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
+		rpcx.WithLogger(cfg.logger),
+		rpcx.WithPrivateKey(key),
+	)
+	address, err := key.PublicKey().Address()
+	if err != nil {
+		return nil, err
+	}
+	invokePayload := &pb.InvokePayload{
+		Method: "Vote",
+		Args:   args,
+	}
+
+	payload, err := invokePayload.Marshal()
+	if err != nil {
+		return nil, err
+	}
+
+	data := &pb.TransactionData{
+		Type:    pb.TransactionData_INVOKE,
+		VmType:  pb.TransactionData_BVM,
+		Payload: payload,
+	}
+	payload, err = data.Marshal()
+
+	tx := &pb.Transaction{
+		From:      address,
+		To:        constant.GovernanceContractAddr.Address(),
+		Timestamp: time.Now().UnixNano(),
+		Payload:   payload,
+	}
+	if err != nil {
+		return nil, err
+	}
+	receipt, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		NormalNonce: index,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return receipt, nil
+}
+
+func (bee *bee) GetChainStatusById(id string) (*pb.Receipt, error) {
+	node, err := repo.Node1Path()
+	key, err := asym.RestorePrivateKey(node, repo.KeyPassword)
+	if err != nil {
+		return nil, err
+	}
+	client, err := rpcx.New(
+		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
+		rpcx.WithLogger(cfg.logger),
+		rpcx.WithPrivateKey(key),
+	)
+	address, err := key.PublicKey().Address()
+	if err != nil {
+		return nil, err
+	}
+	args := []*pb.Arg{
+		rpcx.String(id),
+	}
+	invokePayload := &pb.InvokePayload{
+		Method: "GetAppchain",
+		Args:   args,
+	}
+
+	payload, err := invokePayload.Marshal()
+	if err != nil {
+		return nil, err
+	}
+
+	data := &pb.TransactionData{
+		Type:    pb.TransactionData_INVOKE,
+		VmType:  pb.TransactionData_BVM,
+		Payload: payload,
+	}
+	payload, err = data.Marshal()
+
+	tx := &pb.Transaction{
+		From:      address,
+		To:        constant.AppchainMgrContractAddr.Address(),
+		Timestamp: time.Now().UnixNano(),
+		Payload:   payload,
+	}
+	if err != nil {
+		return nil, err
+	}
+	receipt, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		NormalNonce: atomic.AddUint64(&index1, 1),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return receipt, nil
 }

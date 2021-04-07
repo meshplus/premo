@@ -3,6 +3,7 @@ package did_tester
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-model/constant"
@@ -370,7 +371,7 @@ func (suite Snake) Test015_DidFreezeRepeat() {
 }
 
 //tc：解冻did，发起调用gosdk绑定的私钥和初始化链上地址不一致
-func (suite *Snake) Test016_DidUnFreezeWithErrorKey()  {
+func (suite *Snake) Test016_DidUnFreezeWithErrorKey() {
 	key := suite.pk
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)

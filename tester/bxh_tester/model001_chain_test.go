@@ -21,13 +21,12 @@ type Account struct {
 	CodeHash      types.Hash `json:"code_hash"`
 }
 
-
 //init
 func (suite *Snake) SetupTest() {
 	suite.sendTransaction()
 }
 
-func (suite Snake) sendTransaction()  {
+func (suite Snake) sendTransaction() {
 	data := &pb.TransactionData{
 		Amount: 1,
 	}
@@ -43,8 +42,9 @@ func (suite Snake) sendTransaction()  {
 
 	res, err := suite.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_SUCCESS,res.Status)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 }
+
 //tc: 根据区块高度查询区块，返回正确的区块信息
 func (suite *Snake) Test0101_GetBlockByHeight() {
 	// first block

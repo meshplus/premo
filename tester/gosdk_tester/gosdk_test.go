@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"time"
 
+	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-kit/types"
@@ -18,6 +19,11 @@ import (
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	"github.com/meshplus/premo/internal/repo"
 )
+
+type RegisterResult struct {
+	ChainID    string `json:"chain_id"`
+	ProposalID string `json:"proposal_id"`
+}
 
 func (suite *Snake) TestStopClient() {
 	keyPath, err := repo.KeyPath()
@@ -248,8 +254,6 @@ func (suite *Snake) TestGetReceiptByHashIsFalse() {
 		Nonce:     1,
 		Payload:   payload,
 	}
-	err = tx.Sign(suite.pk)
-	suite.Require().Nil(err)
 
 	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
@@ -274,8 +278,6 @@ func (suite *Snake) TestGetTransactionIsTrue() {
 		Nonce:     1,
 		Payload:   payload,
 	}
-	err = tx.Sign(suite.pk)
-	suite.Require().Nil(err)
 
 	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
@@ -303,8 +305,6 @@ func (suite *Snake) TestGetTransactionIsFalse() {
 		Nonce:     1,
 		Payload:   payload,
 	}
-	err = tx.Sign(suite.pk)
-	suite.Require().Nil(err)
 
 	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
@@ -1023,7 +1023,7 @@ func genContractTransaction(
 }
 
 func (suite *Snake) prepare() (crypto.PrivateKey, crypto.PrivateKey, *types.Address, *types.Address) {
-	kA := suite.pk
+	kA, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	//suite.Require().Nil(err)
 	kB, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -1040,41 +1040,202 @@ func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, chainType string) {
 	pubBytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 
-	suite.client.SetPrivateKey(pk)
+	client := suite.NewClient(pk)
+
 	var pubKeyStr = hex.EncodeToString(pubBytes)
 	args := []*pb.Arg{
 		rpcx.String(""),                 //validators
-		rpcx.Int32(0),                   //consensus_type
+		rpcx.String("raft"),             //consensus_type
 		rpcx.String(chainType),          //chain_type
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
 		rpcx.String(pubKeyStr),          //public key
 	}
-	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
-	appChain := &rpcx.Appchain{}
-	err = json.Unmarshal(res.Ret, appChain)
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
 	suite.Require().Nil(err)
-	suite.Require().NotNil(appChain.ID)
+	suite.Require().NotNil(result.ChainID)
+	err = suite.VotePass(result.ProposalID)
+	suite.Require().Nil(err)
+
+	res, err = suite.GetChainStatusById(result.ChainID)
+	suite.Require().Nil(err)
+	appchain := &rpcx.Appchain{}
+	err = json.Unmarshal(res.Ret, appchain)
+	suite.Require().Nil(err)
+	suite.Require().Equal(appchain_mgr.AppchainAvailable, appchain.Status)
 }
 
 func (suite *Snake) RegisterRule(pk crypto.PrivateKey, ruleFile string) {
-	suite.client.SetPrivateKey(pk)
-
+	client := suite.NewClient(pk)
 	from, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
 
 	// deploy rule
 	bytes, err := ioutil.ReadFile(ruleFile)
 	suite.Require().Nil(err)
-	addr, err := suite.client.DeployContract(bytes, nil)
+	addr, err := client.DeployContract(bytes, nil)
 	suite.Require().Nil(err)
 
 	// register rule
-	res, err := suite.client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, pb.String(from.String()), pb.String(addr.String()))
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, pb.String(from.String()), pb.String(addr.String()))
 	suite.Require().Nil(err)
 	suite.Require().True(res.IsSuccess())
+}
+
+func (suite *Snake) NewClient(pk crypto.PrivateKey) *rpcx.ChainClient {
+	node0 := &rpcx.NodeInfo{Addr: cfg.addrs[0]}
+	client, err := rpcx.New(
+		rpcx.WithNodesInfo(node0),
+		rpcx.WithLogger(cfg.logger),
+		rpcx.WithPrivateKey(pk),
+	)
+	suite.Require().Nil(err)
+	return client
+}
+func (suite *Snake) VotePass(id string) error {
+	node1, err := repo.Node1Path()
+	if err != nil {
+		return err
+	}
+
+	key, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
+	if err != nil {
+		return err
+	}
+
+	_, err = suite.vote(key, pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
+	if err != nil {
+		return err
+	}
+
+	node2, err := repo.Node2Path()
+	if err != nil {
+		return err
+	}
+
+	key, err = asym.RestorePrivateKey(node2, repo.KeyPassword)
+	if err != nil {
+		return err
+	}
+
+	_, err = suite.vote(key, pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
+	if err != nil {
+		return err
+	}
+
+	node3, err := repo.Node3Path()
+	if err != nil {
+		return err
+	}
+
+	key, err = asym.RestorePrivateKey(node3, repo.KeyPassword)
+	if err != nil {
+		return err
+	}
+
+	_, err = suite.vote(key, pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (suite *Snake) vote(key crypto.PrivateKey, args ...*pb.Arg) (*pb.Receipt, error) {
+	client, err := rpcx.New(
+		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
+		rpcx.WithLogger(cfg.logger),
+		rpcx.WithPrivateKey(key),
+	)
+	address, err := key.PublicKey().Address()
+	if err != nil {
+		return nil, err
+	}
+	invokePayload := &pb.InvokePayload{
+		Method: "Vote",
+		Args:   args,
+	}
+
+	payload, err := invokePayload.Marshal()
+	if err != nil {
+		return nil, err
+	}
+
+	data := &pb.TransactionData{
+		Type:    pb.TransactionData_INVOKE,
+		VmType:  pb.TransactionData_BVM,
+		Payload: payload,
+	}
+	payload, err = data.Marshal()
+
+	tx := &pb.Transaction{
+		From:      address,
+		To:        constant.GovernanceContractAddr.Address(),
+		Timestamp: time.Now().UnixNano(),
+		Payload:   payload,
+	}
+	if err != nil {
+		return nil, err
+	}
+	receipt, err := client.SendTransactionWithReceipt(tx, nil)
+	if err != nil {
+		return nil, err
+	}
+	return receipt, nil
+}
+
+func (suite *Snake) GetChainStatusById(id string) (*pb.Receipt, error) {
+	node, err := repo.Node1Path()
+	key, err := asym.RestorePrivateKey(node, repo.KeyPassword)
+	if err != nil {
+		return nil, err
+	}
+	client, err := rpcx.New(
+		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
+		rpcx.WithLogger(cfg.logger),
+		rpcx.WithPrivateKey(key),
+	)
+	address, err := key.PublicKey().Address()
+	if err != nil {
+		return nil, err
+	}
+	args := []*pb.Arg{
+		rpcx.String(id),
+	}
+	invokePayload := &pb.InvokePayload{
+		Method: "GetAppchain",
+		Args:   args,
+	}
+
+	payload, err := invokePayload.Marshal()
+	if err != nil {
+		return nil, err
+	}
+
+	data := &pb.TransactionData{
+		Type:    pb.TransactionData_INVOKE,
+		VmType:  pb.TransactionData_BVM,
+		Payload: payload,
+	}
+	payload, err = data.Marshal()
+
+	tx := &pb.Transaction{
+		From:      address,
+		To:        constant.AppchainMgrContractAddr.Address(),
+		Timestamp: time.Now().UnixNano(),
+		Payload:   payload,
+	}
+	if err != nil {
+		return nil, err
+	}
+	receipt, err := client.SendTransactionWithReceipt(tx, nil)
+	if err != nil {
+		return nil, err
+	}
+	return receipt, nil
 }
 
 func (suite Snake) sendInterchain() (crypto.PrivateKey, crypto.PrivateKey, *types.Address, *types.Address, *pb.Receipt, error) {
@@ -1086,12 +1247,12 @@ func (suite Snake) sendInterchain() (crypto.PrivateKey, crypto.PrivateKey, *type
 	proof := "test"
 	proofHash := sha256.Sum256([]byte(proof))
 
-	suite.client.SetPrivateKey(kA)
+	client := suite.NewClient(kA)
 	ib := &pb.IBTP{From: from.String(), To: to.String(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 
-	tx, _ := suite.client.GenerateIBTPTx(ib)
+	tx, _ := client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
-	res, err := suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+	res, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
 		From:      fmt.Sprintf("%s-%s-%d", ib.From, ib.To, ib.Category()),
 		IBTPNonce: ib.Index,
 	})

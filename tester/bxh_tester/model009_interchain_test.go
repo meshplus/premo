@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"time"
 
+	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-kit/types"
@@ -50,7 +51,7 @@ func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, chainType string) {
 	var pubKeyStr = hex.EncodeToString(pubBytes)
 	args := []*pb.Arg{
 		rpcx.String(""),                 //validators
-		rpcx.Int32(0),                   //consensus_type
+		rpcx.String("raft"),             //consensus_type
 		rpcx.String(chainType),          //chain_type
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
@@ -59,10 +60,19 @@ func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, chainType string) {
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
-	appChain := &rpcx.Appchain{}
-	err = json.Unmarshal(res.Ret, appChain)
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
 	suite.Require().Nil(err)
-	suite.Require().NotNil(appChain.ID)
+	suite.Require().NotNil(result.ChainID)
+	err = suite.VotePass(result.ProposalID)
+	suite.Require().Nil(err)
+
+	res, err = suite.GetChainStatusById(result.ChainID)
+	suite.Require().Nil(err)
+	appchain := &rpcx.Appchain{}
+	err = json.Unmarshal(res.Ret, appchain)
+	suite.Require().Nil(err)
+	suite.Require().Equal(appchain_mgr.AppchainAvailable, appchain.Status)
 }
 
 func (suite *Snake) RegisterRule(pk crypto.PrivateKey, ruleFile string) {
