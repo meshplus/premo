@@ -206,6 +206,7 @@ github.com/gobuffalo/packd v1.0.0 h1:6ERZvJHfe24rfFmA9OaoKBdC7+c9sydrytMg8SdFGBM
 github.com/gobuffalo/packd v1.0.0/go.mod h1:6VTc4htmJRFB7u1m/4LeMTWjFoYrUiBkU9Fdec9hrhI=
 github.com/gobuffalo/packr v1.30.1 h1:hu1fuVR3fXEZR7rXNW3h8rqSML8EVAf6KNm0NKO/wKg=
 github.com/gobuffalo/packr v1.30.1/go.mod h1:ljMyFO2EcrnzsHsN99cvbq055Y9OhRrIaviy289eRuk=
+github.com/gobuffalo/packr/v2 v2.5.1 h1:TFOeY2VoGamPjQLiNDT3mn//ytzk236VMO2j7iHxJR4=
 github.com/gobuffalo/packr/v2 v2.5.1/go.mod h1:8f9c96ITobJlPzI44jj+4tHnEKNt0xXWSVlXRN9X1Iw=
 github.com/gobwas/glob v0.2.3 h1:A4xDbljILXROh+kObIiy5kIaPYD8e96x1tgBhUI5J+Y=
 github.com/gobwas/glob v0.2.3/go.mod h1:d3Ez4x06l9bZtSvzIay5+Yzi0fmZzPgnTbPcKjJAkT8=
@@ -544,6 +545,10 @@ github.com/meshplus/bitxhub-core v0.1.0-rc1.0.20210323012328-bf23a08fd3e4 h1:cFf
 github.com/meshplus/bitxhub-core v0.1.0-rc1.0.20210323012328-bf23a08fd3e4/go.mod h1:G19Wrz1u66UmwaES/iLM19jmlv3APAZ5qfYOlNnIIZw=
 github.com/meshplus/bitxhub-core v0.1.0-rc1.0.20210330035001-b327cf056572 h1:kKcS6taPdH8fOi8kU35ciUlk5cbYCyKa4QbA+04OQ4s=
 github.com/meshplus/bitxhub-core v0.1.0-rc1.0.20210330035001-b327cf056572/go.mod h1:G19Wrz1u66UmwaES/iLM19jmlv3APAZ5qfYOlNnIIZw=
+github.com/meshplus/bitxhub-core v0.1.0-rc1.0.20210415074101-803926c50b55 h1:SIR7jOjhzhFoSqjQlivlaPxd7Mo06Ijw4kdJ+iRs9JA=
+github.com/meshplus/bitxhub-core v0.1.0-rc1.0.20210415074101-803926c50b55/go.mod h1:G19Wrz1u66UmwaES/iLM19jmlv3APAZ5qfYOlNnIIZw=
+github.com/meshplus/bitxhub-core v0.1.0-rc1.0.20210420031641-721f3542cd9c h1:vjCWloGeNvm2RYpTN4OJWb3rbtMf1yoyLaZJskCugJE=
+github.com/meshplus/bitxhub-core v0.1.0-rc1.0.20210420031641-721f3542cd9c/go.mod h1:G19Wrz1u66UmwaES/iLM19jmlv3APAZ5qfYOlNnIIZw=
 github.com/meshplus/bitxhub-kit v1.0.1/go.mod h1:r4l4iqn0RPJreb/OmoYKfjCjQJrXpZX++6Qc31VG/1k=
 github.com/meshplus/bitxhub-kit v1.1.2-0.20201021105954-468d0a9d7957 h1:1a3wYo2HQw9/yg5LfAPJ1En90pPbMwRlaVssxOLG97w=
 github.com/meshplus/bitxhub-kit v1.1.2-0.20201021105954-468d0a9d7957/go.mod h1:r4l4iqn0RPJreb/OmoYKfjCjQJrXpZX++6Qc31VG/1k=

@@ -21,30 +21,6 @@ type Account struct {
 	CodeHash      types.Hash `json:"code_hash"`
 }
 
-//init
-func (suite *Snake) SetupTest() {
-	suite.sendTransaction()
-}
-
-func (suite Snake) sendTransaction() {
-	data := &pb.TransactionData{
-		Amount: 1,
-	}
-	payload, err := data.Marshal()
-	suite.Require().Nil(err)
-
-	tx := &pb.Transaction{
-		From:      suite.from,
-		To:        suite.to,
-		Timestamp: time.Now().UnixNano(),
-		Payload:   payload,
-	}
-
-	res, err := suite.client.SendTransactionWithReceipt(tx, nil)
-	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
-}
-
 //tc: 根据区块高度查询区块，返回正确的区块信息
 func (suite *Snake) Test0101_GetBlockByHeight() {
 	// first block

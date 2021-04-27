@@ -461,7 +461,7 @@ func (bee *bee) VotePass(id string) error {
 
 func (bee *bee) vote(key crypto.PrivateKey, index uint64, args ...*pb.Arg) (*pb.Receipt, error) {
 	client, err := rpcx.New(
-		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
+		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: bee.config.BitxhubAddr[0]}),
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(key),
 	)
@@ -511,7 +511,7 @@ func (bee *bee) GetChainStatusById(id string) (*pb.Receipt, error) {
 		return nil, err
 	}
 	client, err := rpcx.New(
-		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
+		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: bee.config.BitxhubAddr[0]}),
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(key),
 	)

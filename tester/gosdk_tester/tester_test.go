@@ -40,7 +40,7 @@ type Snake struct {
 }
 
 func TestTester(t *testing.T) {
-	keyPath, err := repo.KeyPath()
+	keyPath, err := repo.Node1Path()
 	require.Nil(t, err)
 
 	pk, err := asym.RestorePrivateKey(keyPath, repo.KeyPassword)

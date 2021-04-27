@@ -14,6 +14,7 @@ require (
 	github.com/gballet/go-libpcsclite v0.0.0-20191108122812-4678299bea08 // indirect
 	github.com/gobuffalo/packd v1.0.0
 	github.com/gobuffalo/packr v1.30.1
+	github.com/gobuffalo/packr/v2 v2.5.1
 	github.com/golangci/golangci-lint v1.23.0 // indirect
 	github.com/google/certificate-transparency-go v1.1.0 // indirect
 	github.com/hyperledger/fabric-lib-go v1.0.0 // indirect
@@ -21,7 +22,7 @@ require (
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/meshplus/bitxhub-core v0.1.0-rc1.0.20210330035001-b327cf056572
+	github.com/meshplus/bitxhub-core v0.1.0-rc1.0.20210415074101-803926c50b55
 	github.com/meshplus/bitxhub-kit v1.1.2-0.20210112075018-319e668d6359
 	github.com/meshplus/bitxhub-model v1.1.2-0.20210312014622-c3ad532b64ad
 	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20210401070550-93124af0d1f2
