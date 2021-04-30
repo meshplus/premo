@@ -235,7 +235,7 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 	}
 	ID := result.ChainID
 
-	ruleAddr := "0x00000000000000000000000000000000000000a1"
+	ruleAddr := "0x00000000000000000000000000000000000000a0"
 	// deploy rule
 	bee.client.SetPrivateKey(bee.normalPrivKey)
 	if chainType == "hyperchain" {
@@ -255,10 +255,11 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 		if err != nil {
 			return fmt.Errorf("contract vote error:%w", err)
 		}
-	} else if chainType == "fabric:complex" {
-		ruleAddr = "0x00000000000000000000000000000000000000a0"
+		atomic.AddUint64(&bee.nonce, 1)
+	} else if chainType == "fabric:simple" {
+		ruleAddr = "0x00000000000000000000000000000000000000a1"
+		//TODO:rebind rule
 	}
-	atomic.AddUint64(&bee.nonce, 1)
 
 	return nil
 }

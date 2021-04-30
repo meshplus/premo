@@ -1,10 +1,12 @@
 package bxh_tester
 
 import (
-	"encoding/hex"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+
 	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
+	"github.com/meshplus/bitxhub-core/governance"
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-model/constant"
@@ -32,10 +34,10 @@ func (suite *Snake) Test0602_RegisterAppchain() {
 	suite.Require().Nil(err)
 	res, err := suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainAvailable, appchain.Status)
+	suite.Require().Equal(governance.GovernanceAvailable, appchain.Status)
 }
 
 //tc:应用链处于注册中状态，注册应用链
@@ -50,7 +52,7 @@ func (suite Snake) Test0603_RegisterAppchainWithRegisting() {
 		rpcx.WithPrivateKey(pk),
 	)
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -77,10 +79,10 @@ func (suite Snake) Test0603_RegisterAppchainWithRegisting() {
 
 	res, err = suite.GetChainStatusById(result.ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainRegisting, appchain.Status)
+	suite.Require().Equal(governance.GovernanceRegisting, appchain.Status)
 }
 
 //tc:应用链状态已注册，注册应用链
@@ -90,7 +92,7 @@ func (suite *Snake) Test0604_RegisterAppchainRepeat() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -111,10 +113,10 @@ func (suite *Snake) Test0604_RegisterAppchainRepeat() {
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainAvailable, appchain.Status)
+	suite.Require().Equal(governance.GovernanceAvailable, appchain.Status)
 }
 
 //tc:应用链处于更新中状态，注册应用链
@@ -124,7 +126,7 @@ func (suite *Snake) Test0605_RegisterAppchainWithUpdating() {
 	client := suite.NewClient(pk)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -144,10 +146,10 @@ func (suite *Snake) Test0605_RegisterAppchainWithUpdating() {
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainUpdating, appchain.Status)
+	suite.Require().Equal(governance.GovernanceUpdating, appchain.Status)
 
 	args = []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
@@ -171,7 +173,7 @@ func (suite *Snake) Test0605_RegisterAppchainWithUpdating() {
 	suite.Require().Nil(err)
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainUpdating, appchain.Status)
+	suite.Require().Equal(governance.GovernanceUpdating, appchain.Status)
 }
 
 //tc:应用链处于冻结中状态，注册应用链
@@ -182,18 +184,17 @@ func (suite *Snake) Test0606_RegisterAppchainWithFreezing() {
 	client := suite.NewClient(pk)
 	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
 	suite.Require().Nil(err)
-	fmt.Println("----------" + string(res.Ret))
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainFreezing, appchain.Status)
+	suite.Require().Equal(governance.GovernanceFreezing, appchain.Status)
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -217,7 +218,7 @@ func (suite *Snake) Test0606_RegisterAppchainWithFreezing() {
 	suite.Require().Nil(err)
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainFreezing, appchain.Status)
+	suite.Require().Equal(governance.GovernanceFreezing, appchain.Status)
 }
 
 //tc:应用链处于冻结状态，注册应用链
@@ -230,7 +231,7 @@ func (suite *Snake) Test0607_RegisterAppchainWithFrozen() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -251,10 +252,10 @@ func (suite *Snake) Test0607_RegisterAppchainWithFrozen() {
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainFrozen, appchain.Status)
+	suite.Require().Equal(governance.GovernanceFrozen, appchain.Status)
 }
 
 //tc:应用链处于注销中状态，注册应用链
@@ -269,7 +270,7 @@ func (suite *Snake) Test0608_RegisterAppchainWithLogouting() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -289,10 +290,10 @@ func (suite *Snake) Test0608_RegisterAppchainWithLogouting() {
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainLogouting, appchain.Status)
+	suite.Require().Equal(governance.GovernanceLogouting, appchain.Status)
 }
 
 //tc:应用链处于注销状态，注册应用链
@@ -305,7 +306,7 @@ func (suite *Snake) Test0609_RegisterAppChainWithUnavailable() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -326,10 +327,10 @@ func (suite *Snake) Test0609_RegisterAppChainWithUnavailable() {
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainUnavailable, appchain.Status)
+	suite.Require().Equal(governance.GovernanceUnavailable, appchain.Status)
 }
 
 //tc:激活信息缺失或错误
@@ -364,7 +365,7 @@ func (suite *Snake) Test0612_ActivateAppchainWithRegisting() {
 		rpcx.WithPrivateKey(pk),
 	)
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -403,14 +404,15 @@ func (suite Snake) Test0613_ActivateAppchainWithAvailable() {
 func (suite *Snake) Test0614_ActivateAppchainWithUpdating() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -419,16 +421,16 @@ func (suite *Snake) Test0614_ActivateAppchainWithUpdating() {
 		rpcx.String("1.8"),              //version
 		rpcx.String(pubKeyStr),          //public key
 	}
-	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
 	suite.Require().Nil(err)
 	fmt.Println(string(res.Ret))
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainUpdating, appchain.Status)
+	suite.Require().Equal(governance.GovernanceUpdating, appchain.Status)
 
 	err = suite.activateAppchain(ChainID)
 	suite.Require().NotNil(err)
@@ -445,10 +447,10 @@ func (suite *Snake) Test0615_ActivateAppchainWithFreezing() {
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainFreezing, appchain.Status)
+	suite.Require().Equal(governance.GovernanceFreezing, appchain.Status)
 
 	err = suite.activateAppchain(ChainID)
 	suite.Require().NotNil(err)
@@ -467,10 +469,10 @@ func (suite *Snake) Test0616_ActivateAppchain() {
 
 	res, err := suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainAvailable, appchain.Status)
+	suite.Require().Equal(governance.GovernanceAvailable, appchain.Status)
 }
 
 //tc:应用链处于注销中状态，激活应用链
@@ -488,10 +490,10 @@ func (suite Snake) Test0617_ActivateAppchainWithLogouting() {
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainLogouting, appchain.Status)
+	suite.Require().Equal(governance.GovernanceLogouting, appchain.Status)
 }
 
 //tc:应用链处于注销状态，激活应用链
@@ -504,10 +506,10 @@ func (suite Snake) Test0618_ActivateAppchainWithUnavailable() {
 
 	res, err := suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainUnavailable, appchain.Status)
+	suite.Require().Equal(governance.GovernanceUnavailable, appchain.Status)
 
 	err = suite.activateAppchain(ChainID)
 	suite.Require().NotNil(err)
@@ -520,7 +522,7 @@ func (suite *Snake) Test0619_UpdateAppchainLoseFields() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
@@ -547,7 +549,7 @@ func (suite *Snake) Test0620_UpdateAppchainWithRegisting() {
 		rpcx.WithPrivateKey(pk),
 	)
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -579,7 +581,7 @@ func (suite *Snake) Test0621_UpdateAppchain() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -600,10 +602,10 @@ func (suite *Snake) Test0621_UpdateAppchain() {
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainAvailable, appchain.Status)
+	suite.Require().Equal(governance.GovernanceAvailable, appchain.Status)
 }
 
 //tc:应用链处于更新中的状态，更新应用链
@@ -613,7 +615,7 @@ func (suite *Snake) Test0622_UpdateAppchainWithUpdating() {
 	client := suite.NewClient(pk)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -631,10 +633,10 @@ func (suite *Snake) Test0622_UpdateAppchainWithUpdating() {
 
 	res, err := suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainUpdating, appchain.Status)
+	suite.Require().Equal(governance.GovernanceUpdating, appchain.Status)
 
 	err = suite.updateAppchain(pk, args...)
 	suite.Require().NotNil(err)
@@ -651,14 +653,14 @@ func (suite Snake) Test0623_UpdateAppchainWithFreezing() {
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainFreezing, appchain.Status)
+	suite.Require().Equal(governance.GovernanceFreezing, appchain.Status)
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -685,14 +687,14 @@ func (suite Snake) Test0624_UpdateAppchainWithFrozen() {
 
 	res, err := suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainFrozen, appchain.Status)
+	suite.Require().Equal(governance.GovernanceFrozen, appchain.Status)
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -715,19 +717,19 @@ func (suite Snake) Test0625_UpdateAppchainWithWithLogouting() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
-	_, err = suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil,rpcx.String(ChainID))
+	_, err = suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID))
 	suite.Require().Nil(err)
 
 	res, err := suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainLogouting, appchain.Status)
+	suite.Require().Equal(governance.GovernanceLogouting, appchain.Status)
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -754,14 +756,14 @@ func (suite Snake) Test0626_UpdateAppchainWithUnavailable() {
 	suite.Require().Nil(err)
 	res, err := suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainUnavailable, appchain.Status)
+	suite.Require().Equal(governance.GovernanceUnavailable, appchain.Status)
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -803,7 +805,7 @@ func (suite *Snake) Test0628_FreezeAppchainWithRegisting() {
 		rpcx.WithPrivateKey(pk),
 	)
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -837,10 +839,10 @@ func (suite *Snake) Test0629_FreezeAppchain() {
 
 	res, err := suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainFrozen, appchain.Status)
+	suite.Require().Equal(governance.GovernanceFrozen, appchain.Status)
 }
 
 //tc:应用链处于更新中的状态，冻结应用链
@@ -850,7 +852,7 @@ func (suite Snake) Test0630_FreezeAppchainWithUpdating() {
 	client := suite.NewClient(pk)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -869,10 +871,10 @@ func (suite Snake) Test0630_FreezeAppchainWithUpdating() {
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainUpdating, appchain.Status)
+	suite.Require().Equal(governance.GovernanceUpdating, appchain.Status)
 
 	err = suite.freezeAppchain(ChainID)
 	suite.Require().NotNil(err)
@@ -889,10 +891,10 @@ func (suite *Snake) Test0631_FreezeAppchainWithFreezing() {
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainFreezing, appchain.Status)
+	suite.Require().Equal(governance.GovernanceFreezing, appchain.Status)
 
 	err = suite.freezeAppchain(ChainID)
 	suite.Require().NotNil(err)
@@ -911,10 +913,10 @@ func (suite *Snake) Test0632_FreezeAppchainWithFrozen() {
 
 	res, err := suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainFrozen, appchain.Status)
+	suite.Require().Equal(governance.GovernanceFrozen, appchain.Status)
 }
 
 //tc:应用链处于注销中状态，冻结应用链
@@ -928,10 +930,10 @@ func (suite Snake) Test0633_FreezeAppchainWithWithLogouting() {
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainLogouting, appchain.Status)
+	suite.Require().Equal(governance.GovernanceLogouting, appchain.Status)
 
 	err = suite.freezeAppchain(ChainID)
 	suite.Require().NotNil(err)
@@ -946,10 +948,10 @@ func (suite Snake) Test0634_FreezeAppchainWithUnavailable() {
 	suite.Require().Nil(err)
 	res, err := suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainUnavailable, appchain.Status)
+	suite.Require().Equal(governance.GovernanceUnavailable, appchain.Status)
 
 	err = suite.freezeAppchain(ChainID)
 	suite.Require().NotNil(err)
@@ -967,7 +969,7 @@ func (suite *Snake) Test0635_LogoutAppchainWithRegisting() {
 		rpcx.WithPrivateKey(pk),
 	)
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -1007,11 +1009,11 @@ func (suite *Snake) Test0637_LogoutAppchainWithUpdating() {
 	client := suite.NewClient(pk)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -1025,10 +1027,10 @@ func (suite *Snake) Test0637_LogoutAppchainWithUpdating() {
 
 	res, err := suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainUpdating, appchain.Status)
+	suite.Require().Equal(governance.GovernanceUpdating, appchain.Status)
 
 	err = suite.logoutAppchain(pk)
 	suite.Require().NotNil(err)
@@ -1045,10 +1047,10 @@ func (suite *Snake) Test0638_LogoutAppchainWithFreezing() {
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainFreezing, appchain.Status)
+	suite.Require().Equal(governance.GovernanceFreezing, appchain.Status)
 
 	err = suite.logoutAppchain(pk)
 	suite.Require().NotNil(err)
@@ -1063,10 +1065,10 @@ func (suite *Snake) Test0639_LogoutAppchainWithFrozen() {
 
 	res, err := suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainFrozen, appchain.Status)
+	suite.Require().Equal(governance.GovernanceFrozen, appchain.Status)
 
 	err = suite.logoutAppchain(pk)
 	suite.Require().NotNil(err)
@@ -1077,16 +1079,16 @@ func (suite *Snake) Test0640_LogoutAppchainWithLogouting() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
-	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil,rpcx.String(ChainID))
+	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID))
 	suite.Require().Nil(err)
 	fmt.Println(string(res.Ret))
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainLogouting, appchain.Status)
+	suite.Require().Equal(governance.GovernanceLogouting, appchain.Status)
 
 	err = suite.logoutAppchain(pk)
 	suite.Require().NotNil(err)
@@ -1118,7 +1120,7 @@ func (suite *Snake) Test0643_GetAppchainByID() {
 	)
 	suite.Require().Nil(err)
 
-	var pubKeyStr = hex.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -1143,10 +1145,10 @@ func (suite *Snake) Test0643_GetAppchainByID() {
 
 	res, err = suite.GetChainStatusById(result.ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainAvailable, appchain.Status)
+	suite.Require().Equal(governance.GovernanceAvailable, appchain.Status)
 
 	args = []*pb.Arg{
 		rpcx.String(result.ChainID),
@@ -1168,7 +1170,6 @@ func (suite *Snake) Test0644_GetAppchainByErrorID() {
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 	suite.Require().Equal("call error: this appchain does not exist", string(res.Ret))
 }
-
 
 func (suite *Snake) freezeAppchain(ChainID string) error {
 	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
@@ -1218,7 +1219,9 @@ func (suite *Snake) activateAppchain(ChainID string) error {
 
 func (suite *Snake) logoutAppchain(pk crypto.PrivateKey) error {
 	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	client := suite.NewClient(pk)
 	did := "did:bitxhub:appchain" + pubAddress.String() + ":."
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(did))

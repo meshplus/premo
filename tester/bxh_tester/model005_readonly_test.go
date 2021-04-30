@@ -67,7 +67,7 @@ func (suite *Snake) Test0502_SendTx2ReadOnlyApi() {
 
 func genContractTransaction(
 	vmType pb.TransactionData_VMType, privateKey crypto.PrivateKey,
-	address *types.Address, method string, args ...*pb.Arg) (*pb.Transaction, error) {
+	address *types.Address, method string, args ...*pb.Arg) (*pb.BxhTransaction, error) {
 	from, err := privateKey.PublicKey().Address()
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func genContractTransaction(
 	}
 
 	payload, err := td.Marshal()
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      from,
 		To:        address,
 		Timestamp: time.Now().UnixNano(),
