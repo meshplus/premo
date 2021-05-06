@@ -3,11 +3,12 @@ package bxh_tester
 import (
 	"crypto/sha256"
 	"fmt"
+	"time"
+
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"
-	"time"
 )
 
 // ------ interchain tests ------
@@ -16,7 +17,7 @@ func (suite *Snake) Test0901_HandleIBTPShouldSucceed() {
 	suite.Require().Nil(err)
 	_, ChainID2, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	suite.RegisterRule(kA, "./testdata/simple_rule.wasm", ChainID1)
+	suite.BindRule(kA, "./testdata/simple_rule.wasm", ChainID1)
 
 	proof := "test"
 	proofHash := sha256.Sum256([]byte(proof))
@@ -36,7 +37,7 @@ func (suite *Snake) Test0901_HandleIBTPShouldSucceed() {
 func (suite *Snake) Test0902_HandleIBTPWithNonexistentFrom() {
 	kB, ChainID2, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	suite.RegisterRule(kB, "./testdata/simple_rule.wasm", ChainID2)
+	suite.BindRule(kB, "./testdata/simple_rule.wasm", ChainID2)
 
 	proof := "test"
 	proofHash := sha256.Sum256([]byte(proof))
@@ -62,7 +63,7 @@ func (suite *Snake) Test0902_HandleIBTPWithNonexistentFrom() {
 func (suite *Snake) Test0903_HandleIBTPWithNonexistentTo() {
 	kA, ChainID1, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	suite.RegisterRule(kA, "./testdata/simple_rule.wasm", ChainID1)
+	suite.BindRule(kA, "./testdata/simple_rule.wasm", ChainID1)
 
 	proof := "test"
 	proofHash := sha256.Sum256([]byte(proof))
@@ -111,7 +112,7 @@ func (suite *Snake) Test0905_HandleIBTPWithWrongIBTPIndex() {
 	suite.Require().Nil(err)
 	_, ChainID2, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	suite.RegisterRule(kA, "./testdata/simple_rule.wasm", ChainID1)
+	suite.BindRule(kA, "./testdata/simple_rule.wasm", ChainID1)
 
 	proof := "test"
 	proofHash := sha256.Sum256([]byte(proof))
@@ -132,7 +133,7 @@ func (suite *Snake) Test0906_GetIBTPByID() {
 	suite.Require().Nil(err)
 	_, ChainID2, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	suite.RegisterRule(kA, "./testdata/simple_rule.wasm", ChainID1)
+	suite.BindRule(kA, "./testdata/simple_rule.wasm", ChainID1)
 
 	proof := "test"
 	proofHash := sha256.Sum256([]byte(proof))
@@ -175,7 +176,7 @@ func (suite *Snake) Test0907_HandleIBTPWithWrongProof() {
 	suite.Require().Nil(err)
 	_, ChainID2, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	suite.RegisterRule(kA, "./testdata/simple_rule.wasm", ChainID1)
+	suite.BindRule(kA, "./testdata/simple_rule.wasm", ChainID1)
 
 	proof := "test"
 	proofHash := sha256.Sum256([]byte(proof))
@@ -191,4 +192,26 @@ func (suite *Snake) Test0907_HandleIBTPWithWrongProof() {
 	suite.Require().Nil(err)
 	fmt.Println(string(res.Ret))
 	suite.Require().Contains(string(res.Ret), "Call using []uint8 as type *pb.IBTP")
+}
+
+func (suite Snake) Test0908_HandleIBTPWithTxInBlock() {
+	kA, ChainID1, err := suite.RegisterAppchain()
+	suite.Require().Nil(err)
+	_, ChainID2, err := suite.RegisterAppchain()
+	suite.Require().Nil(err)
+	suite.BindRule(kA, "./testdata/simple_rule.wasm", ChainID1)
+
+	client := suite.NewClient(kA)
+
+	ib := &pb.IBTP{From: ChainID1, To: ChainID2, Index: 1, Timestamp: time.Now().UnixNano()}
+	tx, _ := client.GenerateIBTPTx(ib)
+
+	hash, err := client.SendTransaction(tx, nil)
+	suite.Require().Nil(err)
+
+	time.Sleep(time.Second * 2)
+	transaction, err := client.GetTransaction(hash)
+	suite.Require().Nil(err)
+	suite.Require().Equal(transaction.Tx.TransactionHash.String(), hash)
+
 }

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
+	"github.com/meshplus/bitxhub-core/governance"
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-kit/types"
@@ -44,8 +45,8 @@ func (suite *TransactionMgrSuite) SetupTest() {
 	suite.RegisterAppchain(suite.client0)
 	suite.RegisterAppchain(suite.client1)
 	suite.RegisterAppchain(suite.client2)
-	suite.RegisterRule(suite.client0, "./testdata/simple_rule.wasm")
-	suite.RegisterRule(suite.client1, "./testdata/simple_rule.wasm")
+	suite.BindRule(suite.client0, "./testdata/simple_rule.wasm")
+	suite.BindRule(suite.client1, "./testdata/simple_rule.wasm")
 }
 func (suite *TransactionMgrSuite) SetupSuite() {
 	keyPath, err := repo.Node1Path()
@@ -203,7 +204,7 @@ func (suite *TransactionMgrSuite) vote(key crypto.PrivateKey, args ...*pb.Arg) (
 	}
 	payload, err = data.Marshal()
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      address,
 		To:        constant.GovernanceContractAddr.Address(),
 		Timestamp: time.Now().UnixNano(),
@@ -254,7 +255,7 @@ func (suite *TransactionMgrSuite) GetChainStatusById(id string) (*pb.Receipt, er
 	}
 	payload, err = data.Marshal()
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      address,
 		To:        constant.AppchainMgrContractAddr.Address(),
 		Timestamp: time.Now().UnixNano(),
@@ -302,13 +303,13 @@ func (suite *TransactionMgrSuite) RegisterAppchain(client *ChainClient) {
 
 	res, err = suite.GetChainStatusById(result.ChainID)
 	suite.Require().Nil(err)
-	appchain := &rpcx.Appchain{}
+	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(appchain_mgr.AppchainAvailable, appchain.Status)
+	suite.Require().Equal(governance.GovernanceAvailable, appchain.Status)
 }
 
-func (suite *TransactionMgrSuite) RegisterRule(client *ChainClient, ruleFile string) {
+func (suite *TransactionMgrSuite) BindRule(client *ChainClient, ruleFile string) {
 	client.client.SetPrivateKey(client.pk)
 
 	from, err := client.pk.PublicKey().Address()
@@ -322,7 +323,7 @@ func (suite *TransactionMgrSuite) RegisterRule(client *ChainClient, ruleFile str
 	suite.Require().Nil(err)
 
 	// register rule
-	res, err := client.client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, pb.String(ChainID), pb.String(addr.String()))
+	res, err := client.client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "BindRule", nil, pb.String(ChainID), pb.String(addr.String()))
 	suite.Require().Nil(err)
 	suite.Require().True(res.IsSuccess())
 }

@@ -6,6 +6,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/meshplus/bitxhub-model/constant"
+
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	"github.com/meshplus/premo/internal/repo"
@@ -83,7 +85,12 @@ func New(config *Config) (*Broker, error) {
 		return nil, err
 	}
 
-	//query nodes nonce
+	//init and query nodes nonce
+	_, err = client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "Init", nil, rpcx.String("did:bitxhub:relayroot:"+adminFrom.String()))
+	if err != nil {
+		return nil, err
+	}
+
 	node1, err := repo.Node1Path()
 	if err != nil {
 		return nil, err
@@ -110,6 +117,7 @@ func New(config *Config) (*Broker, error) {
 	if err != nil {
 		return nil, err
 	}
+	_, err = client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+adminFrom.String()), rpcx.String("did:bitxhub:relayroot:"+address.String()))
 	index2, err = client.GetPendingNonceByAccount(address.String())
 
 	node3, err := repo.Node3Path()
@@ -124,8 +132,24 @@ func New(config *Config) (*Broker, error) {
 	if err != nil {
 		return nil, err
 	}
+	_, err = client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+adminFrom.String()), rpcx.String("did:bitxhub:relayroot:"+address.String()))
 	index3, err = client.GetPendingNonceByAccount(address.String())
-	index1 -= 1
+
+	node4, err := repo.Node4Path()
+	if err != nil {
+		return nil, err
+	}
+	key, err = asym.RestorePrivateKey(node4, repo.KeyPassword)
+	if err != nil {
+		return nil, err
+	}
+	address, err = key.PublicKey().Address()
+	if err != nil {
+		return nil, err
+	}
+	_, err = client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+adminFrom.String()), rpcx.String("did:bitxhub:relayroot:"+address.String()))
+
+	index1 += 2
 	index2 -= 1
 	index3 -= 1
 

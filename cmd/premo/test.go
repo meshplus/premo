@@ -99,7 +99,7 @@ func benchmark(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		keyPath = filepath.Join(rootPath, "key.json")
+		keyPath = filepath.Join(rootPath, "node1.json")
 	}
 	config := &bitxhub.Config{
 		Concurrent:  ctx.Int("concurrent"),

@@ -1,6 +1,7 @@
 package bxh_tester
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -19,7 +20,7 @@ func (suite *Snake) Test0801_TXEmptyFrom() {
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
 		Payload:   payload,
@@ -35,7 +36,7 @@ func (suite *Snake) Test0802_TXEmptyTo() {
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		Timestamp: time.Now().UnixNano(),
 		Payload:   payload,
@@ -52,7 +53,7 @@ func (suite *Snake) Test0803_TXEmptyFromAndTo() {
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		Timestamp: time.Now().UnixNano(),
 		Payload:   payload,
 	}
@@ -68,7 +69,7 @@ func (suite *Snake) Test0804_TXSameFromAndTo() {
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.from,
 		Timestamp: time.Now().UnixNano(),
@@ -85,7 +86,7 @@ func (suite *Snake) Test0805_TXEmptySig() {
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -102,7 +103,7 @@ func (suite *Snake) Test0806_TXWrongSigPrivateKey() {
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -138,7 +139,7 @@ func (suite *Snake) Test0808_TXExtra10MB() {
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -157,7 +158,7 @@ func (suite *Snake) Test0809_GetTxByHash() {
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -190,7 +191,7 @@ func (suite *Snake) Test0810_GetReceiptByHash() {
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -199,8 +200,10 @@ func (suite *Snake) Test0810_GetReceiptByHash() {
 
 	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
+	fmt.Println(hash)
 
 	ret, err := suite.client.GetReceipt(hash)
+	suite.Require().Nil(err)
 	suite.Require().NotNil(ret)
 	suite.Require().True(ret.IsSuccess())
 	suite.Require().Equal(tx.Hash().String(), ret.TxHash.String())
@@ -214,7 +217,7 @@ func (suite *Snake) Test0811_GetReceiptByWrongHash() {
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
