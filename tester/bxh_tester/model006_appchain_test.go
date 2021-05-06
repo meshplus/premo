@@ -509,7 +509,7 @@ func (suite Snake) Test0618_ActivateAppchainWithUnavailable() {
 	appchain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceUnavailable, appchain.Status)
+	suite.Require().Equal(governance.GovernanceForbidden, appchain.Status)
 
 	err = suite.activateAppchain(ChainID)
 	suite.Require().NotNil(err)

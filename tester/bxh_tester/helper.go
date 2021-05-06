@@ -21,7 +21,7 @@ import (
 
 var cfg = &config{
 	addrs: []string{
-		"172.18.184.97:60011",
+		"172.29.104.98:60011",
 		"localhost:60012",
 		"localhost:60013",
 		"localhost:60014",
@@ -57,45 +57,46 @@ func (suite *Snake) SetupTest() {
 func (suite *Snake) SetupSuite() {
 	res, err := suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "Init", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()))
 	suite.Require().Nil(err)
-
-	node2, err := repo.Node2Path()
-	suite.Require().Nil(err)
-
-	key, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
-	suite.Require().Nil(err)
-
-	node2Addr, err := key.PublicKey().Address()
-	suite.Require().Nil(err)
-
-	res, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), rpcx.String("did:bitxhub:relayroot:"+node2Addr.String()))
-	suite.Require().Nil(err)
 	fmt.Println(string(res.Ret))
 
-	node3, err := repo.Node3Path()
-	suite.Require().Nil(err)
-
-	key, err = asym.RestorePrivateKey(node3, repo.KeyPassword)
-	suite.Require().Nil(err)
-
-	node3Addr, err := key.PublicKey().Address()
-	suite.Require().Nil(err)
-
-	res, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), rpcx.String("did:bitxhub:relayroot:"+node3Addr.String()))
-	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
-
-	node4, err := repo.Node4Path()
-	suite.Require().Nil(err)
-
-	key, err = asym.RestorePrivateKey(node4, repo.KeyPassword)
-	suite.Require().Nil(err)
-
-	node4Addr, err := key.PublicKey().Address()
-	suite.Require().Nil(err)
-
-	res, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), rpcx.String("did:bitxhub:relayroot:"+node4Addr.String()))
-	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
+	//node2, err := repo.Node2Path()
+	//suite.Require().Nil(err)
+	//
+	//key, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
+	//suite.Require().Nil(err)
+	//
+	//node2Addr, err := key.PublicKey().Address()
+	//suite.Require().Nil(err)
+	//
+	//res, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), rpcx.String("did:bitxhub:relayroot:"+node2Addr.String()))
+	//suite.Require().Nil(err)
+	//fmt.Println(string(res.Ret))
+	//
+	//node3, err := repo.Node3Path()
+	//suite.Require().Nil(err)
+	//
+	//key, err = asym.RestorePrivateKey(node3, repo.KeyPassword)
+	//suite.Require().Nil(err)
+	//
+	//node3Addr, err := key.PublicKey().Address()
+	//suite.Require().Nil(err)
+	//
+	//res, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), rpcx.String("did:bitxhub:relayroot:"+node3Addr.String()))
+	//suite.Require().Nil(err)
+	//fmt.Println(string(res.Ret))
+	//
+	//node4, err := repo.Node4Path()
+	//suite.Require().Nil(err)
+	//
+	//key, err = asym.RestorePrivateKey(node4, repo.KeyPassword)
+	//suite.Require().Nil(err)
+	//
+	//node4Addr, err := key.PublicKey().Address()
+	//suite.Require().Nil(err)
+	//
+	//res, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), rpcx.String("did:bitxhub:relayroot:"+node4Addr.String()))
+	//suite.Require().Nil(err)
+	//fmt.Println(string(res.Ret))
 }
 
 func (suite *Snake) RegisterAppchain() (crypto.PrivateKey, string, error) {
@@ -287,6 +288,7 @@ func (suite *Snake) vote(key crypto.PrivateKey, args ...*pb.Arg) (*pb.Receipt, e
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(string(res.Ret))
 	if res.Status == pb.Receipt_FAILED {
 		return nil, errors.New(string(res.Ret))
 	}
