@@ -23,7 +23,7 @@ func (suite *Snake) Test0201_TransferLessThanAmount() {
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -49,7 +49,7 @@ func (suite *Snake) Test0202_ToAddressIs0X000___000() {
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        types.NewAddress([]byte(to)),
 		Timestamp: time.Now().UnixNano(),
@@ -73,7 +73,7 @@ func (suite *Snake) Test0203_TypeIsXVM() {
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -97,7 +97,7 @@ func (suite *Snake) Test0204_Transfer() {
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),

@@ -9,7 +9,7 @@ require (
 	github.com/cheynewallace/tabby v1.1.0
 	github.com/cloudflare/cfssl v0.0.0-20190409034051-768cd563887f // indirect
 	github.com/coreos/etcd v3.3.18+incompatible
-	github.com/ethereum/go-ethereum v1.9.18
+	github.com/ethereum/go-ethereum v1.10.2
 	github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5 // indirect
 	github.com/gballet/go-libpcsclite v0.0.0-20191108122812-4678299bea08 // indirect
 	github.com/gobuffalo/packd v1.0.0
@@ -21,29 +21,29 @@ require (
 	github.com/hyperledger/fabric-sdk-go v1.0.0-alpha5
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
+	github.com/looplab/fsm v0.2.0
 	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/meshplus/bitxhub-core v0.1.0-rc1.0.20210415074101-803926c50b55
-	github.com/meshplus/bitxhub-kit v1.1.2-0.20210112075018-319e668d6359
-	github.com/meshplus/bitxhub-model v1.1.2-0.20210312014622-c3ad532b64ad
-	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20210401070550-93124af0d1f2
+	github.com/meshplus/bitxhub-core v1.3.0
+	github.com/meshplus/bitxhub-kit v1.2.0
+	github.com/meshplus/bitxhub-model v1.2.0
+	github.com/meshplus/go-bitxhub-client v1.3.1-0.20210429032628-18797624d041
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/modern-go/reflect2 v1.0.1 // indirect
-	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.7.2-0.20200724220135-c650ae9fa103 // indirect
 	github.com/rjeczalik/notify v0.9.2 // indirect
 	github.com/shirou/gopsutil v2.20.5+incompatible
 	github.com/sirupsen/logrus v1.6.0
-	github.com/spf13/viper v1.6.1
-	github.com/stretchr/testify v1.6.0
+	github.com/spf13/viper v1.7.0
+	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.6.8
-	github.com/urfave/cli/v2 v2.2.0
+	github.com/urfave/cli/v2 v2.3.0
 	github.com/wonderivan/logger v1.0.0
 	go.etcd.io/etcd v3.3.13+incompatible
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
 
-replace github.com/golang/protobuf => github.com/golang/protobuf v1.3.2
+replace github.com/golang/protobuf => github.com/golang/protobuf v1.4.0
 
 replace google.golang.org/grpc => google.golang.org/grpc v1.28.1
 

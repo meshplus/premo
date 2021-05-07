@@ -166,7 +166,7 @@ func (suite Snake) TestSendTransactionIsTrue() {
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -192,7 +192,7 @@ func (suite Snake) TestSendTransactionIsFalse() {
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -215,7 +215,7 @@ func (suite Snake) TestSendTransactionWithReceiptIsTrue() {
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -238,7 +238,7 @@ func (suite *Snake) TestSendTransactionWithReceiptWhenToIsNull() {
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From: suite.from,
 		//To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -259,7 +259,7 @@ func (suite *Snake) TestSendTransactionWithReceiptWhenFromIsNull() {
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		//From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -283,7 +283,7 @@ func (suite *Snake) TestGetReceiptByHashIsFalse() {
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -307,7 +307,7 @@ func (suite *Snake) TestGetTransactionIsTrue() {
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -334,7 +334,7 @@ func (suite *Snake) TestGetTransactionIsFalse() {
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -370,7 +370,7 @@ func (suite Snake) TestGetBlocksIsTrue() {
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -410,7 +410,7 @@ func (suite Snake) TestGetBlocksIsFalse() {
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -469,7 +469,7 @@ func (suite *Snake) TestGetBlockIsTrue() {
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -503,7 +503,7 @@ func (suite *Snake) TestGetBlockIsFalse() {
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -703,7 +703,7 @@ func (suite *Snake) TestSubscribe_BLOCK() {
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -742,7 +742,7 @@ func (suite *Snake) TestSubscribe_BLOCK_HEADER() {
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      suite.from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
@@ -1021,7 +1021,7 @@ func (suite Snake) TestGetPendingNonceByAccountIsFalse() {
 
 func genContractTransaction(
 	vmType pb.TransactionData_VMType, privateKey crypto.PrivateKey,
-	address *types.Address, method string, args ...*pb.Arg) (*pb.Transaction, error) {
+	address *types.Address, method string, args ...*pb.Arg) (*pb.BxhTransaction, error) {
 	from, err := privateKey.PublicKey().Address()
 	if err != nil {
 		return nil, err
@@ -1048,7 +1048,7 @@ func genContractTransaction(
 		return nil, err
 	}
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      from,
 		To:        address,
 		Payload:   payload,
@@ -1113,7 +1113,7 @@ func (suite *Snake) RegisterAppchain() (crypto.PrivateKey, string, error) {
 	return pk, result.ChainID, nil
 }
 
-func (suite *Snake) RegisterRule(pk crypto.PrivateKey, ruleFile string, ChainID string) {
+func (suite *Snake) BindRule(pk crypto.PrivateKey, ruleFile string, ChainID string) {
 	client := suite.NewClient(pk)
 
 	// deploy rule
@@ -1123,8 +1123,9 @@ func (suite *Snake) RegisterRule(pk crypto.PrivateKey, ruleFile string, ChainID 
 	suite.Require().Nil(err)
 
 	// register rule
-	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, pb.String(ChainID), pb.String(addr.String()))
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "BindRule", nil, pb.String(ChainID), pb.String(addr.String()))
 	suite.Require().Nil(err)
+	fmt.Println(string(res.Ret))
 	suite.Require().True(res.IsSuccess())
 }
 
@@ -1213,7 +1214,7 @@ func (suite *Snake) vote(key crypto.PrivateKey, args ...*pb.Arg) (*pb.Receipt, e
 	}
 	payload, err = data.Marshal()
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      address,
 		To:        constant.GovernanceContractAddr.Address(),
 		Timestamp: time.Now().UnixNano(),
@@ -1264,7 +1265,7 @@ func (suite *Snake) GetChainStatusById(id string) (*pb.Receipt, error) {
 	}
 	payload, err = data.Marshal()
 
-	tx := &pb.Transaction{
+	tx := &pb.BxhTransaction{
 		From:      address,
 		To:        constant.AppchainMgrContractAddr.Address(),
 		Timestamp: time.Now().UnixNano(),
@@ -1286,7 +1287,7 @@ func (suite Snake) sendInterchain() (crypto.PrivateKey, crypto.PrivateKey, strin
 	suite.Require().Nil(err)
 	kB, ChainID2, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	suite.RegisterRule(kA, "../../config/rule.wasm", ChainID1)
+	suite.BindRule(kA, "../../config/rule.wasm", ChainID1)
 	proof := "test"
 	proofHash := sha256.Sum256([]byte(proof))
 

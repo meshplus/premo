@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 
+	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-kit/types"
@@ -68,7 +69,7 @@ func (suite *Snake) RegisterAppchainWithReturn(pk crypto.PrivateKey, chainType s
 	}
 	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
-	appChain := &rpcx.Appchain{}
+	appChain := &appchain_mgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appChain)
 	suite.Require().Nil(err)
 	suite.Require().NotNil(appChain.ID)

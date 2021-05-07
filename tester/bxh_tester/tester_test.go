@@ -26,6 +26,7 @@ func TestTester(t *testing.T) {
 
 	to, err := pk1.PublicKey().Address()
 	require.Nil(t, err)
+
 	node0 := &rpcx.NodeInfo{Addr: cfg.addrs[0]}
 	//node1 := &rpcx.NodeInfo{Addr: cfg.addrs[1]}
 	//node2 := &rpcx.NodeInfo{Addr: cfg.addrs[2]}
