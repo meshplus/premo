@@ -68,6 +68,7 @@ func (suite *Snake) Test0202_ToAddressIs0X000___000() {
 //tc:发送转账交易，type设置为XVM，交易回执显示失败
 func (suite *Snake) Test0203_TypeIsXVM() {
 	data := &pb.TransactionData{
+		Type:   pb.TransactionData_INVOKE,
 		VmType: pb.TransactionData_XVM,
 		Amount: 1,
 	}
@@ -84,8 +85,8 @@ func (suite *Snake) Test0203_TypeIsXVM() {
 	suite.Require().Nil(err)
 
 	ret, err := suite.client.GetReceipt(hash)
-	suite.Require().NotNil(ret)
-	suite.Require().True(ret.IsSuccess())
+	suite.Require().Nil(err)
+	suite.Require().Equal(pb.Receipt_FAILED, ret.Status)
 	suite.Require().Equal(tx.Hash().String(), ret.TxHash.String())
 }
 

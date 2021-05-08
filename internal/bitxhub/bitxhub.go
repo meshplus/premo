@@ -151,7 +151,6 @@ func New(config *Config) (*Broker, error) {
 				logger.Error("New bee: ", err.Error())
 				return
 			}
-
 			if config.Type == "interchain" {
 				if err := bee.prepareChain(config.Appchain, "检查链", config.Validator, "1.4.4", "fabric for law", config.Rule); err != nil {
 					logger.Error(err)
