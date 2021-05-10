@@ -839,32 +839,35 @@ func (suite *Snake) TestGenerateContractTx() {
 }
 */
 
-func (suite *Snake) TestInvokeXVMContractIsTrue() {
-	contract, err := ioutil.ReadFile("../bxh_tester/testdata/example.wasm")
-	suite.Require().Nil(err)
+//have ledger
+//func (suite *Snake) TestInvokeXVMContractIsTrue() {
+//	contract, err := ioutil.ReadFile("../bxh_tester/testdata/example.wasm")
+//	suite.Require().Nil(err)
+//
+//	address, err := suite.client.DeployContract(contract, nil)
+//	suite.Require().Nil(err)
+//	suite.Require().NotNil(address)
+//
+//	receipt, err := suite.client.InvokeXVMContract(address, "a", nil, rpcx.Int32(1), rpcx.Int32(2))
+//	suite.Require().Nil(err)
+//	fmt.Println(string(receipt.Ret))
+//	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
+//	suite.Require().Equal("336", string(receipt.Ret))
+//}
 
-	address, err := suite.client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-	suite.Require().NotNil(address)
-
-	receipt, err := suite.client.InvokeXVMContract(address, "a", nil, rpcx.Int32(1), rpcx.Int32(2))
-	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
-	suite.Require().Equal("336", string(receipt.Ret))
-}
-
-func (suite *Snake) TestInvokeXVMContractIsFalse() {
-	contract, err := ioutil.ReadFile("../bxh_tester/testdata/example.wasm")
-	suite.Require().Nil(err)
-
-	address, err := suite.client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-	suite.Require().NotNil(address)
-
-	receipt, err := suite.client.InvokeXVMContract(address, "abc", nil, rpcx.Int32(1), rpcx.Int32(2))
-	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, receipt.Status)
-}
+//have ledger
+//func (suite *Snake) TestInvokeXVMContractIsFalse() {
+//	contract, err := ioutil.ReadFile("../bxh_tester/testdata/example.wasm")
+//	suite.Require().Nil(err)
+//
+//	address, err := suite.client.DeployContract(contract, nil)
+//	suite.Require().Nil(err)
+//	suite.Require().NotNil(address)
+//
+//	receipt, err := suite.client.InvokeXVMContract(address, "abc", nil, rpcx.Int32(1), rpcx.Int32(2))
+//	suite.Require().Nil(err)
+//	suite.Require().Equal(pb.Receipt_FAILED, receipt.Status)
+//}
 
 func (suite Snake) TestInvokeBVMContractIsTrue() {
 	receipt, err := suite.client.InvokeBVMContract(constant.StoreContractAddr.Address(),
@@ -973,9 +976,8 @@ func (suite Snake) TestGetPendingNonceByAccountIsTrue() {
 }
 
 func (suite Snake) TestGetPendingNonceByAccountIsFalse() {
-	nextNonce, err := suite.client.GetPendingNonceByAccount(suite.from.String() + "123456")
-	suite.Require().Nil(err)
-	suite.Require().Equal(uint64(1), nextNonce)
+	_, err := suite.client.GetPendingNonceByAccount(suite.from.String() + "123456")
+	suite.Require().NotNil(err)
 }
 
 func genContractTransaction(
@@ -1045,7 +1047,7 @@ func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, chainType string) {
 	var pubKeyStr = hex.EncodeToString(pubBytes)
 	args := []*pb.Arg{
 		rpcx.String(""),                 //validators
-		rpcx.Int32(0),                   //consensus_type
+		rpcx.String("raft"),             //consensus_type
 		rpcx.String(chainType),          //chain_type
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
@@ -1252,10 +1254,7 @@ func (suite Snake) sendInterchain() (crypto.PrivateKey, crypto.PrivateKey, *type
 
 	tx, _ := client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
-	res, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib.From, ib.To, ib.Category()),
-		IBTPNonce: ib.Index,
-	})
+	res, err := client.SendTransactionWithReceipt(tx, nil)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}

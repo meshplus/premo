@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"github.com/meshplus/premo/internal/repo"
 	"io/ioutil"
@@ -427,7 +426,7 @@ func (suite *Snake) registerAppchain(pk crypto.PrivateKey, chainType string) {
 	var pubKeyStr = hex.EncodeToString(pubBytes)
 	args := []*pb.Arg{
 		rpcx.String(""),                 //validators
-		rpcx.Int32(0),                   //consensus_type
+		rpcx.String("raft"),             //consensus_type
 		rpcx.String(chainType),          //chain_type
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
@@ -625,10 +624,7 @@ func (suite Snake) sendInterchainWithReceipt() (crypto.PrivateKey, crypto.Privat
 
 	tx, _ := suite.client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
-	res, err := suite.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib.From, ib.To, ib.Category()),
-		IBTPNonce: ib.Index,
-	})
+	res, err := suite.client.SendTransactionWithReceipt(tx, nil)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}
@@ -649,10 +645,7 @@ func (suite Snake) sendInterchain() (string, error) {
 
 	tx, _ := suite.client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
-	hash, err := suite.client.SendTransaction(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib.From, ib.To, ib.Category()),
-		IBTPNonce: ib.Index,
-	})
+	hash, err := suite.client.SendTransaction(tx, nil)
 	if err != nil {
 		return "", err
 	}

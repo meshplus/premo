@@ -51,7 +51,7 @@ func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, chainType string) {
 	var pubKeyStr = hex.EncodeToString(pubBytes)
 	args := []*pb.Arg{
 		rpcx.String(""),                 //validators
-		rpcx.Int32(0),                   //consensus_type
+		rpcx.String("raft"),             //consensus_type
 		rpcx.String(chainType),          //chain_type
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
@@ -60,6 +60,7 @@ func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, chainType string) {
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
+	fmt.Println(string(res.Ret))
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
 	suite.Require().Nil(err)
@@ -107,13 +108,10 @@ func (suite *Snake) Test0901_HandleIBTPShouldSucceed() {
 
 	tx, _ := client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
-	res, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib.From, ib.To, ib.Category()),
-		IBTPNonce: ib.Index,
-	})
+	res, err := client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
-	suite.Require().Equal(res.Status, pb.Receipt_SUCCESS)
 	fmt.Println(string(res.Ret))
+	suite.Require().Equal(res.Status, pb.Receipt_SUCCESS)
 }
 
 func (suite *Snake) Test0902_HandleIBTPWithNonexistentFrom() {
@@ -128,10 +126,7 @@ func (suite *Snake) Test0902_HandleIBTPWithNonexistentFrom() {
 
 	tx, _ := client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
-	_, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib.From, ib.To, ib.Category()),
-		IBTPNonce: ib.Index,
-	})
+	_, err := client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "not found in DB")
 }
@@ -149,10 +144,7 @@ func (suite *Snake) Test0903_HandleIBTPWithNonexistentTo() {
 
 	tx, _ := client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
-	res, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib.From, ib.To, ib.Category()),
-		IBTPNonce: ib.Index,
-	})
+	res, err := client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(res.Status, pb.Receipt_SUCCESS)
 }
@@ -169,10 +161,7 @@ func (suite *Snake) Test0904_HandleIBTPWithNonexistentRule() {
 
 	tx, _ := client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
-	_, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib.From, ib.To, ib.Category()),
-		IBTPNonce: ib.Index,
-	})
+	_, err := client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "not found in DB")
 }
@@ -190,13 +179,10 @@ func (suite *Snake) Test0905_HandleIBTPWithWrongIBTPIndex() {
 
 	tx, _ := client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
-	res, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib.From, ib.To, ib.Category()),
-		IBTPNonce: ib.Index,
-	})
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "not found in DB")
-	suite.Require().Nil(res)
+
+	res, err := client.SendTransactionWithReceipt(tx, nil)
+	suite.Require().Nil(err)
+	suite.Require().Contains(string(res.Ret), "wrong index")
 }
 
 func (suite *Snake) Test0906_GetIBTPByID() {
@@ -212,20 +198,14 @@ func (suite *Snake) Test0906_GetIBTPByID() {
 
 	tx, _ := client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
-	res, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib.From, ib.To, ib.Category()),
-		IBTPNonce: ib.Index,
-	})
+	res, err := client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
 	ib.Index = 2
 	tx, _ = client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
-	res, err = client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib.From, ib.To, ib.Category()),
-		IBTPNonce: ib.Index,
-	})
+	res, err = client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	fmt.Println(string(res.Ret))
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
@@ -233,10 +213,7 @@ func (suite *Snake) Test0906_GetIBTPByID() {
 	ib.Index = 3
 	tx, _ = client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
-	res, err = client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib.From, ib.To, ib.Category()),
-		IBTPNonce: ib.Index,
-	})
+	res, err = client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
@@ -263,10 +240,8 @@ func (suite *Snake) Test0907_HandleIBTPWithWrongProof() {
 
 	tx, _ := client.GenerateContractTx(pb.TransactionData_BVM, constant.InterchainContractAddr.Address(), "HandleIBTP", pb.Bytes(data))
 	tx.Extra = []byte(proof)
-	_, err = client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      ib.From + ib.To,
-		IBTPNonce: ib.Index,
-	})
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "not found in DB")
+	res, err := client.SendTransactionWithReceipt(tx, nil)
+	suite.Require().Nil(err)
+	fmt.Println(string(res.Ret))
+	suite.Require().Contains(string(res.Ret), "Call using []uint8 as type *pb.IBTP")
 }

@@ -216,7 +216,7 @@ func (suite *TransactionMgrSuite) RegisterAppchain(client *ChainClient, chainTyp
 	var pubKeyStr = hex.EncodeToString(pubBytes)
 	args := []*pb.Arg{
 		rpcx.String(""),                 //validators
-		rpcx.Int32(0),                   //consensus_type
+		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
 		rpcx.String("AppChain1"),        //name
 		rpcx.String("Appchain for tax"), //desc
@@ -282,10 +282,7 @@ func (suite *TransactionMgrSuite) Test1001_One2One_AssetExchange_HappyPath() {
 	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	tx, _ := suite.client0.client.GenerateIBTPTx(ib0)
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib0.From, ib0.To, ib0.Category()),
-		IBTPNonce: ib0.Index,
-	})
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res0.Status)
 
@@ -297,10 +294,7 @@ func (suite *TransactionMgrSuite) Test1001_One2One_AssetExchange_HappyPath() {
 	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	tx, _ = suite.client1.client.GenerateIBTPTx(ib1)
 	tx.Extra = []byte(proof)
-	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib1.From, ib1.To, ib1.Category()),
-		IBTPNonce: ib1.Index,
-	})
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res1.Status)
 
@@ -334,20 +328,14 @@ func (suite *TransactionMgrSuite) Test1002_One2One_AssetExchange_FromRefund() {
 	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	tx, _ := suite.client0.client.GenerateIBTPTx(ib0)
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib0.From, ib0.To, ib0.Category()),
-		IBTPNonce: ib0.Index,
-	})
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().True(res0.IsSuccess())
 
 	ib1 := &pb.IBTP{From: from, To: to, Index: index + 1, Type: pb.IBTP_ASSET_EXCHANGE_REFUND, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	tx, _ = suite.client0.client.GenerateIBTPTx(ib1)
 	tx.Extra = []byte(proof)
-	res1, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib1.From, ib1.To, ib1.Category()),
-		IBTPNonce: ib1.Index,
-	})
+	res1, err := suite.client0.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().True(res1.IsSuccess())
 
@@ -360,10 +348,7 @@ func (suite *TransactionMgrSuite) Test1002_One2One_AssetExchange_FromRefund() {
 
 	tx, _ = suite.client1.client.GenerateIBTPTx(ib1)
 	tx.Extra = []byte(proof)
-	res1, err = suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib1.From, ib1.To, ib1.Category()),
-		IBTPNonce: ib1.Index,
-	})
+	res1, err = suite.client1.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res1.Status)
 }
@@ -392,20 +377,14 @@ func (suite *TransactionMgrSuite) Test1003_One2One_AssetExchange_ToRefund() {
 	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	tx, _ := suite.client0.client.GenerateIBTPTx(ib0)
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib0.From, ib0.To, ib0.Category()),
-		IBTPNonce: ib0.Index,
-	})
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().True(res0.IsSuccess())
 
 	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REFUND, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	tx, _ = suite.client1.client.GenerateIBTPTx(ib1)
 	tx.Extra = []byte(proof)
-	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib1.From, ib1.To, ib1.Category()),
-		IBTPNonce: ib1.Index,
-	})
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().True(res1.IsSuccess())
 
@@ -417,10 +396,7 @@ func (suite *TransactionMgrSuite) Test1003_One2One_AssetExchange_ToRefund() {
 	ib1 = &pb.IBTP{From: to, To: from, Index: index + 1, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	tx, _ = suite.client1.client.GenerateIBTPTx(ib1)
 	tx.Extra = []byte(proof)
-	res1, err = suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib1.From, ib1.To, ib1.Category()),
-		IBTPNonce: ib1.Index,
-	})
+	res1, err = suite.client1.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res1.Status)
 }
@@ -449,10 +425,7 @@ func (suite *TransactionMgrSuite) Test1004_AssetExchange_Signs() {
 	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	tx, _ := suite.client0.client.GenerateIBTPTx(ib0)
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib0.From, ib0.To, ib0.Category()),
-		IBTPNonce: ib0.Index,
-	})
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().True(res0.IsSuccess())
 
@@ -496,30 +469,21 @@ func (suite *TransactionMgrSuite) Test1005_One2One_AssetExchange_FromToRefund() 
 	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	tx, _ := suite.client0.client.GenerateIBTPTx(ib0)
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib0.From, ib0.To, ib0.Category()),
-		IBTPNonce: ib0.Index,
-	})
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().True(res0.IsSuccess())
 
 	ib1 := &pb.IBTP{From: from, To: to, Index: index + 1, Type: pb.IBTP_ASSET_EXCHANGE_REFUND, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	tx, _ = suite.client0.client.GenerateIBTPTx(ib1)
 	tx.Extra = []byte(proof)
-	res1, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib1.From, ib1.To, ib1.Category()),
-		IBTPNonce: ib1.Index,
-	})
+	res1, err := suite.client0.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().True(res1.IsSuccess())
 
 	ib2 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REFUND, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	tx, _ = suite.client1.client.GenerateIBTPTx(ib2)
 	tx.Extra = []byte(proof)
-	res2, err := suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib2.From, ib2.To, ib2.Category()),
-		IBTPNonce: ib2.Index,
-	})
+	res2, err := suite.client1.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res2.Status, string(res2.Ret))
 
@@ -532,10 +496,7 @@ func (suite *TransactionMgrSuite) Test1005_One2One_AssetExchange_FromToRefund() 
 
 	tx, _ = suite.client1.client.GenerateIBTPTx(ib1)
 	tx.Extra = []byte(proof)
-	res1, err = suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib1.From, ib1.To, ib1.Category()),
-		IBTPNonce: ib1.Index,
-	})
+	res1, err = suite.client1.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res1.Status, string(res1.Ret))
 }
@@ -564,10 +525,7 @@ func (suite *TransactionMgrSuite) Test1006_One2One_AssetExchange_SameId() {
 	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	tx, _ := suite.client0.client.GenerateIBTPTx(ib0)
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib0.From, ib0.To, ib0.Category()),
-		IBTPNonce: ib0.Index,
-	})
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().True(res0.IsSuccess())
 
@@ -579,10 +537,7 @@ func (suite *TransactionMgrSuite) Test1006_One2One_AssetExchange_SameId() {
 	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	tx, _ = suite.client1.client.GenerateIBTPTx(ib1)
 	tx.Extra = []byte(proof)
-	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib1.From, ib1.To, ib1.Category()),
-		IBTPNonce: ib1.Index,
-	})
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res1.Status)
 
@@ -598,10 +553,7 @@ func (suite *TransactionMgrSuite) Test1006_One2One_AssetExchange_SameId() {
 	ib0 = &pb.IBTP{From: from, To: to, Index: index + 1, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	tx, _ = suite.client0.client.GenerateIBTPTx(ib0)
 	tx.Extra = []byte(proof)
-	res0, err = suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib0.From, ib0.To, ib0.Category()),
-		IBTPNonce: ib0.Index,
-	})
+	res0, err = suite.client0.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res0.Status)
 
@@ -612,10 +564,7 @@ func (suite *TransactionMgrSuite) Test1006_One2One_AssetExchange_SameId() {
 	ib1 = &pb.IBTP{From: to, To: from, Index: index + 1, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	tx, _ = suite.client1.client.GenerateIBTPTx(ib1)
 	tx.Extra = []byte(proof)
-	res1, err = suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib1.From, ib1.To, ib1.Category()),
-		IBTPNonce: ib1.Index,
-	})
+	res1, err = suite.client1.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res1.Status)
 
@@ -649,10 +598,7 @@ func (suite *TransactionMgrSuite) Test1007_One2One_AssetExchange_FromToFrom() {
 	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	tx, _ := suite.client0.client.GenerateIBTPTx(ib0)
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib0.From, ib0.To, ib0.Category()),
-		IBTPNonce: ib0.Index,
-	})
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().True(res0.IsSuccess())
 
@@ -664,10 +610,7 @@ func (suite *TransactionMgrSuite) Test1007_One2One_AssetExchange_FromToFrom() {
 	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	tx, _ = suite.client1.client.GenerateIBTPTx(ib1)
 	tx.Extra = []byte(proof)
-	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib1.From, ib1.To, ib1.Category()),
-		IBTPNonce: ib1.Index,
-	})
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().True(res1.IsSuccess())
 
@@ -700,10 +643,7 @@ func (suite *TransactionMgrSuite) Test1008_One2One_AssetExchange_LoseFieldId() {
 	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	tx, _ := suite.client0.client.GenerateIBTPTx(ib0)
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib0.From, ib0.To, ib0.Category()),
-		IBTPNonce: ib0.Index,
-	})
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res0.Status)
 
@@ -714,10 +654,7 @@ func (suite *TransactionMgrSuite) Test1008_One2One_AssetExchange_LoseFieldId() {
 	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	tx, _ = suite.client1.client.GenerateIBTPTx(ib1)
 	tx.Extra = []byte(proof)
-	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib1.From, ib1.To, ib1.Category()),
-		IBTPNonce: ib1.Index,
-	})
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res1.Status)
 
@@ -749,10 +686,7 @@ func (suite *TransactionMgrSuite) Test1009_One2One_AssetExchange_LoseFieldSender
 	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	tx, _ := suite.client0.client.GenerateIBTPTx(ib0)
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib0.From, ib0.To, ib0.Category()),
-		IBTPNonce: ib0.Index,
-	})
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res0.Status)
 
@@ -763,10 +697,7 @@ func (suite *TransactionMgrSuite) Test1009_One2One_AssetExchange_LoseFieldSender
 	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	tx, _ = suite.client1.client.GenerateIBTPTx(ib1)
 	tx.Extra = []byte(proof)
-	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib1.From, ib1.To, ib1.Category()),
-		IBTPNonce: ib1.Index,
-	})
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res1.Status)
 
@@ -798,10 +729,7 @@ func (suite *TransactionMgrSuite) Test1010_One2One_AssetExchange_LoseFieldAsset(
 	ib0 := &pb.IBTP{From: from, To: to, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_INIT, Proof: proofHash[:], Extra: content}
 	tx, _ := suite.client0.client.GenerateIBTPTx(ib0)
 	tx.Extra = []byte(proof)
-	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib0.From, ib0.To, ib0.Category()),
-		IBTPNonce: ib0.Index,
-	})
+	res0, err := suite.client0.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res0.Status)
 
@@ -812,10 +740,7 @@ func (suite *TransactionMgrSuite) Test1010_One2One_AssetExchange_LoseFieldAsset(
 	ib1 := &pb.IBTP{From: to, To: from, Index: index, Type: pb.IBTP_ASSET_EXCHANGE_REDEEM, Proof: proofHash[:], Extra: []byte(aei.Id)}
 	tx, _ = suite.client1.client.GenerateIBTPTx(ib1)
 	tx.Extra = []byte(proof)
-	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:      fmt.Sprintf("%s-%s-%d", ib1.From, ib1.To, ib1.Category()),
-		IBTPNonce: ib1.Index,
-	})
+	res1, err := suite.client1.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res1.Status)
 
