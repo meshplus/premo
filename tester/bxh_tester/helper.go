@@ -247,6 +247,56 @@ func (suite *Snake) VotePass(id string) error {
 	return nil
 }
 
+func (suite *Snake) VoteReject(id string) error {
+	node2, err := repo.Node2Path()
+	if err != nil {
+		return err
+	}
+
+	key, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
+	if err != nil {
+		return err
+	}
+
+	_, err = suite.vote(key, pb.String(id), pb.String("reject"), pb.String("Appchain Pass"))
+	if err != nil {
+		return err
+	}
+
+	node3, err := repo.Node3Path()
+	if err != nil {
+		return err
+	}
+
+	key, err = asym.RestorePrivateKey(node3, repo.KeyPassword)
+	if err != nil {
+		return err
+	}
+
+	_, err = suite.vote(key, pb.String(id), pb.String("reject"), pb.String("Appchain Pass"))
+
+	if err != nil {
+		return err
+	}
+
+	node4, err := repo.Node4Path()
+	if err != nil {
+		return err
+	}
+
+	key, err = asym.RestorePrivateKey(node4, repo.KeyPassword)
+	if err != nil {
+		return err
+	}
+
+	_, err = suite.vote(key, pb.String(id), pb.String("reject"), pb.String("Appchain Pass"))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (suite *Snake) vote(key crypto.PrivateKey, args ...*pb.Arg) (*pb.Receipt, error) {
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
