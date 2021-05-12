@@ -67,6 +67,24 @@ func (suite *Snake) Test0703_BindRule() {
 	suite.Require().Equal(governance.GovernanceAvailable, status)
 }
 
+//tc：验证规则未绑定，绑定验证规则
+func (suite *Snake) Test0703_BindRuleWithReject() {
+	pk, ChainID, err := suite.RegisterAppchain()
+	suite.Require().Nil(err)
+
+	contract, err := ioutil.ReadFile("../../config/rule.wasm")
+	suite.Require().Nil(err)
+
+	contractAddr, err := suite.client.DeployContract(contract, nil)
+	suite.Require().Nil(err)
+
+	err = suite.InvokeRuleContractWithReject(pk, ChainID, contractAddr, BindRule)
+	suite.Require().Nil(err)
+
+	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
+	suite.Require().Equal(governance.GovernanceBindable, status)
+}
+
 //tc：验证规则binding状态，绑定验证规则
 func (suite Snake) Test0704_BindRuleWithBinding() {
 	pk, ChainID, err := suite.RegisterAppchain()
@@ -312,7 +330,7 @@ func (suite *Snake) Test0713_UnbindRuleWithBinding() {
 }
 
 //tc：验证规则available状态，解绑验证规则
-func (suite *Snake) Test0714_UnbindRuleWithAvailable() {
+func (suite *Snake) Test0714_UnbindRule() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -327,6 +345,27 @@ func (suite *Snake) Test0714_UnbindRuleWithAvailable() {
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, UnbindRule)
 	suite.Require().Nil(err)
+}
+
+//tc：验证规则available状态，解绑验证规则
+func (suite *Snake) Test0714_UnbindRuleWithReject() {
+	pk, ChainID, err := suite.RegisterAppchain()
+	suite.Require().Nil(err)
+
+	contract, err := ioutil.ReadFile("../../config/rule.wasm")
+	suite.Require().Nil(err)
+
+	contractAddr, err := suite.client.DeployContract(contract, nil)
+	suite.Require().Nil(err)
+
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	suite.Require().Nil(err)
+
+	err = suite.InvokeRuleContractWithReject(pk, ChainID, contractAddr, UnbindRule)
+	suite.Require().Nil(err)
+
+	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
+	suite.Require().Equal(governance.GovernanceAvailable, status)
 }
 
 //tc：验证规则unbinding状态，解绑验证规则
@@ -529,7 +568,7 @@ func (suite *Snake) Test0722_FreezeRuleWithBinding() {
 }
 
 //tc：验证规则available状态，冻结验证规则
-func (suite *Snake) Test0723_FreezeRuleWithAvailable() {
+func (suite *Snake) Test0723_FreezeRule() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -547,6 +586,27 @@ func (suite *Snake) Test0723_FreezeRuleWithAvailable() {
 
 	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
 	suite.Require().Equal(governance.GovernanceFrozen, status)
+}
+
+//tc：验证规则available状态，冻结验证规则
+func (suite *Snake) Test0723_FreezeRuleWithReject() {
+	pk, ChainID, err := suite.RegisterAppchain()
+	suite.Require().Nil(err)
+
+	contract, err := ioutil.ReadFile("../../config/rule.wasm")
+	suite.Require().Nil(err)
+
+	contractAddr, err := suite.client.DeployContract(contract, nil)
+	suite.Require().Nil(err)
+
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	suite.Require().Nil(err)
+
+	err = suite.InvokeRuleContractWithReject(pk, ChainID, contractAddr, FreezeRule)
+	suite.Require().Nil(err)
+
+	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
+	suite.Require().Equal(governance.GovernanceBindable, status)
 }
 
 //tc：验证规则unbinding状态，冻结验证规则
@@ -627,10 +687,10 @@ func (suite *Snake) Test0726_FreezeRuleWithLogouting() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, FreezeRule)
-	suite.Require().Nil(err)
+	suite.Require().NotNil(err)
 
 	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
-	suite.Require().Equal(governance.GovernanceFrozen, status)
+	suite.Require().Equal(governance.GovernanceLogouting, status)
 }
 
 //tc：验证规则forbidden状态，冻结验证规则
@@ -1162,6 +1222,26 @@ func (suite *Snake) InvokeRuleContract(pk crypto.PrivateKey, ChainID string, con
 		return errors.New(string(res.Ret))
 	}
 	err = suite.VotePass(string(res.Ret))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (suite *Snake) InvokeRuleContractWithReject(pk crypto.PrivateKey, ChainID string, contractAddr *types.Address, method string) error {
+	client := suite.NewClient(pk)
+	args := []*pb.Arg{
+		rpcx.String(ChainID),
+		rpcx.String(contractAddr.String()),
+	}
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), method, nil, args...)
+	if err != nil {
+		return err
+	}
+	if res.Status == pb.Receipt_FAILED {
+		return errors.New(string(res.Ret))
+	}
+	err = suite.VoteReject(string(res.Ret))
 	if err != nil {
 		return err
 	}
