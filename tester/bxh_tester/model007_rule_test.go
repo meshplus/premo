@@ -33,8 +33,12 @@ type Rule struct {
 	FSM     *fsm.FSM                    `json:"fsm"`
 }
 
+type Model7 struct {
+	*Snake
+}
+
 //tc：正确部署验证规则
-func (suite *Snake) Test0701_DeployRule() {
+func (suite *Model7) Test0701_DeployRule() {
 	contract, err := ioutil.ReadFile("./testdata/simple_rule.wasm")
 	suite.Require().Nil(err)
 
@@ -44,13 +48,13 @@ func (suite *Snake) Test0701_DeployRule() {
 }
 
 //tc：部署验证规则为空
-func (suite *Snake) Test0702_DeployRuleIsEmpty() {
+func (suite *Model7) Test0702_DeployRuleIsEmpty() {
 	_, err := suite.client.DeployContract(nil, nil)
 	suite.Require().NotNil(err)
 }
 
 //tc：验证规则未绑定，绑定验证规则
-func (suite *Snake) Test0703_BindRule() {
+func (suite *Model7) Test0703_BindRule() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -68,7 +72,7 @@ func (suite *Snake) Test0703_BindRule() {
 }
 
 //tc：验证规则未绑定，绑定验证规则
-func (suite *Snake) Test0704_BindRuleWithReject() {
+func (suite *Model7) Test0704_BindRuleWithReject() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -86,7 +90,7 @@ func (suite *Snake) Test0704_BindRuleWithReject() {
 }
 
 //tc：验证规则binding状态，绑定验证规则
-func (suite Snake) Test0705_BindRuleWithBinding() {
+func (suite *Model7) Test0705_BindRuleWithBinding() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -113,7 +117,7 @@ func (suite Snake) Test0705_BindRuleWithBinding() {
 }
 
 //tc：验证规则available状态，绑定验证规则
-func (suite Snake) Test0706_BindRuleWithAvailable() {
+func (suite *Model7) Test0706_BindRuleWithAvailable() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -133,7 +137,7 @@ func (suite Snake) Test0706_BindRuleWithAvailable() {
 }
 
 //tc：验证规则unbinding状态，绑定验证规则
-func (suite *Snake) Test0707_BindRuleWithUnbinding() {
+func (suite *Model7) Test0707_BindRuleWithUnbinding() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -163,7 +167,7 @@ func (suite *Snake) Test0707_BindRuleWithUnbinding() {
 }
 
 //tc：验证规则bindable状态，绑定验证规则
-func (suite *Snake) Test0708_BindRuleWithBindable() {
+func (suite *Model7) Test0708_BindRuleWithBindable() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -185,7 +189,7 @@ func (suite *Snake) Test0708_BindRuleWithBindable() {
 }
 
 //tc：验证规则logouting状态，绑定验证规则
-func (suite Snake) Test0709_BindRuleWithLogouting() {
+func (suite *Model7) Test0709_BindRuleWithLogouting() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -215,7 +219,7 @@ func (suite Snake) Test0709_BindRuleWithLogouting() {
 }
 
 //tc：验证规则forbidden状态，绑定验证规则
-func (suite *Snake) Test0710_BindRuleWithForbidden() {
+func (suite *Model7) Test0710_BindRuleWithForbidden() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -239,7 +243,7 @@ func (suite *Snake) Test0710_BindRuleWithForbidden() {
 }
 
 //tc：验证规则freezing状态，绑定验证规则
-func (suite *Snake) Test0711_BindRuleWithFreezing() {
+func (suite *Model7) Test0711_BindRuleWithFreezing() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -269,7 +273,7 @@ func (suite *Snake) Test0711_BindRuleWithFreezing() {
 }
 
 //tc：验证规则frozen状态，绑定验证规则
-func (suite *Snake) Test0712_BindRuleWithFrozen() {
+func (suite *Model7) Test0712_BindRuleWithFrozen() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -293,7 +297,7 @@ func (suite *Snake) Test0712_BindRuleWithFrozen() {
 }
 
 //tc：验证规则未绑定，解绑验证规则
-func (suite *Snake) Test0713_UnbindRuleWithNoRule() {
+func (suite *Model7) Test0713_UnbindRuleWithNoRule() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -303,7 +307,7 @@ func (suite *Snake) Test0713_UnbindRuleWithNoRule() {
 }
 
 //tc：验证规则binding状态，解绑验证规则
-func (suite *Snake) Test0714_UnbindRuleWithBinding() {
+func (suite *Model7) Test0714_UnbindRuleWithBinding() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -330,7 +334,7 @@ func (suite *Snake) Test0714_UnbindRuleWithBinding() {
 }
 
 //tc：验证规则available状态，解绑验证规则
-func (suite *Snake) Test0715_UnbindRule() {
+func (suite *Model7) Test0715_UnbindRule() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -348,7 +352,7 @@ func (suite *Snake) Test0715_UnbindRule() {
 }
 
 //tc：验证规则available状态，解绑验证规则
-func (suite *Snake) Test0716_UnbindRuleWithReject() {
+func (suite *Model7) Test0716_UnbindRuleWithReject() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -369,7 +373,7 @@ func (suite *Snake) Test0716_UnbindRuleWithReject() {
 }
 
 //tc：验证规则unbinding状态，解绑验证规则
-func (suite *Snake) Test0717_UnbindRuleWithUnbinding() {
+func (suite *Model7) Test0717_UnbindRuleWithUnbinding() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -399,7 +403,7 @@ func (suite *Snake) Test0717_UnbindRuleWithUnbinding() {
 }
 
 //tc：验证规则bindable状态，解绑验证规则
-func (suite *Snake) Test0718_UnbindRuleWithBindable() {
+func (suite *Model7) Test0718_UnbindRuleWithBindable() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -423,7 +427,7 @@ func (suite *Snake) Test0718_UnbindRuleWithBindable() {
 }
 
 //tc：验证规则logouting状态，解绑验证规则
-func (suite Snake) Test0719_UnbindRuleWithLogouting() {
+func (suite *Model7) Test0719_UnbindRuleWithLogouting() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -453,7 +457,7 @@ func (suite Snake) Test0719_UnbindRuleWithLogouting() {
 }
 
 //tc：验证规则forbidden状态，解绑验证规则
-func (suite *Snake) Test0720_UnbindRuleWithForbidden() {
+func (suite *Model7) Test0720_UnbindRuleWithForbidden() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -477,7 +481,7 @@ func (suite *Snake) Test0720_UnbindRuleWithForbidden() {
 }
 
 //tc：验证规则freezing状态，解绑验证规则
-func (suite *Snake) Test0721_UnbindRuleWithFreezing() {
+func (suite *Model7) Test0721_UnbindRuleWithFreezing() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -507,7 +511,7 @@ func (suite *Snake) Test0721_UnbindRuleWithFreezing() {
 }
 
 //tc：验证规则frozen状态，解绑验证规则
-func (suite *Snake) Test0722_UnbindRuleWithFrozen() {
+func (suite *Model7) Test0722_UnbindRuleWithFrozen() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -531,7 +535,7 @@ func (suite *Snake) Test0722_UnbindRuleWithFrozen() {
 }
 
 //tc：验证规则未绑定，冻结验证规则
-func (suite *Snake) Test0723_FreezeRuleWithNoRule() {
+func (suite *Model7) Test0723_FreezeRuleWithNoRule() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -541,7 +545,7 @@ func (suite *Snake) Test0723_FreezeRuleWithNoRule() {
 }
 
 //tc：验证规则binding状态，冻结验证规则
-func (suite *Snake) Test0724_FreezeRuleWithBinding() {
+func (suite *Model7) Test0724_FreezeRuleWithBinding() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -568,7 +572,7 @@ func (suite *Snake) Test0724_FreezeRuleWithBinding() {
 }
 
 //tc：验证规则available状态，冻结验证规则
-func (suite *Snake) Test0725_FreezeRule() {
+func (suite *Model7) Test0725_FreezeRule() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -589,7 +593,7 @@ func (suite *Snake) Test0725_FreezeRule() {
 }
 
 //tc：验证规则available状态，冻结验证规则
-func (suite *Snake) Test0726_FreezeRuleWithReject() {
+func (suite *Model7) Test0726_FreezeRuleWithReject() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -610,7 +614,7 @@ func (suite *Snake) Test0726_FreezeRuleWithReject() {
 }
 
 //tc：验证规则unbinding状态，冻结验证规则
-func (suite *Snake) Test0727_FreezeRuleWithUnbinding() {
+func (suite *Model7) Test0727_FreezeRuleWithUnbinding() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -640,7 +644,7 @@ func (suite *Snake) Test0727_FreezeRuleWithUnbinding() {
 }
 
 //tc：验证规则bindable状态，冻结验证规则
-func (suite *Snake) Test0728_FreezeRuleWithBindable() {
+func (suite *Model7) Test0728_FreezeRuleWithBindable() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -664,7 +668,7 @@ func (suite *Snake) Test0728_FreezeRuleWithBindable() {
 }
 
 //tc：验证规则logouting状态，冻结验证规则
-func (suite *Snake) Test0729_FreezeRuleWithLogouting() {
+func (suite *Model7) Test0729_FreezeRuleWithLogouting() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -694,7 +698,7 @@ func (suite *Snake) Test0729_FreezeRuleWithLogouting() {
 }
 
 //tc：验证规则forbidden状态，冻结验证规则
-func (suite *Snake) Test0730_FreezeRuleWithForbidden() {
+func (suite *Model7) Test0730_FreezeRuleWithForbidden() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -715,7 +719,7 @@ func (suite *Snake) Test0730_FreezeRuleWithForbidden() {
 }
 
 //tc：验证规则freezing状态，解冻验证规则
-func (suite *Snake) Test0731_FreezeRuleWithFreezing() {
+func (suite *Model7) Test0731_FreezeRuleWithFreezing() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -745,7 +749,7 @@ func (suite *Snake) Test0731_FreezeRuleWithFreezing() {
 }
 
 //tc：验证规则frozen状态，解冻验证规则
-func (suite *Snake) Test0732_FreezeRuleWithFrozen() {
+func (suite *Model7) Test0732_FreezeRuleWithFrozen() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -769,7 +773,7 @@ func (suite *Snake) Test0732_FreezeRuleWithFrozen() {
 }
 
 //tc：验证规则未绑定，解冻验证规则
-func (suite *Snake) Test0733_ActivateRuleWithNoRule() {
+func (suite *Model7) Test0733_ActivateRuleWithNoRule() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -779,7 +783,7 @@ func (suite *Snake) Test0733_ActivateRuleWithNoRule() {
 }
 
 //tc：验证规则binding状态，解冻验证规则
-func (suite *Snake) Test0734_ActivateRuleWithBinding() {
+func (suite *Model7) Test0734_ActivateRuleWithBinding() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -806,7 +810,7 @@ func (suite *Snake) Test0734_ActivateRuleWithBinding() {
 }
 
 //tc：验证规则available状态，解冻验证规则
-func (suite *Snake) Test0735_ActivateRuleWithAvailable() {
+func (suite *Model7) Test0735_ActivateRuleWithAvailable() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -827,7 +831,7 @@ func (suite *Snake) Test0735_ActivateRuleWithAvailable() {
 }
 
 //tc：验证规则unbinding状态，解冻验证规则
-func (suite Snake) Test0736_ActivateRuleWithUnbinding() {
+func (suite *Model7) Test0736_ActivateRuleWithUnbinding() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -857,7 +861,7 @@ func (suite Snake) Test0736_ActivateRuleWithUnbinding() {
 }
 
 //tc：验证规则bindable状态，解冻验证规则
-func (suite *Snake) Test0737_ActivateRuleWithBindable() {
+func (suite *Model7) Test0737_ActivateRuleWithBindable() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -881,7 +885,7 @@ func (suite *Snake) Test0737_ActivateRuleWithBindable() {
 }
 
 //tc：验证规则logouting状态，解冻验证规则
-func (suite *Snake) Test0738_ActivateRuleWithLogouting() {
+func (suite *Model7) Test0738_ActivateRuleWithLogouting() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -911,7 +915,7 @@ func (suite *Snake) Test0738_ActivateRuleWithLogouting() {
 }
 
 //tc：验证规则forbidden状态，解冻验证规则
-func (suite *Snake) Test0739_ActivateRuleWithForbidden() {
+func (suite *Model7) Test0739_ActivateRuleWithForbidden() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -935,7 +939,7 @@ func (suite *Snake) Test0739_ActivateRuleWithForbidden() {
 }
 
 //tc：验证规则freezing状态，解冻验证规则
-func (suite *Snake) Test0740_ActivateRuleWithFreezing() {
+func (suite *Model7) Test0740_ActivateRuleWithFreezing() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -965,7 +969,7 @@ func (suite *Snake) Test0740_ActivateRuleWithFreezing() {
 }
 
 //tc：验证规则frozen状态，解冻验证规则
-func (suite *Snake) Test0741_ActivateRuleWithFrozen() {
+func (suite *Model7) Test0741_ActivateRuleWithFrozen() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -989,7 +993,7 @@ func (suite *Snake) Test0741_ActivateRuleWithFrozen() {
 }
 
 //tc：验证规则未绑定，注销验证规则
-func (suite *Snake) Test0742_LogoutRuleWithNoRule() {
+func (suite *Model7) Test0742_LogoutRuleWithNoRule() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -999,7 +1003,7 @@ func (suite *Snake) Test0742_LogoutRuleWithNoRule() {
 }
 
 //tc：验证规则binding状态，注销验证规则
-func (suite *Snake) Test0743_LogoutRuleWithBinding() {
+func (suite *Model7) Test0743_LogoutRuleWithBinding() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -1026,7 +1030,7 @@ func (suite *Snake) Test0743_LogoutRuleWithBinding() {
 }
 
 //tc：验证规则available状态，注销验证规则
-func (suite *Snake) Test0744_LogoutRuleWithAvailable() {
+func (suite *Model7) Test0744_LogoutRuleWithAvailable() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -1047,7 +1051,7 @@ func (suite *Snake) Test0744_LogoutRuleWithAvailable() {
 }
 
 //tc：验证规则unbinding状态，注销验证规则
-func (suite *Snake) Test0745_LogoutRuleWithUnbinding() {
+func (suite *Model7) Test0745_LogoutRuleWithUnbinding() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -1077,7 +1081,7 @@ func (suite *Snake) Test0745_LogoutRuleWithUnbinding() {
 }
 
 //tc：验证规则bindable状态，注销验证规则
-func (suite *Snake) Test0746_LogoutRuleWithBindable() {
+func (suite *Model7) Test0746_LogoutRuleWithBindable() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -1101,7 +1105,7 @@ func (suite *Snake) Test0746_LogoutRuleWithBindable() {
 }
 
 //tc：验证规则logouting状态，注销验证规则
-func (suite *Snake) Test0747_LogoutRuleWithLogouting() {
+func (suite *Model7) Test0747_LogoutRuleWithLogouting() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -1131,7 +1135,7 @@ func (suite *Snake) Test0747_LogoutRuleWithLogouting() {
 }
 
 //tc：验证规则forbidden状态，注销验证规则
-func (suite *Snake) Test0748_LogoutRuleWithForbidden() {
+func (suite *Model7) Test0748_LogoutRuleWithForbidden() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -1155,7 +1159,7 @@ func (suite *Snake) Test0748_LogoutRuleWithForbidden() {
 }
 
 //tc：验证规则freezing状态，注销验证规则
-func (suite *Snake) Test0749_LogoutRuleWithFreezing() {
+func (suite *Model7) Test0749_LogoutRuleWithFreezing() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -1185,7 +1189,7 @@ func (suite *Snake) Test0749_LogoutRuleWithFreezing() {
 }
 
 //tc：验证规则frozen状态，注销验证规则
-func (suite *Snake) Test0750_LogoutRuleWithFrozen() {
+func (suite *Model7) Test0750_LogoutRuleWithFrozen() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -1248,7 +1252,7 @@ func (suite *Snake) InvokeRuleContractWithReject(pk crypto.PrivateKey, ChainID s
 	return nil
 }
 
-func (suite Snake) getRuleStatus(pk crypto.PrivateKey, ChainID string, contractAddr *types.Address) (status governance.GovernanceStatus, err error) {
+func (suite *Snake) getRuleStatus(pk crypto.PrivateKey, ChainID string, contractAddr *types.Address) (status governance.GovernanceStatus, err error) {
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
 		rpcx.String(ChainID),

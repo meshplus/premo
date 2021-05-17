@@ -3,7 +3,6 @@ package bxh_tester
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"time"
 
@@ -21,7 +20,7 @@ import (
 
 var cfg = &config{
 	addrs: []string{
-		"localhost:60011",
+		"172.30.68.95:60011",
 		"localhost:60012",
 		"localhost:60013",
 		"localhost:60014",
@@ -51,11 +50,10 @@ type RegisterResult struct {
 // SetupTest init
 func (suite *Snake) SetupTest() {
 	//suite.T().Parallel()
-	suite.sendTransaction()
 }
 
 func (suite *Snake) SetupSuite() {
-	res, err := suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "Init", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()))
+	_, err := suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "Init", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()))
 	suite.Require().Nil(err)
 
 	node2, err := repo.Node2Path()
@@ -67,9 +65,8 @@ func (suite *Snake) SetupSuite() {
 	node2Addr, err := key.PublicKey().Address()
 	suite.Require().Nil(err)
 
-	res, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), rpcx.String("did:bitxhub:relayroot:"+node2Addr.String()))
+	_, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), rpcx.String("did:bitxhub:relayroot:"+node2Addr.String()))
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 
 	node3, err := repo.Node3Path()
 	suite.Require().Nil(err)
@@ -80,9 +77,8 @@ func (suite *Snake) SetupSuite() {
 	node3Addr, err := key.PublicKey().Address()
 	suite.Require().Nil(err)
 
-	res, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), rpcx.String("did:bitxhub:relayroot:"+node3Addr.String()))
+	_, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), rpcx.String("did:bitxhub:relayroot:"+node3Addr.String()))
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 
 	node4, err := repo.Node4Path()
 	suite.Require().Nil(err)
@@ -93,9 +89,8 @@ func (suite *Snake) SetupSuite() {
 	node4Addr, err := key.PublicKey().Address()
 	suite.Require().Nil(err)
 
-	res, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), rpcx.String("did:bitxhub:relayroot:"+node4Addr.String()))
+	_, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), rpcx.String("did:bitxhub:relayroot:"+node4Addr.String()))
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 }
 
 func (suite *Snake) RegisterAppchain() (crypto.PrivateKey, string, error) {
@@ -136,7 +131,6 @@ func (suite *Snake) RegisterAppchain() (crypto.PrivateKey, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	fmt.Println(string(res.Ret))
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
 	if err != nil {
@@ -167,7 +161,7 @@ func (suite *Snake) BindRule(pk crypto.PrivateKey, ruleFile string, ChainID stri
 	suite.Require().Nil(err)
 }
 
-func (suite Snake) NewClient(pk crypto.PrivateKey) *rpcx.ChainClient {
+func (suite *Snake) NewClient(pk crypto.PrivateKey) *rpcx.ChainClient {
 	node0 := &rpcx.NodeInfo{Addr: cfg.addrs[0]}
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(node0),
@@ -178,7 +172,7 @@ func (suite Snake) NewClient(pk crypto.PrivateKey) *rpcx.ChainClient {
 	return client
 }
 
-func (suite Snake) sendTransaction() {
+func (suite *Snake) sendTransaction() {
 	data := &pb.TransactionData{
 		Amount: 1,
 	}
@@ -337,7 +331,6 @@ func (suite *Snake) vote(key crypto.PrivateKey, args ...*pb.Arg) (*pb.Receipt, e
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(res.Ret))
 	if res.Status == pb.Receipt_FAILED {
 		return nil, errors.New(string(res.Ret))
 	}
