@@ -13,6 +13,7 @@ GO_LDFLAGS += -X "${VERSION_DIR}.CurrentBranch=${GIT_BRANCH}"
 GO_LDFLAGS += -X "${VERSION_DIR}.CurrentVersion=${APP_VERSION}"
 
 TEST_PKGS := $(shell go list ./... | grep -v 'mock_*' | grep -v 'tester')
+TEST_TIME := $(shell date "+%Y%M%d%H%M%S")
 
 RED=\033[0;31m
 GREEN=\033[0;32m
@@ -42,19 +43,37 @@ test-coverage:
 
 ## make bitxhub-tester: Run bitxhub test
 bitxhub-tester:
+ifeq ("${REPORT}", "Y")
+	@mkdir -p report
+	$(GO) get gotest.tools/gotestsum
+	cd tester/bxh_tester && gotestsum --junitfile report/report_${TEST_TIME}.xml -- -v -run TestTester
+else
 	cd tester/bxh_tester && $(GO) test -v -run TestTester
+endif
 
 ## make interchain-tester: Run interchain test
 interchain-tester:
-	cd tester/interchain_tester && $(GO) test -v -run TestTester
+	@cd tester/interchain_tester && $(GO) test -v -run TestTester
 
 ## make gosdk-tester: Run gosdk test
 gosdk-tester:
+ifeq ("${REPORT}", "Y")
+	@mkdir -p report
+	$(GO) get gotest.tools/gotestsum
+	cd tester/gosdk_tester && gotestsum --junitfile report/report_${TEST_TIME}.xml -- -v -run TestTester
+else
 	cd tester/gosdk_tester && $(GO) test -v -run TestTester
+endif
 
 ## make http-tester: Run http test
 http-tester:
-	cd tester/interface_tester/client_tester && $(GO) test -v -run TestTester
+ifeq ("${REPORT}", "Y")
+	@mkdir -p report
+	$(GO) get gotest.tools/gotestsum
+	cd tester/http_tester && gotestsum --junitfile report/report_${TEST_TIME}.xml -- -v -run TestTester
+else
+	cd tester/http_tester && $(GO) test -v -run TestTester
+endif
 
 ## make install: Go install the project
 install:
@@ -71,6 +90,6 @@ build:
 
 ## make linter: Run golanci-lint
 linter:
-	 run
+	run
 
 .PHONY: tester build
