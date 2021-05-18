@@ -45,7 +45,7 @@ func (suite *Model4) Test0404_LegerSetWithErrorMethod() {
 	res, err := suite.client.InvokeXVMContract(address, "state_test_set111", nil, rpcx.String("Alice"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
-	suite.Require().Contains(string(res.Ret), "wrong rule contract")
+	suite.Require().Contains(string(res.Ret), "does not exist")
 }
 
 func (suite *Model4) Test0405_LegerSetRepeat() {
@@ -67,8 +67,8 @@ func (suite *Model4) Test0406_LegerGetAliceWithoutSet() {
 
 	res, err := suite.client.InvokeXVMContract(address, "state_test_get", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
-	suite.Require().Contains(string(res.Ret), "Failed to call the `state_test_get` exported function.")
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+	suite.Require().Equal("0", string(res.Ret))
 }
 
 func (suite *Model4) Test0407_GetNilWithoutSet() {
@@ -104,8 +104,8 @@ func (suite *Model4) Test0409_SetAliceGetBob() {
 
 	res, err = suite.client.InvokeXVMContract(address, "state_test_get", nil, rpcx.String("Bob"), rpcx.String("111"))
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
-	suite.Require().Contains(string(res.Ret), "Failed to call the `state_test_get` exported function.")
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+	suite.Require().Equal("0", string(res.Ret))
 }
 
 func (suite *Model4) Test0410_SetAliceGetNil() {
