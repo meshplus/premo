@@ -250,7 +250,6 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 		if err != nil {
 			return fmt.Errorf("register rule error:%w", err)
 		}
-		fmt.Println(string(res.Ret))
 		err = bee.VotePass(string(res.Ret))
 		if err != nil {
 			return fmt.Errorf("contract vote error:%w", err)

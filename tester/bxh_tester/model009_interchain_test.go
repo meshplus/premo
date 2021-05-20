@@ -2,7 +2,6 @@ package bxh_tester
 
 import (
 	"crypto/sha256"
-	"fmt"
 	"time"
 
 	"github.com/meshplus/bitxhub-kit/crypto"
@@ -11,8 +10,12 @@ import (
 	"github.com/meshplus/bitxhub-model/pb"
 )
 
+type Model9 struct {
+	*Snake
+}
+
 // ------ interchain tests ------
-func (suite *Snake) Test0901_HandleIBTPShouldSucceed() {
+func (suite *Model9) Test0901_HandleIBTPShouldSucceed() {
 	kA, ChainID1, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	_, ChainID2, err := suite.RegisterAppchain()
@@ -30,11 +33,10 @@ func (suite *Snake) Test0901_HandleIBTPShouldSucceed() {
 	tx.Extra = []byte(proof)
 	res, err := client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 	suite.Require().Equal(res.Status, pb.Receipt_SUCCESS)
 }
 
-func (suite *Snake) Test0902_HandleIBTPWithNonexistentFrom() {
+func (suite *Model9) Test0902_HandleIBTPWithNonexistentFrom() {
 	kB, ChainID2, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	suite.BindRule(kB, "./testdata/simple_rule.wasm", ChainID2)
@@ -56,11 +58,10 @@ func (suite *Snake) Test0902_HandleIBTPWithNonexistentFrom() {
 	res, err := client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(res.Status, pb.Receipt_FAILED)
-	fmt.Println(string(res.Ret))
-	suite.Require().Contains(string(res.Ret), "tx has invalid ibtp proof")
+	suite.Require().Contains(string(res.Ret), "cannot get registered appchain")
 }
 
-func (suite *Snake) Test0903_HandleIBTPWithNonexistentTo() {
+func (suite *Model9) Test0903_HandleIBTPWithNonexistentTo() {
 	kA, ChainID1, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	suite.BindRule(kA, "./testdata/simple_rule.wasm", ChainID1)
@@ -81,11 +82,11 @@ func (suite *Snake) Test0903_HandleIBTPWithNonexistentTo() {
 	tx.Extra = []byte(proof)
 	res, err := client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
-	suite.Require().Equal(res.Status, pb.Receipt_SUCCESS)
-	fmt.Println(string(res.Ret))
+	suite.Require().Equal(res.Status, pb.Receipt_FAILED)
+	suite.Require().Contains(string(res.Ret), "is not registered")
 }
 
-func (suite *Snake) Test0904_HandleIBTPWithNonexistentRule() {
+func (suite *Model9) Test0904_HandleIBTPWithNonexistentRule() {
 	kA, ChainID1, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	_, ChainID2, err := suite.RegisterAppchain()
@@ -103,11 +104,10 @@ func (suite *Snake) Test0904_HandleIBTPWithNonexistentRule() {
 	res, err := client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(res.Status, pb.Receipt_FAILED)
-	fmt.Println(string(res.Ret))
-	suite.Require().Contains(string(res.Ret), "tx has invalid ibtp proof")
+	suite.Require().Contains(string(res.Ret), "appchain didn't register rule")
 }
 
-func (suite *Snake) Test0905_HandleIBTPWithWrongIBTPIndex() {
+func (suite *Model9) Test0905_HandleIBTPWithWrongIBTPIndex() {
 	kA, ChainID1, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	_, ChainID2, err := suite.RegisterAppchain()
@@ -124,11 +124,10 @@ func (suite *Snake) Test0905_HandleIBTPWithWrongIBTPIndex() {
 	tx.Extra = []byte(proof)
 	res, err := client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 	suite.Require().Contains(string(res.Ret), "wrong index")
 }
 
-func (suite *Snake) Test0906_GetIBTPByID() {
+func (suite *Model9) Test0906_GetIBTPByID() {
 	kA, ChainID1, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	_, ChainID2, err := suite.RegisterAppchain()
@@ -153,7 +152,6 @@ func (suite *Snake) Test0906_GetIBTPByID() {
 	res, err = client.SendTransactionWithReceipt(tx, nil)
 
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
 	ib.Index = 3
@@ -171,7 +169,7 @@ func (suite *Snake) Test0906_GetIBTPByID() {
 	suite.Require().NotNil(res.Ret)
 }
 
-func (suite *Snake) Test0907_HandleIBTPWithWrongProof() {
+func (suite *Model9) Test0907_HandleIBTPWithWrongProof() {
 	kA, ChainID1, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	_, ChainID2, err := suite.RegisterAppchain()
@@ -190,11 +188,10 @@ func (suite *Snake) Test0907_HandleIBTPWithWrongProof() {
 	tx.Extra = []byte(proof)
 	res, err := client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 	suite.Require().Contains(string(res.Ret), "Call using []uint8 as type *pb.IBTP")
 }
 
-func (suite Snake) Test0908_HandleIBTPWithTxInBlock() {
+func (suite *Model9) Test0908_HandleIBTPWithTxInBlock() {
 	kA, ChainID1, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	_, ChainID2, err := suite.RegisterAppchain()

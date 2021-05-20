@@ -1,7 +1,6 @@
 package bxh_tester
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 
@@ -13,7 +12,11 @@ import (
 	"github.com/meshplus/bitxhub-model/pb"
 )
 
-func (suite *Snake) Test0801_TXEmptyFrom() {
+type Model8 struct {
+	*Snake
+}
+
+func (suite *Model8) Test0801_TXEmptyFrom() {
 	data := &pb.TransactionData{
 		Amount: 1,
 	}
@@ -29,7 +32,7 @@ func (suite *Snake) Test0801_TXEmptyFrom() {
 	suite.Require().NotNil(err)
 }
 
-func (suite *Snake) Test0802_TXEmptyTo() {
+func (suite *Model8) Test0802_TXEmptyTo() {
 	data := &pb.TransactionData{
 		Amount: 1,
 	}
@@ -46,7 +49,7 @@ func (suite *Snake) Test0802_TXEmptyTo() {
 }
 
 /*增加form和to都为空*/
-func (suite *Snake) Test0803_TXEmptyFromAndTo() {
+func (suite *Model8) Test0803_TXEmptyFromAndTo() {
 	data := &pb.TransactionData{
 		Amount: 1,
 	}
@@ -62,7 +65,7 @@ func (suite *Snake) Test0803_TXEmptyFromAndTo() {
 }
 
 /*增加from和to相同*/
-func (suite *Snake) Test0804_TXSameFromAndTo() {
+func (suite *Model8) Test0804_TXSameFromAndTo() {
 	data := &pb.TransactionData{
 		Amount: 1,
 	}
@@ -79,7 +82,7 @@ func (suite *Snake) Test0804_TXSameFromAndTo() {
 	suite.Require().NotNil(err)
 }
 
-func (suite *Snake) Test0805_TXEmptySig() {
+func (suite *Model8) Test0805_TXEmptySig() {
 	data := &pb.TransactionData{
 		Amount: 1,
 	}
@@ -96,7 +99,7 @@ func (suite *Snake) Test0805_TXEmptySig() {
 	suite.Require().Nil(err)
 }
 
-func (suite *Snake) Test0806_TXWrongSigPrivateKey() {
+func (suite *Model8) Test0806_TXWrongSigPrivateKey() {
 	data := &pb.TransactionData{
 		Amount: 1,
 	}
@@ -123,11 +126,11 @@ func (suite *Snake) Test0806_TXWrongSigPrivateKey() {
 
 }
 
-func (suite *Snake) Test0807_TXWrongSigAlgorithm() {
+func (suite *Model8) Test0807_TXWrongSigAlgorithm() {
 	// K1
 }
 
-func (suite *Snake) Test0808_TXExtra10MB() {
+func (suite *Model8) Test0808_TXExtra10MB() {
 	MB10 := make([]byte, 10*1024*1024) // 10MB
 	for i := 0; i < len(MB10); i++ {
 		MB10[i] = uint8(rand.Intn(255))
@@ -151,7 +154,7 @@ func (suite *Snake) Test0808_TXExtra10MB() {
 	suite.Require().NotNil(err)
 }
 
-func (suite *Snake) Test0809_GetTxByHash() {
+func (suite *Model8) Test0809_GetTxByHash() {
 	data := &pb.TransactionData{
 		Amount: 1,
 	}
@@ -184,7 +187,7 @@ func (suite *Snake) Test0809_GetTxByHash() {
 	suite.Require().NotNil(ret)
 }
 
-func (suite *Snake) Test0810_GetReceiptByHash() {
+func (suite *Model8) Test0810_GetReceiptByHash() {
 	data := &pb.TransactionData{
 		Amount: 1,
 	}
@@ -200,7 +203,6 @@ func (suite *Snake) Test0810_GetReceiptByHash() {
 
 	hash, err := suite.client.SendTransaction(tx, nil)
 	suite.Require().Nil(err)
-	fmt.Println(hash)
 
 	ret, err := suite.client.GetReceipt(hash)
 	suite.Require().Nil(err)
@@ -210,7 +212,7 @@ func (suite *Snake) Test0810_GetReceiptByHash() {
 }
 
 /*通过错误的hash值进行查询*/
-func (suite *Snake) Test0811_GetReceiptByWrongHash() {
+func (suite *Model8) Test0811_GetReceiptByWrongHash() {
 	data := &pb.TransactionData{
 		Amount: 1,
 	}

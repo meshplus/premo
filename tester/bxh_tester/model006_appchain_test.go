@@ -3,7 +3,6 @@ package bxh_tester
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 
 	appchainmgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"github.com/meshplus/bitxhub-core/governance"
@@ -15,8 +14,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+type Model6 struct {
+	*Snake
+}
+
 //tc:注册信息缺失或错误
-func (suite *Snake) Test0601_RegisterAppchainLoseFields() {
+func (suite *Model6) Test0601_RegisterAppchainLoseFields() {
 	args := []*pb.Arg{
 		rpcx.String(""),     //validators
 		rpcx.String("raft"), //consensus_type
@@ -29,7 +32,7 @@ func (suite *Snake) Test0601_RegisterAppchainLoseFields() {
 }
 
 //tc:应用链未注册，注册应用链
-func (suite *Snake) Test0602_RegisterAppchain() {
+func (suite *Model6) Test0602_RegisterAppchain() {
 	_, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	res, err := suite.GetChainStatusById(ChainID)
@@ -41,7 +44,7 @@ func (suite *Snake) Test0602_RegisterAppchain() {
 }
 
 //tc:应用链未注册，注册应用链，投票不通过
-func (suite *Snake) Test0603_RegisterAppchainWithReject() {
+func (suite *Model6) Test0603_RegisterAppchainWithReject() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
@@ -83,7 +86,7 @@ func (suite *Snake) Test0603_RegisterAppchainWithReject() {
 }
 
 //tc:应用链处于注册中状态，注册应用链
-func (suite Snake) Test0604_RegisterAppchainWithRegisting() {
+func (suite *Model6) Test0604_RegisterAppchainWithRegisting() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
@@ -128,7 +131,7 @@ func (suite Snake) Test0604_RegisterAppchainWithRegisting() {
 }
 
 //tc:应用链状态已注册，注册应用链
-func (suite *Snake) Test0605_RegisterAppchainRepeat() {
+func (suite *Model6) Test0605_RegisterAppchainRepeat() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -162,7 +165,7 @@ func (suite *Snake) Test0605_RegisterAppchainRepeat() {
 }
 
 //tc:应用链处于不可用状态，注册应用链
-func (suite *Snake) Test0606_RegisterAppchainWithUnavailable() {
+func (suite *Model6) Test0606_RegisterAppchainWithUnavailable() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
@@ -211,7 +214,7 @@ func (suite *Snake) Test0606_RegisterAppchainWithUnavailable() {
 }
 
 //tc:应用链处于更新中状态，注册应用链
-func (suite *Snake) Test0607_RegisterAppchainWithUpdating() {
+func (suite *Model6) Test0607_RegisterAppchainWithUpdating() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -232,7 +235,6 @@ func (suite *Snake) Test0607_RegisterAppchainWithUpdating() {
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -257,7 +259,6 @@ func (suite *Snake) Test0607_RegisterAppchainWithUpdating() {
 	}
 	res, err = client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 	suite.Require().Contains(string(res.Ret), "appchain has registered")
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -268,7 +269,7 @@ func (suite *Snake) Test0607_RegisterAppchainWithUpdating() {
 }
 
 //tc:应用链处于冻结中状态，注册应用链
-func (suite *Snake) Test0608_RegisterAppchainWithFreezing() {
+func (suite *Model6) Test0608_RegisterAppchainWithFreezing() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -303,7 +304,6 @@ func (suite *Snake) Test0608_RegisterAppchainWithFreezing() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 	suite.Require().Contains(string(res.Ret), "appchain has registered")
-	fmt.Println(string(res.Ret))
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
@@ -313,7 +313,7 @@ func (suite *Snake) Test0608_RegisterAppchainWithFreezing() {
 }
 
 //tc:应用链处于冻结状态，注册应用链
-func (suite *Snake) Test0609_RegisterAppchainWithFrozen() {
+func (suite *Model6) Test0609_RegisterAppchainWithFrozen() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -350,7 +350,7 @@ func (suite *Snake) Test0609_RegisterAppchainWithFrozen() {
 }
 
 //tc:应用链处于注销中状态，注册应用链
-func (suite *Snake) Test0610_RegisterAppchainWithLogouting() {
+func (suite *Model6) Test0610_RegisterAppchainWithLogouting() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -387,7 +387,7 @@ func (suite *Snake) Test0610_RegisterAppchainWithLogouting() {
 }
 
 //tc:应用链处于注销状态，注册应用链
-func (suite *Snake) Test0611_RegisterAppChainWithForbidden() {
+func (suite *Model6) Test0611_RegisterAppChainWithForbidden() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -424,7 +424,7 @@ func (suite *Snake) Test0611_RegisterAppChainWithForbidden() {
 }
 
 //tc:激活信息缺失或错误
-func (suite *Snake) Test0612_ActivateAppchainLoseFields() {
+func (suite *Model6) Test0612_ActivateAppchainLoseFields() {
 	_, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -438,13 +438,13 @@ func (suite *Snake) Test0612_ActivateAppchainLoseFields() {
 }
 
 //tc:应用链未注册，激活应用链
-func (suite *Snake) Test0613_ActivateAppchainWithNoRegister() {
+func (suite *Model6) Test0613_ActivateAppchainWithNoRegister() {
 	err := suite.activateAppchain("did:bitxhub:appchain11111111111111111111111111111111111:.")
 	suite.Require().NotNil(err)
 }
 
 //tc:应用链处于注册中状态，激活应用链
-func (suite *Snake) Test0614_ActivateAppchainWithRegisting() {
+func (suite *Model6) Test0614_ActivateAppchainWithRegisting() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
@@ -476,21 +476,19 @@ func (suite *Snake) Test0614_ActivateAppchainWithRegisting() {
 	suite.Require().Nil(err)
 
 	err = suite.activateAppchain(result.ChainID)
-	fmt.Println(err)
 	suite.Require().NotNil(err)
 }
 
 //tc:应用链状态已注册，激活应用链
-func (suite Snake) Test0615_ActivateAppchainWithAvailable() {
+func (suite *Model6) Test0615_ActivateAppchainWithAvailable() {
 	_, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	err = suite.activateAppchain(ChainID)
-	fmt.Println(err)
 	suite.Require().NotNil(err)
 }
 
 //tc:应用链处于更新中状态，激活应用链
-func (suite *Snake) Test0616_ActivateAppchainWithUpdating() {
+func (suite *Model6) Test0616_ActivateAppchainWithUpdating() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -512,7 +510,6 @@ func (suite *Snake) Test0616_ActivateAppchainWithUpdating() {
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
@@ -522,18 +519,16 @@ func (suite *Snake) Test0616_ActivateAppchainWithUpdating() {
 	suite.Require().Equal(governance.GovernanceUpdating, appchain.Status)
 
 	err = suite.activateAppchain(ChainID)
-	fmt.Println(err)
 	suite.Require().NotNil(err)
 }
 
 //tc:应用链处于冻结中状态，激活应用链
-func (suite *Snake) Test0617_ActivateAppchainWithFreezing() {
+func (suite *Model6) Test0617_ActivateAppchainWithFreezing() {
 	_, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
 	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
@@ -547,7 +542,7 @@ func (suite *Snake) Test0617_ActivateAppchainWithFreezing() {
 }
 
 //tc:应用链处于冻结状态，激活应用链
-func (suite *Snake) Test0618_ActivateAppchain() {
+func (suite *Model6) Test0618_ActivateAppchain() {
 	_, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -566,7 +561,7 @@ func (suite *Snake) Test0618_ActivateAppchain() {
 }
 
 //tc:tc:应用链处于冻结状态，激活应用链,投票不通过
-func (suite *Snake) Test0619_ActivateAppchainWithReject() {
+func (suite *Model6) Test0619_ActivateAppchainWithReject() {
 	_, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -587,7 +582,7 @@ func (suite *Snake) Test0619_ActivateAppchainWithReject() {
 }
 
 //tc:应用链处于注销中状态，激活应用链
-func (suite Snake) Test0620_ActivateAppchainWithLogouting() {
+func (suite *Model6) Test0620_ActivateAppchainWithLogouting() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -607,7 +602,7 @@ func (suite Snake) Test0620_ActivateAppchainWithLogouting() {
 }
 
 //tc:应用链处于注销状态，激活应用链
-func (suite Snake) Test0621_ActivateAppchainWithForbidden() {
+func (suite *Model6) Test0621_ActivateAppchainWithForbidden() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -626,7 +621,7 @@ func (suite Snake) Test0621_ActivateAppchainWithForbidden() {
 }
 
 //tc:更新信息缺失或错误
-func (suite *Snake) Test0622_UpdateAppchainLoseFields() {
+func (suite *Model6) Test0622_UpdateAppchainLoseFields() {
 	pk, _, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -648,7 +643,7 @@ func (suite *Snake) Test0622_UpdateAppchainLoseFields() {
 }
 
 //tc:应用链处于注册中的状态，更新应用链
-func (suite *Snake) Test0623_UpdateAppchainWithRegisting() {
+func (suite *Model6) Test0623_UpdateAppchainWithRegisting() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
@@ -685,7 +680,7 @@ func (suite *Snake) Test0623_UpdateAppchainWithRegisting() {
 }
 
 //tc:应用链状态已注册，更新应用链
-func (suite *Snake) Test0624_UpdateAppchain() {
+func (suite *Model6) Test0624_UpdateAppchain() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -720,7 +715,7 @@ func (suite *Snake) Test0624_UpdateAppchain() {
 }
 
 //tc:应用链状态已注册，更新应用链,投票不通过
-func (suite *Snake) Test0625_UpdateAppchainWithReject() {
+func (suite *Model6) Test0625_UpdateAppchainWithReject() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -755,7 +750,7 @@ func (suite *Snake) Test0625_UpdateAppchainWithReject() {
 }
 
 //tc:应用链处于更新中的状态，更新应用链
-func (suite *Snake) Test0626_UpdateAppchainWithUpdating() {
+func (suite *Model6) Test0626_UpdateAppchainWithUpdating() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -789,13 +784,12 @@ func (suite *Snake) Test0626_UpdateAppchainWithUpdating() {
 }
 
 //tc:应用链处于冻结中的状态，更新应用链
-func (suite Snake) Test0627_UpdateAppchainWithFreezing() {
+func (suite *Model6) Test0627_UpdateAppchainWithFreezing() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
 	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
@@ -825,7 +819,7 @@ func (suite Snake) Test0627_UpdateAppchainWithFreezing() {
 }
 
 //tc:应用链处于冻结的状态，更新应用链
-func (suite Snake) Test0628_UpdateAppchainWithFrozen() {
+func (suite *Model6) Test0628_UpdateAppchainWithFrozen() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -859,7 +853,7 @@ func (suite Snake) Test0628_UpdateAppchainWithFrozen() {
 }
 
 //tc:应用链处于注销中状态，更新应用链
-func (suite Snake) Test0629_UpdateAppchainWithWithLogouting() {
+func (suite *Model6) Test0629_UpdateAppchainWithWithLogouting() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -895,7 +889,7 @@ func (suite Snake) Test0629_UpdateAppchainWithWithLogouting() {
 }
 
 //tc:应用链处于注销状态，更新应用链
-func (suite Snake) Test0630_UpdateAppchainWithUnavailable() {
+func (suite *Model6) Test0630_UpdateAppchainWithUnavailable() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -929,7 +923,7 @@ func (suite Snake) Test0630_UpdateAppchainWithUnavailable() {
 }
 
 //tc:冻结信息缺失或错误
-func (suite *Snake) Test0631_FreezeAppchainLoseFields() {
+func (suite *Model6) Test0631_FreezeAppchainLoseFields() {
 	pk, _, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -941,7 +935,7 @@ func (suite *Snake) Test0631_FreezeAppchainLoseFields() {
 }
 
 //tc:应用链处于注册中的状态，冻结应用链
-func (suite *Snake) Test0632_FreezeAppchainWithRegisting() {
+func (suite *Model6) Test0632_FreezeAppchainWithRegisting() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
@@ -977,7 +971,7 @@ func (suite *Snake) Test0632_FreezeAppchainWithRegisting() {
 }
 
 //tc:应用链状态已注册，冻结应用链
-func (suite *Snake) Test0633_FreezeAppchain() {
+func (suite *Model6) Test0633_FreezeAppchain() {
 	_, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -993,7 +987,7 @@ func (suite *Snake) Test0633_FreezeAppchain() {
 }
 
 //tc:应用链状态已注册，冻结应用链，投票不通过
-func (suite *Snake) Test0634_FreezeAppchainWithReject() {
+func (suite *Model6) Test0634_FreezeAppchainWithReject() {
 	_, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -1011,7 +1005,7 @@ func (suite *Snake) Test0634_FreezeAppchainWithReject() {
 }
 
 //tc:应用链处于更新中的状态，冻结应用链
-func (suite Snake) Test0635_FreezeAppchainWithUpdating() {
+func (suite *Model6) Test0635_FreezeAppchainWithUpdating() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -1032,7 +1026,6 @@ func (suite Snake) Test0635_FreezeAppchainWithUpdating() {
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
@@ -1046,13 +1039,12 @@ func (suite Snake) Test0635_FreezeAppchainWithUpdating() {
 }
 
 //tc:应用链处于冻结中的状态，冻结应用链
-func (suite *Snake) Test0636_FreezeAppchainWithFreezing() {
+func (suite *Model6) Test0636_FreezeAppchainWithFreezing() {
 	_, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
 	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
@@ -1066,7 +1058,7 @@ func (suite *Snake) Test0636_FreezeAppchainWithFreezing() {
 }
 
 //tc:应用链处于冻结的状态，冻结应用链
-func (suite *Snake) Test0637_FreezeAppchainWithFrozen() {
+func (suite *Model6) Test0637_FreezeAppchainWithFrozen() {
 	_, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -1085,14 +1077,13 @@ func (suite *Snake) Test0637_FreezeAppchainWithFrozen() {
 }
 
 //tc:应用链处于注销中状态，冻结应用链
-func (suite Snake) Test0638_FreezeAppchainWithWithLogouting() {
+func (suite *Model6) Test0638_FreezeAppchainWithWithLogouting() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID))
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
@@ -1106,7 +1097,7 @@ func (suite Snake) Test0638_FreezeAppchainWithWithLogouting() {
 }
 
 //tc:应用链处于注销状态，冻结应用链
-func (suite Snake) Test0639_FreezeAppchainWithForbidden() {
+func (suite *Model6) Test0639_FreezeAppchainWithForbidden() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -1124,7 +1115,7 @@ func (suite Snake) Test0639_FreezeAppchainWithForbidden() {
 }
 
 //tc:应用链处于注册中的状态，注销应用链
-func (suite *Snake) Test0640_LogoutAppchainWithRegisting() {
+func (suite *Model6) Test0640_LogoutAppchainWithRegisting() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
@@ -1160,7 +1151,7 @@ func (suite *Snake) Test0640_LogoutAppchainWithRegisting() {
 }
 
 //tc:应用链状态已注册，注销应用链
-func (suite Snake) Test0641_LogoutAppchain() {
+func (suite *Model6) Test0641_LogoutAppchain() {
 	pk, _, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -1169,7 +1160,7 @@ func (suite Snake) Test0641_LogoutAppchain() {
 }
 
 //tc:应用链状态已注册，注销应用链,投票不通过
-func (suite Snake) Test0642_LogoutAppchainWithReject() {
+func (suite *Model6) Test0642_LogoutAppchainWithReject() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -1188,7 +1179,7 @@ func (suite Snake) Test0642_LogoutAppchainWithReject() {
 }
 
 //tc:应用链处于更新中的状态，注销应用链
-func (suite *Snake) Test0643_LogoutAppchainWithUpdating() {
+func (suite *Model6) Test0643_LogoutAppchainWithUpdating() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -1222,13 +1213,12 @@ func (suite *Snake) Test0643_LogoutAppchainWithUpdating() {
 }
 
 //tc:应用链处于冻结中的状态，注销应用链
-func (suite *Snake) Test0644_LogoutAppchainWithFreezing() {
+func (suite *Model6) Test0644_LogoutAppchainWithFreezing() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
 	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
@@ -1242,7 +1232,7 @@ func (suite *Snake) Test0644_LogoutAppchainWithFreezing() {
 }
 
 //tc:应用链处于冻结的状态，注销应用链
-func (suite *Snake) Test0645_LogoutAppchainWithFrozen() {
+func (suite *Model6) Test0645_LogoutAppchainWithFrozen() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -1260,7 +1250,7 @@ func (suite *Snake) Test0645_LogoutAppchainWithFrozen() {
 }
 
 //tc:应用链处于注销中状态，注销应用链
-func (suite *Snake) Test0646_LogoutAppchainWithLogouting() {
+func (suite *Model6) Test0646_LogoutAppchainWithLogouting() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -1280,7 +1270,7 @@ func (suite *Snake) Test0646_LogoutAppchainWithLogouting() {
 }
 
 //tc:应用链处于注销状态，注销应用链
-func (suite Snake) Test0647_LogoutAppchainWithUnavailable() {
+func (suite *Model6) Test0647_LogoutAppchainWithUnavailable() {
 	pk, _, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -1292,7 +1282,7 @@ func (suite Snake) Test0647_LogoutAppchainWithUnavailable() {
 }
 
 //tc:根据指定ID查询应用链信息
-func (suite *Snake) Test0648_GetAppchainByID() {
+func (suite *Model6) Test0648_GetAppchainByID() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
@@ -1340,13 +1330,12 @@ func (suite *Snake) Test0648_GetAppchainByID() {
 	}
 	res, err = client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "GetAppchain", nil, args...)
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 	suite.Require().Equal(res.Status, pb.Receipt_SUCCESS)
 	suite.Require().NotNil(res.Ret)
 }
 
 //tc:根据错误的ID查询应用链信息
-func (suite *Snake) Test0649_GetAppchainByErrorID() {
+func (suite *Model6) Test0649_GetAppchainByErrorID() {
 	args := []*pb.Arg{
 		rpcx.String(suite.from.String() + "123"),
 	}
@@ -1371,7 +1360,7 @@ func (suite *Snake) freezeAppchain(ChainID string) error {
 	return nil
 }
 
-func (suite Snake) updateAppchain(pk crypto.PrivateKey, args ...*pb.Arg) error {
+func (suite *Snake) updateAppchain(pk crypto.PrivateKey, args ...*pb.Arg) error {
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
 	if err != nil {
