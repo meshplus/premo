@@ -3,6 +3,7 @@ package bxh_tester
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 
 	appchainmgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"github.com/meshplus/bitxhub-core/governance"
@@ -77,7 +78,7 @@ func (suite *Model6) Test0603_RegisterAppchainWithReject() {
 	err = suite.VoteReject(result.ProposalID)
 	suite.Require().Nil(err)
 
-	res, err = suite.GetChainStatusById(result.ChainID)
+	res, err = suite.GetChainStatusById(string(result.Extra))
 	suite.Require().Nil(err)
 	appchain := &appchainmgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
@@ -122,7 +123,7 @@ func (suite *Model6) Test0604_RegisterAppchainWithRegisting() {
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 	suite.Require().Contains(string(res.Ret), "appchain has registered")
 
-	res, err = suite.GetChainStatusById(result.ChainID)
+	res, err = suite.GetChainStatusById(string(result.Extra))
 	suite.Require().Nil(err)
 	appchain := &appchainmgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
@@ -198,7 +199,7 @@ func (suite *Model6) Test0606_RegisterAppchainWithUnavailable() {
 	err = suite.VoteReject(result.ProposalID)
 	suite.Require().Nil(err)
 
-	res, err = suite.GetChainStatusById(result.ChainID)
+	res, err = suite.GetChainStatusById(string(result.Extra))
 	suite.Require().Nil(err)
 	appchain := &appchainmgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
@@ -225,10 +226,10 @@ func (suite *Model6) Test0607_RegisterAppchainWithUpdating() {
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
 		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
+		rpcx.String("123"),              //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain111"),      //name
+		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
 		rpcx.String(pubKeyStr),          //public key
@@ -475,7 +476,7 @@ func (suite *Model6) Test0614_ActivateAppchainWithRegisting() {
 	err = json.Unmarshal(res.Ret, result)
 	suite.Require().Nil(err)
 
-	err = suite.activateAppchain(result.ChainID)
+	err = suite.activateAppchain(string(result.Extra))
 	suite.Require().NotNil(err)
 }
 
@@ -500,7 +501,7 @@ func (suite *Model6) Test0616_ActivateAppchainWithUpdating() {
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
 		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
+		rpcx.String("111"),              //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
 		rpcx.String("AppChain"),         //name
@@ -570,7 +571,11 @@ func (suite *Model6) Test0619_ActivateAppchainWithReject() {
 
 	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil, rpcx.String(ChainID))
 	suite.Require().Nil(err)
-	err = suite.VoteReject(string(res.Ret))
+
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	suite.Require().Nil(err)
+	err = suite.VoteReject(result.ProposalID)
 	suite.Require().Nil(err)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -691,10 +696,10 @@ func (suite *Model6) Test0624_UpdateAppchain() {
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
 		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
+		rpcx.String("111"),              //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain11111"),    //name
+		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
 		rpcx.String(pubKeyStr),          //public key
@@ -702,7 +707,10 @@ func (suite *Model6) Test0624_UpdateAppchain() {
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
 	suite.Require().Nil(err)
-	err = suite.VotePass(string(res.Ret))
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	suite.Require().Nil(err)
+	err = suite.VotePass(result.ProposalID)
 	suite.Require().Nil(err)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -711,7 +719,7 @@ func (suite *Model6) Test0624_UpdateAppchain() {
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceAvailable, appchain.Status)
-	suite.Require().Equal("AppChain11111", appchain.Name)
+	suite.Require().Equal("AppChain", appchain.Name)
 }
 
 //tc:应用链状态已注册，更新应用链,投票不通过
@@ -726,10 +734,10 @@ func (suite *Model6) Test0625_UpdateAppchainWithReject() {
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
 		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
+		rpcx.String("111"),              //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain11111"),    //name
+		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
 		rpcx.String(pubKeyStr),          //public key
@@ -737,7 +745,10 @@ func (suite *Model6) Test0625_UpdateAppchainWithReject() {
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
 	suite.Require().Nil(err)
-	err = suite.VoteReject(string(res.Ret))
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	suite.Require().Nil(err)
+	err = suite.VoteReject(result.ProposalID)
 	suite.Require().Nil(err)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -761,7 +772,7 @@ func (suite *Model6) Test0626_UpdateAppchainWithUpdating() {
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
 		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
+		rpcx.String("111"),              //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
 		rpcx.String("AppChain"),         //name
@@ -966,7 +977,7 @@ func (suite *Model6) Test0632_FreezeAppchainWithRegisting() {
 	err = json.Unmarshal(res.Ret, result)
 	suite.Require().Nil(err)
 
-	err = suite.freezeAppchain(result.ChainID)
+	err = suite.freezeAppchain(string(result.Extra))
 	suite.Require().NotNil(err)
 }
 
@@ -993,7 +1004,10 @@ func (suite *Model6) Test0634_FreezeAppchainWithReject() {
 
 	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
 	suite.Require().Nil(err)
-	err = suite.VoteReject(string(res.Ret))
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	suite.Require().Nil(err)
+	err = suite.VoteReject(result.ProposalID)
 	suite.Require().Nil(err)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -1016,7 +1030,7 @@ func (suite *Model6) Test0635_FreezeAppchainWithUpdating() {
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
 		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
+		rpcx.String("111"),              //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
 		rpcx.String("AppChain"),         //name
@@ -1167,7 +1181,10 @@ func (suite *Model6) Test0642_LogoutAppchainWithReject() {
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID))
 	suite.Require().Nil(err)
-	err = suite.VoteReject(string(res.Ret))
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	suite.Require().Nil(err)
+	err = suite.VoteReject(result.ProposalID)
 	suite.Require().Nil(err)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -1190,7 +1207,7 @@ func (suite *Model6) Test0643_LogoutAppchainWithUpdating() {
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
 		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
+		rpcx.String("111"),              //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
 		rpcx.String("AppChain"),         //name
@@ -1314,11 +1331,11 @@ func (suite *Model6) Test0648_GetAppchainByID() {
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
 	suite.Require().Nil(err)
-	suite.Require().NotNil(result.ChainID)
+	suite.Require().NotNil(string(result.Extra))
 	err = suite.VotePass(result.ProposalID)
 	suite.Require().Nil(err)
 
-	res, err = suite.GetChainStatusById(result.ChainID)
+	res, err = suite.GetChainStatusById(string(result.Extra))
 	suite.Require().Nil(err)
 	appchain := &appchainmgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
@@ -1326,7 +1343,7 @@ func (suite *Model6) Test0648_GetAppchainByID() {
 	suite.Require().Equal(governance.GovernanceAvailable, appchain.Status)
 
 	args = []*pb.Arg{
-		rpcx.String(result.ChainID),
+		rpcx.String(string(result.Extra)),
 	}
 	res, err = client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "GetAppchain", nil, args...)
 	suite.Require().Nil(err)
@@ -1353,7 +1370,13 @@ func (suite *Snake) freezeAppchain(ChainID string) error {
 	if res.Status == pb.Receipt_FAILED {
 		return errors.New(string(res.Ret))
 	}
-	err = suite.VotePass(string(res.Ret))
+	fmt.Println(string(res.Ret))
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	if err != nil {
+		return err
+	}
+	err = suite.VotePass(result.ProposalID)
 	if err != nil {
 		return err
 	}
@@ -1369,7 +1392,12 @@ func (suite *Snake) updateAppchain(pk crypto.PrivateKey, args ...*pb.Arg) error 
 	if res.Status == pb.Receipt_FAILED {
 		return errors.New(string(res.Ret))
 	}
-	err = suite.VotePass(string(res.Ret))
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	if err != nil {
+		return err
+	}
+	err = suite.VotePass(result.ProposalID)
 	if err != nil {
 		return err
 	}
@@ -1384,7 +1412,12 @@ func (suite *Snake) activateAppchain(ChainID string) error {
 	if res.Status == pb.Receipt_FAILED {
 		return errors.New(string(res.Ret))
 	}
-	err = suite.VotePass(string(res.Ret))
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	if err != nil {
+		return err
+	}
+	err = suite.VotePass(result.ProposalID)
 	if err != nil {
 		return err
 	}
@@ -1405,7 +1438,13 @@ func (suite *Snake) logoutAppchain(pk crypto.PrivateKey) error {
 	if res.Status == pb.Receipt_FAILED {
 		return errors.New(string(res.Ret))
 	}
-	err = suite.VotePass(string(res.Ret))
+
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	if err != nil {
+		return err
+	}
+	err = suite.VotePass(result.ProposalID)
 	if err != nil {
 		return err
 	}

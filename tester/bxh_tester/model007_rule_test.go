@@ -19,6 +19,7 @@ import (
 )
 
 const (
+	RegisterRule = "RegisterRule"
 	BindRule     = "BindRule"
 	UnbindRule   = "UnbindRule"
 	FreezeRule   = "FreezeRule"
@@ -64,7 +65,7 @@ func (suite *Model7) Test0703_BindRule() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
@@ -82,7 +83,7 @@ func (suite *Model7) Test0704_BindRuleWithReject() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContractWithReject(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContractWithReject(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
@@ -105,11 +106,11 @@ func (suite *Model7) Test0705_BindRuleWithBinding() {
 		rpcx.String(ChainID),
 		rpcx.String(contractAddr.String()),
 	}
-	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), BindRule, nil, args...)
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), RegisterRule, nil, args...)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().NotNil(err)
 
 	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
@@ -127,9 +128,9 @@ func (suite *Model7) Test0706_BindRuleWithAvailable() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().NotNil(err)
 
 	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
@@ -147,7 +148,7 @@ func (suite *Model7) Test0707_BindRuleWithUnbinding() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
@@ -159,7 +160,7 @@ func (suite *Model7) Test0707_BindRuleWithUnbinding() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().NotNil(err)
 
 	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
@@ -177,7 +178,7 @@ func (suite *Model7) Test0708_BindRuleWithBindable() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, UnbindRule)
 	suite.Require().Nil(err)
@@ -199,7 +200,7 @@ func (suite *Model7) Test0709_BindRuleWithLogouting() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
@@ -211,7 +212,7 @@ func (suite *Model7) Test0709_BindRuleWithLogouting() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().NotNil(err)
 
 	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
@@ -229,13 +230,13 @@ func (suite *Model7) Test0710_BindRuleWithForbidden() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, LogoutRule)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().NotNil(err)
 
 	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
@@ -253,7 +254,7 @@ func (suite *Model7) Test0711_BindRuleWithFreezing() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
@@ -265,7 +266,7 @@ func (suite *Model7) Test0711_BindRuleWithFreezing() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().NotNil(err)
 
 	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
@@ -283,13 +284,13 @@ func (suite *Model7) Test0712_BindRuleWithFrozen() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, FreezeRule)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().NotNil(err)
 
 	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
@@ -322,7 +323,7 @@ func (suite *Model7) Test0714_UnbindRuleWithBinding() {
 		rpcx.String(ChainID),
 		rpcx.String(contractAddr.String()),
 	}
-	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), BindRule, nil, args...)
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), RegisterRule, nil, args...)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
@@ -344,7 +345,7 @@ func (suite *Model7) Test0715_UnbindRule() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, UnbindRule)
@@ -362,7 +363,7 @@ func (suite *Model7) Test0716_UnbindRuleWithReject() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContractWithReject(pk, ChainID, contractAddr, UnbindRule)
@@ -383,7 +384,7 @@ func (suite *Model7) Test0717_UnbindRuleWithUnbinding() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
@@ -413,7 +414,7 @@ func (suite *Model7) Test0718_UnbindRuleWithBindable() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, UnbindRule)
@@ -437,7 +438,7 @@ func (suite *Model7) Test0719_UnbindRuleWithLogouting() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
@@ -467,7 +468,7 @@ func (suite *Model7) Test0720_UnbindRuleWithForbidden() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, LogoutRule)
@@ -491,7 +492,7 @@ func (suite *Model7) Test0721_UnbindRuleWithFreezing() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
@@ -521,7 +522,7 @@ func (suite *Model7) Test0722_UnbindRuleWithFrozen() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, FreezeRule)
@@ -560,7 +561,7 @@ func (suite *Model7) Test0724_FreezeRuleWithBinding() {
 		rpcx.String(ChainID),
 		rpcx.String(contractAddr.String()),
 	}
-	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), BindRule, nil, args...)
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), RegisterRule, nil, args...)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
@@ -582,7 +583,7 @@ func (suite *Model7) Test0725_FreezeRule() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, FreezeRule)
@@ -603,14 +604,14 @@ func (suite *Model7) Test0726_FreezeRuleWithReject() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContractWithReject(pk, ChainID, contractAddr, FreezeRule)
 	suite.Require().Nil(err)
 
 	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
-	suite.Require().Equal(governance.GovernanceBindable, status)
+	suite.Require().Equal(governance.GovernanceAvailable, status)
 }
 
 //tc：验证规则unbinding状态，冻结验证规则
@@ -624,7 +625,7 @@ func (suite *Model7) Test0727_FreezeRuleWithUnbinding() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
@@ -654,7 +655,7 @@ func (suite *Model7) Test0728_FreezeRuleWithBindable() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, UnbindRule)
@@ -678,7 +679,7 @@ func (suite *Model7) Test0729_FreezeRuleWithLogouting() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
@@ -708,7 +709,7 @@ func (suite *Model7) Test0730_FreezeRuleWithForbidden() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, LogoutRule)
@@ -729,7 +730,7 @@ func (suite *Model7) Test0731_FreezeRuleWithFreezing() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
@@ -759,7 +760,7 @@ func (suite *Model7) Test0732_FreezeRuleWithFrozen() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, FreezeRule)
@@ -798,7 +799,7 @@ func (suite *Model7) Test0734_ActivateRuleWithBinding() {
 		rpcx.String(ChainID),
 		rpcx.String(contractAddr.String()),
 	}
-	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), BindRule, nil, args...)
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), RegisterRule, nil, args...)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
@@ -820,7 +821,7 @@ func (suite *Model7) Test0735_ActivateRuleWithAvailable() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, ActivateRule)
@@ -841,7 +842,7 @@ func (suite *Model7) Test0736_ActivateRuleWithUnbinding() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
@@ -871,7 +872,7 @@ func (suite *Model7) Test0737_ActivateRuleWithBindable() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, UnbindRule)
@@ -895,7 +896,7 @@ func (suite *Model7) Test0738_ActivateRuleWithLogouting() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
@@ -925,7 +926,7 @@ func (suite *Model7) Test0739_ActivateRuleWithForbidden() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, LogoutRule)
@@ -949,7 +950,7 @@ func (suite *Model7) Test0740_ActivateRuleWithFreezing() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
@@ -979,7 +980,7 @@ func (suite *Model7) Test0741_ActivateRuleWithFrozen() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, FreezeRule)
@@ -1018,7 +1019,7 @@ func (suite *Model7) Test0743_LogoutRuleWithBinding() {
 		rpcx.String(ChainID),
 		rpcx.String(contractAddr.String()),
 	}
-	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), BindRule, nil, args...)
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), RegisterRule, nil, args...)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
@@ -1040,7 +1041,7 @@ func (suite *Model7) Test0744_LogoutRuleWithAvailable() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, LogoutRule)
@@ -1061,7 +1062,7 @@ func (suite *Model7) Test0745_LogoutRuleWithUnbinding() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
@@ -1091,7 +1092,7 @@ func (suite *Model7) Test0746_LogoutRuleWithBindable() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, UnbindRule)
@@ -1115,7 +1116,7 @@ func (suite *Model7) Test0747_LogoutRuleWithLogouting() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
@@ -1145,7 +1146,7 @@ func (suite *Model7) Test0748_LogoutRuleWithForbidden() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, LogoutRule)
@@ -1169,7 +1170,7 @@ func (suite *Model7) Test0749_LogoutRuleWithFreezing() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
@@ -1199,7 +1200,7 @@ func (suite *Model7) Test0750_LogoutRuleWithFrozen() {
 	contractAddr, err := suite.client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, BindRule)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
 	suite.Require().Nil(err)
 
 	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, FreezeRule)
@@ -1222,10 +1223,12 @@ func (suite *Snake) InvokeRuleContract(pk crypto.PrivateKey, ChainID string, con
 	if err != nil {
 		return err
 	}
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
 	if res.Status == pb.Receipt_FAILED {
 		return errors.New(string(res.Ret))
 	}
-	err = suite.VotePass(string(res.Ret))
+	err = suite.VotePass(result.ProposalID)
 	if err != nil {
 		return err
 	}
@@ -1242,10 +1245,12 @@ func (suite *Snake) InvokeRuleContractWithReject(pk crypto.PrivateKey, ChainID s
 	if err != nil {
 		return err
 	}
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
 	if res.Status == pb.Receipt_FAILED {
 		return errors.New(string(res.Ret))
 	}
-	err = suite.VoteReject(string(res.Ret))
+	err = suite.VoteReject(result.ProposalID)
 	if err != nil {
 		return err
 	}
