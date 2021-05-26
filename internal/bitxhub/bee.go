@@ -26,6 +26,7 @@ var counter int64
 var sender int64
 var delayer int64
 var ibtppd []byte
+var proofHash [32]byte
 
 type bee struct {
 	adminPrivKey  crypto.PrivateKey
@@ -42,7 +43,7 @@ type bee struct {
 }
 
 type RegisterResult struct {
-	ChainID    string `json:"chain_id"`
+	Extra      []byte `json:"extra"`
 	ProposalID string `json:"proposal_id"`
 }
 
@@ -194,6 +195,12 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 	// register chain
 	pubKey, _ := bee.normalPrivKey.PublicKey().Bytes()
 	var pubKeyStr = base64.StdEncoding.EncodeToString(pubKey)
+	var ct = ""
+	if chainType == "fabric:simple" || chainType == "fabric:complex" {
+		ct = "fabric"
+	} else {
+		ct = chainType
+	}
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + bee.normalFrom.String() + ":" + bee.normalFrom.String()), //id
 		rpcx.String("did:bitxhub:appchain" + bee.normalFrom.String() + ":."),                          //ownerDID
@@ -201,7 +208,7 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                                 //docHash
 		rpcx.String(validators), //validators
 		rpcx.String("raft"),     //consensus_type
-		rpcx.String(chainType),  //chain_type
+		rpcx.String(ct),         //chain_type
 		rpcx.String(name),       //name
 		rpcx.String(desc),       //desc
 		rpcx.String(version),    //version
@@ -224,7 +231,7 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 	if err != nil {
 		return fmt.Errorf("vote chain error: %w", err)
 	}
-	res, err := bee.GetChainStatusById(result.ChainID)
+	res, err := bee.GetChainStatusById(string(result.Extra))
 	if err != nil {
 		return fmt.Errorf("getChainStatus error: %w", err)
 	}
@@ -233,7 +240,7 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 	if err != nil || appchain.Status != governance.GovernanceAvailable {
 		return fmt.Errorf("chain error: %w", err)
 	}
-	ID := result.ChainID
+	ID := string(result.Extra)
 
 	ruleAddr := "0x00000000000000000000000000000000000000a0"
 	// deploy rule
@@ -246,20 +253,54 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 		atomic.AddUint64(&bee.nonce, 1)
 		ruleAddr = contractAddr.String()
 		res, err = bee.invokeContract(bee.normalFrom, constant.RuleManagerContractAddr.Address(), atomic.LoadUint64(&bee.nonce),
-			"BindRule", rpcx.String(ID), rpcx.String(ruleAddr))
+			"RegisterRule", rpcx.String(ID), rpcx.String(ruleAddr))
 		if err != nil {
 			return fmt.Errorf("register rule error:%w", err)
 		}
-		err = bee.VotePass(string(res.Ret))
+		result := &RegisterResult{}
+		err = json.Unmarshal(res.Ret, result)
+		if err != nil {
+			return err
+		}
+		err = bee.VotePass(result.ProposalID)
 		if err != nil {
 			return fmt.Errorf("contract vote error:%w", err)
 		}
 		atomic.AddUint64(&bee.nonce, 1)
 	} else if chainType == "fabric:simple" {
+		res, err = bee.invokeContract(bee.normalFrom, constant.RuleManagerContractAddr.Address(), atomic.LoadUint64(&bee.nonce),
+			"UnbindRule", rpcx.String(ID), rpcx.String(ruleAddr))
+		if err != nil {
+			return fmt.Errorf("register rule error:%w", err)
+		}
+		result := &RegisterResult{}
+		err = json.Unmarshal(res.Ret, result)
+		if err != nil {
+			return err
+		}
+		err = bee.VotePass(result.ProposalID)
+		if err != nil {
+			return fmt.Errorf("contract vote error:%w", err)
+		}
+		atomic.AddUint64(&bee.nonce, 1)
 		ruleAddr = "0x00000000000000000000000000000000000000a1"
-		//TODO:rebind rule
+		res, err = bee.invokeContract(bee.normalFrom, constant.RuleManagerContractAddr.Address(), atomic.LoadUint64(&bee.nonce),
+			"BindRule", rpcx.String(ID), rpcx.String(ruleAddr))
+		if err != nil {
+			return fmt.Errorf("register rule error:%w", err)
+		}
+		result = &RegisterResult{}
+		err = json.Unmarshal(res.Ret, result)
+		if err != nil {
+			return err
+		}
+		err = bee.VotePass(result.ProposalID)
+		if err != nil {
+			return fmt.Errorf("contract vote error:%w", err)
+		}
+		atomic.AddUint64(&bee.nonce, 1)
 	}
-
+	prepareInterchainTx(bee.config.Proof)
 	return nil
 }
 
@@ -349,6 +390,30 @@ func (bee *bee) sendInterchainTx(i uint64, nonce uint64) error {
 	go bee.counterReceipt(tx)
 
 	return nil
+}
+
+func prepareInterchainTx(proof []byte) {
+	if ibtppd != nil {
+		return
+	}
+
+	content := &pb.Content{
+		SrcContractId: "mychannel&transfer",
+		DstContractId: "mychannel&transfer",
+		Func:          "interchainCharge",
+		Args:          [][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
+		Callback:      "interchainConfirm",
+	}
+
+	bytes, _ := content.Marshal()
+
+	payload := &pb.Payload{
+		Encrypted: false,
+		Content:   bytes,
+	}
+
+	ibtppd, _ = payload.Marshal()
+	proofHash = sha256.Sum256(proof)
 }
 
 func mockIBTP(index uint64, from, to string, proof []byte) *pb.IBTP {
