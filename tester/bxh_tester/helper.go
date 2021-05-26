@@ -43,7 +43,7 @@ type Snake struct {
 	to        *types.Address
 }
 type RegisterResult struct {
-	ChainID    string `json:"chain_id"`
+	Extra      []byte `json:"extra"`
 	ProposalID string `json:"proposal_id"`
 }
 
@@ -140,7 +140,7 @@ func (suite *Snake) RegisterAppchain() (crypto.PrivateKey, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	return pk, result.ChainID, nil
+	return pk, string(result.Extra), nil
 }
 
 func (suite *Snake) BindRule(pk crypto.PrivateKey, ruleFile string, ChainID string) {
