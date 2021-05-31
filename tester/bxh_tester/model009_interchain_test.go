@@ -20,7 +20,7 @@ func (suite *Model9) Test0901_HandleIBTPShouldSucceed() {
 	suite.Require().Nil(err)
 	_, ChainID2, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	suite.BindRule(kA, "./testdata/simple_rule.wasm", ChainID1)
+	suite.RegisterRule(kA, "./testdata/simple_rule.wasm", ChainID1)
 
 	proof := "test"
 	proofHash := sha256.Sum256([]byte(proof))
@@ -39,7 +39,7 @@ func (suite *Model9) Test0901_HandleIBTPShouldSucceed() {
 func (suite *Model9) Test0902_HandleIBTPWithNonexistentFrom() {
 	kB, ChainID2, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	suite.BindRule(kB, "./testdata/simple_rule.wasm", ChainID2)
+	suite.RegisterRule(kB, "./testdata/simple_rule.wasm", ChainID2)
 
 	proof := "test"
 	proofHash := sha256.Sum256([]byte(proof))
@@ -64,7 +64,7 @@ func (suite *Model9) Test0902_HandleIBTPWithNonexistentFrom() {
 func (suite *Model9) Test0903_HandleIBTPWithNonexistentTo() {
 	kA, ChainID1, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	suite.BindRule(kA, "./testdata/simple_rule.wasm", ChainID1)
+	suite.RegisterRule(kA, "./testdata/simple_rule.wasm", ChainID1)
 
 	proof := "test"
 	proofHash := sha256.Sum256([]byte(proof))
@@ -112,7 +112,7 @@ func (suite *Model9) Test0905_HandleIBTPWithWrongIBTPIndex() {
 	suite.Require().Nil(err)
 	_, ChainID2, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	suite.BindRule(kA, "./testdata/simple_rule.wasm", ChainID1)
+	suite.RegisterRule(kA, "./testdata/simple_rule.wasm", ChainID1)
 
 	proof := "test"
 	proofHash := sha256.Sum256([]byte(proof))
@@ -132,7 +132,7 @@ func (suite *Model9) Test0906_GetIBTPByID() {
 	suite.Require().Nil(err)
 	_, ChainID2, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	suite.BindRule(kA, "./testdata/simple_rule.wasm", ChainID1)
+	suite.RegisterRule(kA, "./testdata/simple_rule.wasm", ChainID1)
 
 	proof := "test"
 	proofHash := sha256.Sum256([]byte(proof))
@@ -174,7 +174,7 @@ func (suite *Model9) Test0907_HandleIBTPWithWrongProof() {
 	suite.Require().Nil(err)
 	_, ChainID2, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	suite.BindRule(kA, "./testdata/simple_rule.wasm", ChainID1)
+	suite.RegisterRule(kA, "./testdata/simple_rule.wasm", ChainID1)
 
 	proof := "test"
 	proofHash := sha256.Sum256([]byte(proof))
@@ -196,7 +196,7 @@ func (suite *Model9) Test0908_HandleIBTPWithTxInBlock() {
 	suite.Require().Nil(err)
 	_, ChainID2, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	suite.BindRule(kA, "./testdata/simple_rule.wasm", ChainID1)
+	suite.RegisterRule(kA, "./testdata/simple_rule.wasm", ChainID1)
 
 	client := suite.NewClient(kA)
 

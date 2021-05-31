@@ -3,7 +3,6 @@ package bxh_tester
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 
 	appchainmgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"github.com/meshplus/bitxhub-core/governance"
@@ -21,12 +20,15 @@ type Model6 struct {
 
 //tc:注册信息缺失或错误
 func (suite *Model6) Test0601_RegisterAppchainLoseFields() {
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
 	args := []*pb.Arg{
 		rpcx.String(""),     //validators
 		rpcx.String("raft"), //consensus_type
 		rpcx.String("1.8"),  //version
 	}
-	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
 	suite.Require().Equal(res.Status, pb.Receipt_FAILED)
 	suite.Require().Contains(string(res.Ret), "too few input arguments")
@@ -275,7 +277,7 @@ func (suite *Model6) Test0608_RegisterAppchainWithFreezing() {
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
-	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
 	suite.Require().Nil(err)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -318,7 +320,7 @@ func (suite *Model6) Test0609_RegisterAppchainWithFrozen() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
-	err = suite.freezeAppchain(ChainID)
+	err = suite.freezeAppchain(pk)
 	suite.Require().Nil(err)
 
 	pubAddress, err := pk.PublicKey().Address()
@@ -426,13 +428,14 @@ func (suite *Model6) Test0611_RegisterAppChainWithForbidden() {
 
 //tc:激活信息缺失或错误
 func (suite *Model6) Test0612_ActivateAppchainLoseFields() {
-	_, ChainID, err := suite.RegisterAppchain()
+	pk, _, err := suite.RegisterAppchain()
+	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
+
+	err = suite.freezeAppchain(pk)
 	suite.Require().Nil(err)
 
-	err = suite.freezeAppchain(ChainID)
-	suite.Require().Nil(err)
-
-	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil)
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 	suite.Require().Contains(string(res.Ret), "too few input arguments")
@@ -440,7 +443,9 @@ func (suite *Model6) Test0612_ActivateAppchainLoseFields() {
 
 //tc:应用链未注册，激活应用链
 func (suite *Model6) Test0613_ActivateAppchainWithNoRegister() {
-	err := suite.activateAppchain("did:bitxhub:appchain11111111111111111111111111111111111:.")
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	err = suite.activateAppchain(pk)
 	suite.Require().NotNil(err)
 }
 
@@ -476,15 +481,15 @@ func (suite *Model6) Test0614_ActivateAppchainWithRegisting() {
 	err = json.Unmarshal(res.Ret, result)
 	suite.Require().Nil(err)
 
-	err = suite.activateAppchain(string(result.Extra))
+	err = suite.activateAppchain(pk)
 	suite.Require().NotNil(err)
 }
 
 //tc:应用链状态已注册，激活应用链
 func (suite *Model6) Test0615_ActivateAppchainWithAvailable() {
-	_, ChainID, err := suite.RegisterAppchain()
+	pk, _, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	err = suite.activateAppchain(ChainID)
+	err = suite.activateAppchain(pk)
 	suite.Require().NotNil(err)
 }
 
@@ -519,16 +524,17 @@ func (suite *Model6) Test0616_ActivateAppchainWithUpdating() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceUpdating, appchain.Status)
 
-	err = suite.activateAppchain(ChainID)
+	err = suite.activateAppchain(pk)
 	suite.Require().NotNil(err)
 }
 
 //tc:应用链处于冻结中状态，激活应用链
 func (suite *Model6) Test0617_ActivateAppchainWithFreezing() {
-	_, ChainID, err := suite.RegisterAppchain()
+	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
 
-	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
 	suite.Require().Nil(err)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -538,19 +544,19 @@ func (suite *Model6) Test0617_ActivateAppchainWithFreezing() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceFreezing, appchain.Status)
 
-	err = suite.activateAppchain(ChainID)
+	err = suite.activateAppchain(pk)
 	suite.Require().NotNil(err)
 }
 
 //tc:应用链处于冻结状态，激活应用链
 func (suite *Model6) Test0618_ActivateAppchain() {
-	_, ChainID, err := suite.RegisterAppchain()
+	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
-	err = suite.freezeAppchain(ChainID)
+	err = suite.freezeAppchain(pk)
 	suite.Require().Nil(err)
 
-	err = suite.activateAppchain(ChainID)
+	err = suite.activateAppchain(pk)
 	suite.Require().Nil(err)
 
 	res, err := suite.GetChainStatusById(ChainID)
@@ -563,13 +569,14 @@ func (suite *Model6) Test0618_ActivateAppchain() {
 
 //tc:tc:应用链处于冻结状态，激活应用链,投票不通过
 func (suite *Model6) Test0619_ActivateAppchainWithReject() {
-	_, ChainID, err := suite.RegisterAppchain()
+	pk, ChainID, err := suite.RegisterAppchain()
+	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
+
+	err = suite.freezeAppchain(pk)
 	suite.Require().Nil(err)
 
-	err = suite.freezeAppchain(ChainID)
-	suite.Require().Nil(err)
-
-	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil, rpcx.String(ChainID))
 	suite.Require().Nil(err)
 
 	result := &RegisterResult{}
@@ -595,7 +602,7 @@ func (suite *Model6) Test0620_ActivateAppchainWithLogouting() {
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID))
 	suite.Require().Nil(err)
 
-	err = suite.activateAppchain(ChainID)
+	err = suite.activateAppchain(pk)
 	suite.Require().NotNil(err)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -621,7 +628,7 @@ func (suite *Model6) Test0621_ActivateAppchainWithForbidden() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceForbidden, appchain.Status)
 
-	err = suite.activateAppchain(ChainID)
+	err = suite.activateAppchain(pk)
 	suite.Require().NotNil(err)
 }
 
@@ -798,8 +805,9 @@ func (suite *Model6) Test0626_UpdateAppchainWithUpdating() {
 func (suite *Model6) Test0627_UpdateAppchainWithFreezing() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
 
-	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
 	suite.Require().Nil(err)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -834,7 +842,8 @@ func (suite *Model6) Test0628_UpdateAppchainWithFrozen() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
-	err = suite.freezeAppchain(ChainID)
+	err = suite.freezeAppchain(pk)
+	suite.Require().Nil(err)
 
 	res, err := suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
@@ -977,16 +986,16 @@ func (suite *Model6) Test0632_FreezeAppchainWithRegisting() {
 	err = json.Unmarshal(res.Ret, result)
 	suite.Require().Nil(err)
 
-	err = suite.freezeAppchain(string(result.Extra))
+	err = suite.freezeAppchain(pk)
 	suite.Require().NotNil(err)
 }
 
 //tc:应用链状态已注册，冻结应用链
 func (suite *Model6) Test0633_FreezeAppchain() {
-	_, ChainID, err := suite.RegisterAppchain()
+	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
-	err = suite.freezeAppchain(ChainID)
+	err = suite.freezeAppchain(pk)
 	suite.Require().Nil(err)
 
 	res, err := suite.GetChainStatusById(ChainID)
@@ -999,10 +1008,11 @@ func (suite *Model6) Test0633_FreezeAppchain() {
 
 //tc:应用链状态已注册，冻结应用链，投票不通过
 func (suite *Model6) Test0634_FreezeAppchainWithReject() {
-	_, ChainID, err := suite.RegisterAppchain()
+	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
 
-	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
 	suite.Require().Nil(err)
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
@@ -1048,16 +1058,17 @@ func (suite *Model6) Test0635_FreezeAppchainWithUpdating() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceUpdating, appchain.Status)
 
-	err = suite.freezeAppchain(ChainID)
+	err = suite.freezeAppchain(pk)
 	suite.Require().Nil(err)
 }
 
 //tc:应用链处于冻结中的状态，冻结应用链
 func (suite *Model6) Test0636_FreezeAppchainWithFreezing() {
-	_, ChainID, err := suite.RegisterAppchain()
+	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
 
-	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
 	suite.Require().Nil(err)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -1067,19 +1078,19 @@ func (suite *Model6) Test0636_FreezeAppchainWithFreezing() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceFreezing, appchain.Status)
 
-	err = suite.freezeAppchain(ChainID)
+	err = suite.freezeAppchain(pk)
 	suite.Require().NotNil(err)
 }
 
 //tc:应用链处于冻结的状态，冻结应用链
 func (suite *Model6) Test0637_FreezeAppchainWithFrozen() {
-	_, ChainID, err := suite.RegisterAppchain()
+	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
-	err = suite.freezeAppchain(ChainID)
+	err = suite.freezeAppchain(pk)
 	suite.Require().Nil(err)
 
-	err = suite.freezeAppchain(ChainID)
+	err = suite.freezeAppchain(pk)
 	suite.Require().NotNil(err)
 
 	res, err := suite.GetChainStatusById(ChainID)
@@ -1106,7 +1117,7 @@ func (suite *Model6) Test0638_FreezeAppchainWithWithLogouting() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceLogouting, appchain.Status)
 
-	err = suite.freezeAppchain(ChainID)
+	err = suite.freezeAppchain(pk)
 	suite.Require().NotNil(err)
 }
 
@@ -1124,7 +1135,7 @@ func (suite *Model6) Test0639_FreezeAppchainWithForbidden() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceForbidden, appchain.Status)
 
-	err = suite.freezeAppchain(ChainID)
+	err = suite.freezeAppchain(pk)
 	suite.Require().NotNil(err)
 }
 
@@ -1233,8 +1244,9 @@ func (suite *Model6) Test0643_LogoutAppchainWithUpdating() {
 func (suite *Model6) Test0644_LogoutAppchainWithFreezing() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
 
-	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
 	suite.Require().Nil(err)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -1253,7 +1265,7 @@ func (suite *Model6) Test0645_LogoutAppchainWithFrozen() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
-	err = suite.freezeAppchain(ChainID)
+	err = suite.freezeAppchain(pk)
 
 	res, err := suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
@@ -1353,24 +1365,32 @@ func (suite *Model6) Test0648_GetAppchainByID() {
 
 //tc:根据错误的ID查询应用链信息
 func (suite *Model6) Test0649_GetAppchainByErrorID() {
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
 	args := []*pb.Arg{
 		rpcx.String(suite.from.String() + "123"),
 	}
-	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "GetAppchain", nil, args...)
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "GetAppchain", nil, args...)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 	suite.Require().Equal("call error: this appchain does not exist", string(res.Ret))
 }
 
-func (suite *Snake) freezeAppchain(ChainID string) error {
-	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
+func (suite *Snake) freezeAppchain(pk crypto.PrivateKey) error {
+	pubAddress, err := pk.PublicKey().Address()
+	if err != nil {
+		return err
+	}
+	client := suite.NewClient(pk)
+	ChainID := "did:bitxhub:appchain" + pubAddress.String() + ":."
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
 	if err != nil {
 		return err
 	}
 	if res.Status == pb.Receipt_FAILED {
 		return errors.New(string(res.Ret))
 	}
-	fmt.Println(string(res.Ret))
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
 	if err != nil {
@@ -1404,8 +1424,14 @@ func (suite *Snake) updateAppchain(pk crypto.PrivateKey, args ...*pb.Arg) error 
 	return nil
 }
 
-func (suite *Snake) activateAppchain(ChainID string) error {
-	res, err := suite.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil, rpcx.String(ChainID))
+func (suite *Snake) activateAppchain(pk crypto.PrivateKey) error {
+	pubAddress, err := pk.PublicKey().Address()
+	if err != nil {
+		return err
+	}
+	client := suite.NewClient(pk)
+	ChainID := "did:bitxhub:appchain" + pubAddress.String() + ":."
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil, rpcx.String(ChainID))
 	if err != nil {
 		return err
 	}
@@ -1430,8 +1456,8 @@ func (suite *Snake) logoutAppchain(pk crypto.PrivateKey) error {
 		return err
 	}
 	client := suite.NewClient(pk)
-	did := "did:bitxhub:appchain" + pubAddress.String() + ":."
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(did))
+	ChainID := "did:bitxhub:appchain" + pubAddress.String() + ":."
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID))
 	if err != nil {
 		return err
 	}

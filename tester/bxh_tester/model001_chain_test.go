@@ -228,7 +228,7 @@ func (suite *Model1) Test0114_GetAccountBalance() {
 
 //tc：根据空的地址查询余额，返回余额为0
 func (suite *Model1) Test0115_GetAccountBalanceByNilAddress() {
-	res, err := suite.client.GetAccountBalance("0x0000000000000000000000000000000000000000")
+	res, err := suite.client.GetAccountBalance("0x0000000000000000000000000000000000000001")
 	suite.Require().Nil(err)
 
 	data := Account{}
