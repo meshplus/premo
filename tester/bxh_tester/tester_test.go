@@ -41,14 +41,14 @@ func TestTester(t *testing.T) {
 		clients = append(clients, client)
 	}
 	if len(clients) == 10 {
-		//suite.Run(t, &Model1{&Snake{client: clients[0], from: from, pk: pk, to: to}})
-		//suite.Run(t, &Model2{&Snake{client: clients[1], from: from, pk: pk, to: to}})
-		//suite.Run(t, &Model3{&Snake{client: clients[2], from: from, pk: pk, to: to}})
-		//suite.Run(t, &Model4{&Snake{client: clients[3], from: from, pk: pk, to: to}})
-		//suite.Run(t, &Model5{&Snake{client: clients[4], from: from, pk: pk, to: to}})
-		//suite.Run(t, &Model6{&Snake{client: clients[5], from: from, pk: pk, to: to}})
-		//suite.Run(t, &Model7{&Snake{client: clients[6], from: from, pk: pk, to: to}})
+		suite.Run(t, &Model1{&Snake{client: clients[0], from: from, pk: pk, to: to}})
+		suite.Run(t, &Model2{&Snake{client: clients[1], from: from, pk: pk, to: to}})
+		suite.Run(t, &Model3{&Snake{client: clients[2], from: from, pk: pk, to: to}})
+		suite.Run(t, &Model4{&Snake{client: clients[3], from: from, pk: pk, to: to}})
+		suite.Run(t, &Model5{&Snake{client: clients[4], from: from, pk: pk, to: to}})
+		suite.Run(t, &Model6{&Snake{client: clients[5], from: from, pk: pk, to: to}})
+		suite.Run(t, &Model7{&Snake{client: clients[6], from: from, pk: pk, to: to}})
 		suite.Run(t, &Model8{&Snake{client: clients[7], from: from, pk: pk, to: to}})
-		//suite.Run(t, &Model9{&Snake{client: clients[8], from: from, pk: pk, to: to}})
+		suite.Run(t, &Model9{&Snake{client: clients[8], from: from, pk: pk, to: to}})
 	}
 }
