@@ -241,6 +241,7 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 		return fmt.Errorf("chain error: %w", err)
 	}
 	ID := string(result.Extra)
+	fmt.Println(ID)
 
 	ruleAddr := "0x00000000000000000000000000000000000000a0"
 	// deploy rule
@@ -285,7 +286,7 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 		atomic.AddUint64(&bee.nonce, 1)
 		ruleAddr = "0x00000000000000000000000000000000000000a1"
 		res, err = bee.invokeContract(bee.normalFrom, constant.RuleManagerContractAddr.Address(), atomic.LoadUint64(&bee.nonce),
-			"BindRule", rpcx.String(ID), rpcx.String(ruleAddr))
+			"RegisterRule", rpcx.String(ID), rpcx.String(ruleAddr))
 		if err != nil {
 			return fmt.Errorf("register rule error:%w", err)
 		}
@@ -399,10 +400,12 @@ func prepareInterchainTx(proof []byte) {
 
 	content := &pb.Content{
 		SrcContractId: "mychannel&transfer",
-		DstContractId: "mychannel&transfer",
+		DstContractId: "0x30c5D3aeb4681af4D13384DBc2a717C51cb1cc11",
 		Func:          "interchainCharge",
 		Args:          [][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
-		Callback:      "interchainConfirm",
+		Callback:      "",
+		Rollback:      "interchainRollback",
+		ArgsRb:        [][]byte{[]byte("Alice"), []byte("1")},
 	}
 
 	bytes, _ := content.Marshal()

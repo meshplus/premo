@@ -1123,7 +1123,7 @@ func (suite *Snake) BindRule(pk crypto.PrivateKey, ruleFile string, ChainID stri
 	suite.Require().Nil(err)
 
 	// register rule
-	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "BindRule", nil, pb.String(ChainID), pb.String(addr.String()))
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, pb.String(ChainID), pb.String(addr.String()))
 	suite.Require().Nil(err)
 	fmt.Println(string(res.Ret))
 	suite.Require().True(res.IsSuccess())

@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
+	"sync/atomic"
 	"time"
 
 	"github.com/meshplus/bitxhub-kit/crypto"
@@ -47,9 +48,13 @@ type RegisterResult struct {
 	ProposalID string `json:"proposal_id"`
 }
 
+var nonce2 uint64
+var nonce3 uint64
+var nonce4 uint64
+
 // SetupTest init
 func (suite *Snake) SetupTest() {
-	//suite.T().Parallel()
+	suite.T().Parallel()
 }
 
 func (suite *Snake) SetupSuite() {
@@ -61,6 +66,7 @@ func (suite *Snake) SetupSuite() {
 
 	key, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
 	suite.Require().Nil(err)
+	suite.sendTransaction(key)
 
 	node2Addr, err := key.PublicKey().Address()
 	suite.Require().Nil(err)
@@ -73,6 +79,7 @@ func (suite *Snake) SetupSuite() {
 
 	key, err = asym.RestorePrivateKey(node3, repo.KeyPassword)
 	suite.Require().Nil(err)
+	suite.sendTransaction(key)
 
 	node3Addr, err := key.PublicKey().Address()
 	suite.Require().Nil(err)
@@ -85,12 +92,25 @@ func (suite *Snake) SetupSuite() {
 
 	key, err = asym.RestorePrivateKey(node4, repo.KeyPassword)
 	suite.Require().Nil(err)
+	suite.sendTransaction(key)
 
 	node4Addr, err := key.PublicKey().Address()
 	suite.Require().Nil(err)
 
 	_, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), rpcx.String("did:bitxhub:relayroot:"+node4Addr.String()))
 	suite.Require().Nil(err)
+
+	nonce, err := suite.client.GetPendingNonceByAccount(node2Addr.String())
+	suite.Require().Nil(err)
+	nonce2 = nonce - 1
+
+	nonce, err = suite.client.GetPendingNonceByAccount(node3Addr.String())
+	suite.Require().Nil(err)
+	nonce3 = nonce - 1
+
+	nonce, err = suite.client.GetPendingNonceByAccount(node4Addr.String())
+	suite.Require().Nil(err)
+	nonce4 = nonce - 1
 }
 
 func (suite *Snake) RegisterAppchain() (crypto.PrivateKey, string, error) {
@@ -143,7 +163,7 @@ func (suite *Snake) RegisterAppchain() (crypto.PrivateKey, string, error) {
 	return pk, string(result.Extra), nil
 }
 
-func (suite *Snake) BindRule(pk crypto.PrivateKey, ruleFile string, ChainID string) {
+func (suite *Snake) RegisterRule(pk crypto.PrivateKey, ruleFile string, ChainID string) {
 	client := suite.NewClient(pk)
 
 	// deploy rule
@@ -153,11 +173,13 @@ func (suite *Snake) BindRule(pk crypto.PrivateKey, ruleFile string, ChainID stri
 	suite.Require().Nil(err)
 
 	// register rule
-	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "BindRule", nil, pb.String(ChainID), pb.String(addr.String()))
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, pb.String(ChainID), pb.String(addr.String()))
 	suite.Require().Nil(err)
 	suite.Require().True(res.IsSuccess())
-
-	err = suite.VotePass(string(res.Ret))
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	suite.Require().Nil(err)
+	err = suite.VotePass(result.ProposalID)
 	suite.Require().Nil(err)
 }
 
@@ -172,7 +194,9 @@ func (suite *Snake) NewClient(pk crypto.PrivateKey) *rpcx.ChainClient {
 	return client
 }
 
-func (suite *Snake) sendTransaction() {
+func (suite *Snake) sendTransaction(pk crypto.PrivateKey) {
+	client := suite.NewClient(pk)
+	from, err := pk.PublicKey().Address()
 	data := &pb.TransactionData{
 		Amount: 1,
 	}
@@ -180,13 +204,13 @@ func (suite *Snake) sendTransaction() {
 	suite.Require().Nil(err)
 
 	tx := &pb.BxhTransaction{
-		From:      suite.from,
+		From:      from,
 		To:        suite.to,
 		Timestamp: time.Now().UnixNano(),
 		Payload:   payload,
 	}
 
-	res, err := suite.client.SendTransactionWithReceipt(tx, nil)
+	res, err := client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 }
@@ -202,7 +226,7 @@ func (suite *Snake) VotePass(id string) error {
 		return err
 	}
 
-	_, err = suite.vote(key, pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
+	_, err = suite.vote(key, atomic.AddUint64(&nonce2, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
 	if err != nil {
 		return err
 	}
@@ -217,7 +241,7 @@ func (suite *Snake) VotePass(id string) error {
 		return err
 	}
 
-	_, err = suite.vote(key, pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
+	_, err = suite.vote(key, atomic.AddUint64(&nonce3, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
 
 	if err != nil {
 		return err
@@ -233,7 +257,7 @@ func (suite *Snake) VotePass(id string) error {
 		return err
 	}
 
-	_, err = suite.vote(key, pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
+	_, err = suite.vote(key, atomic.AddUint64(&nonce4, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
 	if err != nil {
 		return err
 	}
@@ -252,7 +276,7 @@ func (suite *Snake) VoteReject(id string) error {
 		return err
 	}
 
-	_, err = suite.vote(key, pb.String(id), pb.String("reject"), pb.String("Appchain Pass"))
+	_, err = suite.vote(key, atomic.AddUint64(&nonce2, 1), pb.String(id), pb.String("reject"), pb.String("Appchain Pass"))
 	if err != nil {
 		return err
 	}
@@ -267,7 +291,7 @@ func (suite *Snake) VoteReject(id string) error {
 		return err
 	}
 
-	_, err = suite.vote(key, pb.String(id), pb.String("reject"), pb.String("Appchain Pass"))
+	_, err = suite.vote(key, atomic.AddUint64(&nonce3, 1), pb.String(id), pb.String("reject"), pb.String("Appchain Pass"))
 
 	if err != nil {
 		return err
@@ -283,7 +307,7 @@ func (suite *Snake) VoteReject(id string) error {
 		return err
 	}
 
-	_, err = suite.vote(key, pb.String(id), pb.String("reject"), pb.String("Appchain Pass"))
+	_, err = suite.vote(key, atomic.AddUint64(&nonce4, 1), pb.String(id), pb.String("reject"), pb.String("Appchain Pass"))
 	if err != nil {
 		return err
 	}
@@ -291,7 +315,7 @@ func (suite *Snake) VoteReject(id string) error {
 	return nil
 }
 
-func (suite *Snake) vote(key crypto.PrivateKey, args ...*pb.Arg) (*pb.Receipt, error) {
+func (suite *Snake) vote(key crypto.PrivateKey, nonce uint64, args ...*pb.Arg) (*pb.Receipt, error) {
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
 		rpcx.WithLogger(cfg.logger),
@@ -327,7 +351,9 @@ func (suite *Snake) vote(key crypto.PrivateKey, args ...*pb.Arg) (*pb.Receipt, e
 	if err != nil {
 		return nil, err
 	}
-	res, err := client.SendTransactionWithReceipt(tx, nil)
+	res, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		Nonce: nonce,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -338,8 +364,7 @@ func (suite *Snake) vote(key crypto.PrivateKey, args ...*pb.Arg) (*pb.Receipt, e
 }
 
 func (suite *Snake) GetChainStatusById(id string) (*pb.Receipt, error) {
-	node, err := repo.Node1Path()
-	key, err := asym.RestorePrivateKey(node, repo.KeyPassword)
+	key, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	if err != nil {
 		return nil, err
 	}
