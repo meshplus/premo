@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
-	"math/big"
 	"sync/atomic"
 	"time"
 
@@ -199,7 +198,7 @@ func (suite *Snake) sendTransaction(pk crypto.PrivateKey) {
 	client := suite.NewClient(pk)
 	from, err := pk.PublicKey().Address()
 	data := &pb.TransactionData{
-		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
+		Amount: "1",
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)

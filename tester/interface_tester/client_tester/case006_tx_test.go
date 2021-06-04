@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math/big"
 	"time"
 
 	"github.com/meshplus/bitxhub-kit/crypto"
@@ -19,7 +18,7 @@ import (
 )
 
 type RegisterResult struct {
-	ChainID    string `json:"chain_id"`
+	Extra      []byte `json:"extra"`
 	ProposalID string `json:"proposal_id"`
 }
 
@@ -68,7 +67,7 @@ func (suite Snake) TestTxSendIsTrue() {
 
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_Type(txType),
-		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
+		Amount: "1",
 	}
 
 	payload, err := data.Marshal()
@@ -108,7 +107,7 @@ func (suite Snake) TestTxSendWithFromAddressIsNil() {
 
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_Type(txType),
-		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
+		Amount: "1",
 	}
 
 	payload, err := data.Marshal()
@@ -145,7 +144,7 @@ func (suite Snake) TestTxSendWithToAddressIsNil() {
 
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_Type(txType),
-		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
+		Amount: "1",
 	}
 
 	payload, err := data.Marshal()
@@ -182,7 +181,7 @@ func (suite Snake) TestTxSendWithEmptySign() {
 
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_Type(txType),
-		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
+		Amount: "1",
 	}
 
 	payload, err := data.Marshal()
@@ -219,7 +218,7 @@ func (suite Snake) TestTxSendWithInvalidSign() {
 
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_Type(txType),
-		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
+		Amount: "1",
 	}
 
 	payload, err := data.Marshal()
@@ -256,7 +255,7 @@ func (suite Snake) TestTxSendWithEmptyTimestamp() {
 
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_Type(txType),
-		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
+		Amount: "1",
 	}
 
 	payload, err := data.Marshal()
@@ -293,7 +292,7 @@ func (suite Snake) TestTxSendWithErrorTimestamp() {
 
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_Type(txType),
-		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
+		Amount: "1",
 	}
 
 	payload, err := data.Marshal()

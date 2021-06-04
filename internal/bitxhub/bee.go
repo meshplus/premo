@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -343,7 +342,7 @@ func (bee *bee) sendTransferTx(to *types.Address, normalNo uint64) error {
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
 		VmType: pb.TransactionData_XVM,
-		Amount: (*pb.BigInt)(new(big.Int).SetInt64(0)),
+		Amount: "0",
 	}
 	payload, err := data.Marshal()
 	if err != nil {

@@ -724,6 +724,9 @@ github.com/meshplus/bitxhub-model v1.2.0 h1:Ac8ol1HZNLIegyZkU/DZGYkPeeAWp3ZgYsbJ
 github.com/meshplus/bitxhub-model v1.2.0/go.mod h1:QCYJy8fUQex0cvxqAZtGHJn31F5mwuXnE3Lyri15zUc=
 github.com/meshplus/bitxhub-model v1.2.1-0.20210602053322-8b042ad08bee h1:xZ5ML9CYTVp+HVrim7ClK8R+DHBkjMPR5fI3oao9z/E=
 github.com/meshplus/bitxhub-model v1.2.1-0.20210602053322-8b042ad08bee/go.mod h1:vwJ+sHPUyA2JELmUUDBol+7zA+7GcqutxzqXjsN0QLA=
+github.com/meshplus/bitxhub-model v1.2.1-0.20210604034838-b7e8a66d25a2/go.mod h1:vwJ+sHPUyA2JELmUUDBol+7zA+7GcqutxzqXjsN0QLA=
+github.com/meshplus/bitxhub-model v1.2.1-0.20210604092755-473bcc9420fc h1:3biOtoRK5n0vnp3kRjBoxt/Y1RyNvXzI1tqTlk0ca0g=
+github.com/meshplus/bitxhub-model v1.2.1-0.20210604092755-473bcc9420fc/go.mod h1:vwJ+sHPUyA2JELmUUDBol+7zA+7GcqutxzqXjsN0QLA=
 github.com/meshplus/bitxid v0.0.0-20210412025850-e0eaf0f9063a/go.mod h1:vAldSRfDe2Qo7exsSTbchVmZWXPY7fhWQrRw18QJHho=
 github.com/meshplus/eth-kit v0.0.0-20210602080147-c081838d9277 h1:wX/JgauSZgUXsnS8qCsbYb75joT1vz2IQGBbKA6RIg0=
 github.com/meshplus/eth-kit v0.0.0-20210602080147-c081838d9277/go.mod h1:/qxkWg/dQVZiRoegCkQmGE/DOWTT+J7vVg4cObcOEUg=
@@ -739,6 +742,8 @@ github.com/meshplus/go-bitxhub-client v1.3.0 h1:WhTmPqOvw3r/Qm0oZ6WW0PpaA8rnyO5s
 github.com/meshplus/go-bitxhub-client v1.3.0/go.mod h1:oeX3NbSpHGsc3v2ZSAaYc+WbG9+eKhYLjGCvX/KEmhU=
 github.com/meshplus/go-bitxhub-client v1.3.1-0.20210429032628-18797624d041 h1:Kg+932RClec7TqEc/TidfE9ZFzfh3wE0cD0/QRxcTNA=
 github.com/meshplus/go-bitxhub-client v1.3.1-0.20210429032628-18797624d041/go.mod h1:oeX3NbSpHGsc3v2ZSAaYc+WbG9+eKhYLjGCvX/KEmhU=
+github.com/meshplus/go-bitxhub-client v1.3.1-0.20210604092745-d883783a86b3 h1:azQeQgfvLeGXApnmt80Yl4I09ZQnXrOkjZYBdT9oe6E=
+github.com/meshplus/go-bitxhub-client v1.3.1-0.20210604092745-d883783a86b3/go.mod h1:LfeKVZ6vcFFWL/sB2U7glPqvndVxTngBKCaToLLuYvg=
 github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b/go.mod h1:01TrycV0kFyexm33Z7vhZRXopbI8J3TDReVlkTgMUxE=
 github.com/miekg/dns v1.0.14/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
 github.com/miekg/dns v1.1.12/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=

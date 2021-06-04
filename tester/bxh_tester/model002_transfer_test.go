@@ -1,7 +1,7 @@
 package bxh_tester
 
 import (
-	"math/big"
+	"strconv"
 	"sync/atomic"
 	"time"
 
@@ -37,7 +37,7 @@ func (suite *Model2) Test0201_TransferLessThanAmount() {
 	amount := balance + 1
 
 	data := &pb.TransactionData{
-		Amount: (*pb.BigInt)(new(big.Int).SetUint64(amount)),
+		Amount: strconv.FormatUint(amount, 10),
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
@@ -66,7 +66,7 @@ func (suite *Model2) Test0202_ToAddressIs0X000___000() {
 	client := suite.NewClient(pk)
 
 	data := &pb.TransactionData{
-		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
+		Amount: "1",
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
@@ -96,7 +96,7 @@ func (suite *Model2) Test0203_TypeIsXVM() {
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_INVOKE,
 		VmType: pb.TransactionData_XVM,
-		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
+		Amount: "1",
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
@@ -124,7 +124,7 @@ func (suite *Model2) Test0204_Transfer() {
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
-		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
+		Amount: "1",
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
