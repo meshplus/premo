@@ -1,6 +1,7 @@
 package bxh_tester
 
 import (
+	"math/big"
 	"math/rand"
 	"sync/atomic"
 	"time"
@@ -8,14 +9,11 @@ import (
 	"github.com/Rican7/retry"
 	"github.com/Rican7/retry/backoff"
 	"github.com/Rican7/retry/strategy"
-
 	"github.com/meshplus/bitxhub-kit/crypto"
-
-	rpcx "github.com/meshplus/go-bitxhub-client"
-	"github.com/meshplus/premo/internal/repo"
-
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-model/pb"
+	rpcx "github.com/meshplus/go-bitxhub-client"
+	"github.com/meshplus/premo/internal/repo"
 )
 
 type Model8 struct {
@@ -29,7 +27,7 @@ func (suite *Model8) Test0801_TXEmptyFrom() {
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
@@ -55,7 +53,7 @@ func (suite *Model8) Test0802_TXEmptyTo() {
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
@@ -80,7 +78,7 @@ func (suite *Model8) Test0803_TXEmptyFromAndTo() {
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
@@ -106,7 +104,7 @@ func (suite *Model8) Test0804_TXSameFromAndTo() {
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
@@ -160,7 +158,7 @@ func (suite *Model8) Test0806_TXWrongSigPrivateKey() {
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
@@ -202,7 +200,7 @@ func (suite *Model8) Test0808_TXExtra10MB() {
 	}
 
 	data := &pb.TransactionData{
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
@@ -232,7 +230,7 @@ func (suite *Model8) Test0809_GetTxByHash() {
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
@@ -276,7 +274,7 @@ func (suite *Model8) Test0810_GetReceiptByHash() {
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
@@ -306,7 +304,7 @@ func (suite *Model8) Test0811_GetReceiptByWrongHash() {
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)

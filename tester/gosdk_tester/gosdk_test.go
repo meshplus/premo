@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/big"
 	"math/rand"
 	"time"
 
@@ -161,7 +162,7 @@ func (suite *Snake) TestSendViewIsFalse() {
 func (suite Snake) TestSendTransactionIsTrue() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -187,7 +188,7 @@ func (suite Snake) TestSendTransactionIsTrue() {
 func (suite Snake) TestSendTransactionIsFalse() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 0,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(0)),
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -210,7 +211,7 @@ func (suite Snake) TestSendTransactionIsFalse() {
 func (suite Snake) TestSendTransactionWithReceiptIsTrue() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -233,7 +234,7 @@ func (suite Snake) TestSendTransactionWithReceiptIsTrue() {
 func (suite *Snake) TestSendTransactionWithReceiptWhenToIsNull() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -254,7 +255,7 @@ func (suite *Snake) TestSendTransactionWithReceiptWhenToIsNull() {
 func (suite *Snake) TestSendTransactionWithReceiptWhenFromIsNull() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -278,7 +279,7 @@ func (suite *Snake) TestSendTransactionWithReceiptWhenFromIsNull() {
 func (suite *Snake) TestGetReceiptByHashIsFalse() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -302,7 +303,7 @@ func (suite *Snake) TestGetReceiptByHashIsFalse() {
 func (suite *Snake) TestGetTransactionIsTrue() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -329,7 +330,7 @@ func (suite *Snake) TestGetTransactionIsTrue() {
 func (suite *Snake) TestGetTransactionIsFalse() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -365,7 +366,7 @@ func (suite *Snake) TestGetChainMeta() {
 func (suite Snake) TestGetBlocksIsTrue() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -405,7 +406,7 @@ func (suite Snake) TestGetBlocksIsTrue() {
 func (suite Snake) TestGetBlocksIsFalse() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -464,7 +465,7 @@ func (suite Snake) TestGetBlocksIsFalse() {
 func (suite *Snake) TestGetBlockIsTrue() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -498,7 +499,7 @@ func (suite *Snake) TestGetBlockIsTrue() {
 func (suite *Snake) TestGetBlockIsFalse() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -698,7 +699,7 @@ func (suite *Snake) TestSubscribe_BLOCK() {
 	suite.Require().Nil(err)
 
 	td := &pb.TransactionData{
-		Amount: 10,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(10)),
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -737,7 +738,7 @@ func (suite *Snake) TestSubscribe_BLOCK_HEADER() {
 	suite.Require().Nil(err)
 
 	td := &pb.TransactionData{
-		Amount: 10,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)

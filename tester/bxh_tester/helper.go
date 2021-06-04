@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
+	"math/big"
 	"sync/atomic"
 	"time"
 
@@ -21,7 +22,7 @@ import (
 
 var cfg = &config{
 	addrs: []string{
-		"localhost:60011",
+		"172.27.239.94:60011",
 		"localhost:60012",
 		"localhost:60013",
 		"localhost:60014",
@@ -198,7 +199,7 @@ func (suite *Snake) sendTransaction(pk crypto.PrivateKey) {
 	client := suite.NewClient(pk)
 	from, err := pk.PublicKey().Address()
 	data := &pb.TransactionData{
-		Amount: 1,
+		Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
