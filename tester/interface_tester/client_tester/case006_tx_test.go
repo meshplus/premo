@@ -8,8 +8,6 @@ import (
 	"io/ioutil"
 	"time"
 
-	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
-	"github.com/meshplus/bitxhub-core/governance"
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-kit/types"
@@ -20,7 +18,7 @@ import (
 )
 
 type RegisterResult struct {
-	ChainID    string `json:"chain_id"`
+	Extra      []byte `json:"extra"`
 	ProposalID string `json:"proposal_id"`
 }
 
@@ -61,16 +59,15 @@ func (suite *Snake) TestTxGetWithInvalidFormat() {
 
 func (suite Snake) TestTxSendIsTrue() {
 	txType := 0
-	amount := uint64(1)
 
 	kA, kB, from, to := suite.prepare()
-	suite.registerAppchain(kA, "hyperchain")
-	suite.registerAppchain(kB, "fabric")
+	suite.RegisterAppchain(kA, "hyperchain")
+	suite.RegisterAppchain(kB, "fabric")
 	suite.BindRule(kA, "../../../config/rule.wasm")
 
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_Type(txType),
-		Amount: amount,
+		Amount: "1",
 	}
 
 	payload, err := data.Marshal()
@@ -102,16 +99,15 @@ func (suite Snake) TestTxSendIsTrue() {
 
 func (suite Snake) TestTxSendWithFromAddressIsNil() {
 	txType := 0
-	amount := uint64(1)
 
 	kA, kB, _, to := suite.prepare()
-	suite.registerAppchain(kA, "hyperchain")
-	suite.registerAppchain(kB, "fabric")
+	suite.RegisterAppchain(kA, "hyperchain")
+	suite.RegisterAppchain(kB, "fabric")
 	suite.BindRule(kA, "../../../config/rule.wasm")
 
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_Type(txType),
-		Amount: amount,
+		Amount: "1",
 	}
 
 	payload, err := data.Marshal()
@@ -140,16 +136,15 @@ func (suite Snake) TestTxSendWithFromAddressIsNil() {
 
 func (suite Snake) TestTxSendWithToAddressIsNil() {
 	txType := 0
-	amount := uint64(1)
 
 	kA, kB, from, _ := suite.prepare()
-	suite.registerAppchain(kA, "hyperchain")
-	suite.registerAppchain(kB, "fabric")
+	suite.RegisterAppchain(kA, "hyperchain")
+	suite.RegisterAppchain(kB, "fabric")
 	suite.BindRule(kA, "../../../config/rule.wasm")
 
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_Type(txType),
-		Amount: amount,
+		Amount: "1",
 	}
 
 	payload, err := data.Marshal()
@@ -178,16 +173,15 @@ func (suite Snake) TestTxSendWithToAddressIsNil() {
 
 func (suite Snake) TestTxSendWithEmptySign() {
 	txType := 0
-	amount := uint64(1)
 
 	kA, kB, from, to := suite.prepare()
-	suite.registerAppchain(kA, "hyperchain")
-	suite.registerAppchain(kB, "fabric")
+	suite.RegisterAppchain(kA, "hyperchain")
+	suite.RegisterAppchain(kB, "fabric")
 	suite.BindRule(kA, "../../../config/rule.wasm")
 
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_Type(txType),
-		Amount: amount,
+		Amount: "1",
 	}
 
 	payload, err := data.Marshal()
@@ -216,16 +210,15 @@ func (suite Snake) TestTxSendWithEmptySign() {
 
 func (suite Snake) TestTxSendWithInvalidSign() {
 	txType := 0
-	amount := uint64(1)
 
 	kA, kB, from, to := suite.prepare()
-	suite.registerAppchain(kA, "hyperchain")
-	suite.registerAppchain(kB, "fabric")
+	suite.RegisterAppchain(kA, "hyperchain")
+	suite.RegisterAppchain(kB, "fabric")
 	suite.BindRule(kA, "../../../config/rule.wasm")
 
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_Type(txType),
-		Amount: amount,
+		Amount: "1",
 	}
 
 	payload, err := data.Marshal()
@@ -254,16 +247,15 @@ func (suite Snake) TestTxSendWithInvalidSign() {
 
 func (suite Snake) TestTxSendWithEmptyTimestamp() {
 	txType := 0
-	amount := uint64(1)
 
 	kA, kB, from, to := suite.prepare()
-	suite.registerAppchain(kA, "hyperchain")
-	suite.registerAppchain(kB, "fabric")
+	suite.RegisterAppchain(kA, "hyperchain")
+	suite.RegisterAppchain(kB, "fabric")
 	suite.BindRule(kA, "../../../config/rule.wasm")
 
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_Type(txType),
-		Amount: amount,
+		Amount: "1",
 	}
 
 	payload, err := data.Marshal()
@@ -292,16 +284,15 @@ func (suite Snake) TestTxSendWithEmptyTimestamp() {
 
 func (suite Snake) TestTxSendWithErrorTimestamp() {
 	txType := 0
-	amount := uint64(1)
 
 	kA, kB, from, to := suite.prepare()
-	suite.registerAppchain(kA, "hyperchain")
-	suite.registerAppchain(kB, "fabric")
+	suite.RegisterAppchain(kA, "hyperchain")
+	suite.RegisterAppchain(kB, "fabric")
 	suite.BindRule(kA, "../../../config/rule.wasm")
 
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_Type(txType),
-		Amount: amount,
+		Amount: "1",
 	}
 
 	payload, err := data.Marshal()
@@ -328,71 +319,32 @@ func (suite Snake) TestTxSendWithErrorTimestamp() {
 	suite.Require().Contains(string(ret), "timestamp is illegal")
 }
 
-func (suite Snake) TestTxSendWithEmptyNonce() {
-	txType := 0
-	amount := uint64(1)
-
-	kA, kB, from, to := suite.prepare()
-	suite.registerAppchain(kA, "hyperchain")
-	suite.registerAppchain(kB, "fabric")
-	suite.BindRule(kA, "../../../config/rule.wasm")
-
-	data := &pb.TransactionData{
-		Type:   pb.TransactionData_Type(txType),
-		Amount: amount,
-	}
-
-	payload, err := data.Marshal()
-	suite.Require().Nil(err)
-
-	tx := &pb.BxhTransaction{
-		From:      from,
-		To:        to,
-		Timestamp: time.Now().UnixNano(),
-		Payload:   payload,
-		//Nonce:     1,
-	}
-
-	err = tx.Sign(kA)
-	suite.Require().Nil(err)
-
-	reqData, err := json.Marshal(tx)
-	suite.Require().Nil(err)
-
-	url := getURL("transaction")
-
-	ret, err := httpPost(url, reqData)
-	suite.Require().Nil(err)
-	suite.Require().Contains(string(ret), "nonce is illegal")
-}
-
-func (suite Snake) TestTxSendWithEmptyPayload() {
-
-	kA, kB, from, to := suite.prepare()
-	suite.registerAppchain(kA, "hyperchain")
-	suite.registerAppchain(kB, "fabric")
-	suite.BindRule(kA, "../../../config/rule.wasm")
-
-	tx := &pb.BxhTransaction{
-		From:      from,
-		To:        to,
-		Timestamp: time.Now().UnixNano(),
-		//Payload:   payload,
-		Nonce: 1,
-	}
-
-	err := tx.Sign(kA)
-	suite.Require().Nil(err)
-
-	reqData, err := json.Marshal(tx)
-	suite.Require().Nil(err)
-
-	url := getURL("transaction")
-
-	ret, err := httpPost(url, reqData)
-	suite.Require().Nil(err)
-	suite.Require().Contains(string(ret), "tx payload and ibtp can't both be nil")
-}
+//func (suite Snake) TestTxSendWithEmptyPayload() {
+//	kA, kB, from, to := suite.prepare()
+//	suite.RegisterAppchain(kA, "hyperchain")
+//	suite.RegisterAppchain(kB, "fabric")
+//	suite.BindRule(kA, "../../../config/rule.wasm")
+//
+//	tx := &pb.BxhTransaction{
+//		From:      from,
+//		To:        to,
+//		Timestamp: time.Now().UnixNano(),
+//		//Payload:   payload,
+//		Nonce: 1,
+//	}
+//
+//	err := tx.Sign(kA)
+//	suite.Require().Nil(err)
+//
+//	reqData, err := json.Marshal(tx)
+//	suite.Require().Nil(err)
+//
+//	url := getURL("transaction")
+//
+//	ret, err := httpPost(url, reqData)
+//	suite.Require().Nil(err)
+//	suite.Require().Contains(string(ret), "tx payload and ibtp can't both be nil")
+//}
 
 func (suite *Snake) prepare() (crypto.PrivateKey, crypto.PrivateKey, *types.Address, *types.Address) {
 	kA, err := asym.GenerateKeyPair(crypto.Secp256k1)
@@ -419,17 +371,27 @@ func (suite Snake) NewClient(pk crypto.PrivateKey) *rpcx.ChainClient {
 	return client
 }
 
-func (suite *Snake) registerAppchain(pk crypto.PrivateKey, chainType string) {
-	pubBytes, err := pk.PublicKey().Bytes()
+func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, ChainType string) {
+	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
+	client, err := rpcx.New(
+		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
+		rpcx.WithLogger(cfg.logger),
+		rpcx.WithPrivateKey(pk),
+	)
+	suite.Require().Nil(err)
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 
-	client := suite.NewClient(pk)
-
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubBytes)
 	args := []*pb.Arg{
+		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
+		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
-		rpcx.String(chainType),          //chain_type
+		rpcx.String(ChainType),          //chain_type
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
@@ -440,20 +402,12 @@ func (suite *Snake) registerAppchain(pk crypto.PrivateKey, chainType string) {
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
 	suite.Require().Nil(err)
-	suite.Require().NotNil(result.ChainID)
 	err = suite.VotePass(result.ProposalID)
 	suite.Require().Nil(err)
-
-	res, err = suite.GetChainStatusById(result.ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchain_mgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceAvailable, appchain.Status)
 }
 
 func (suite *Snake) BindRule(pk crypto.PrivateKey, ruleFile string) {
-	suite.client.SetPrivateKey(pk)
+	client := suite.NewClient(pk)
 
 	from, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
@@ -461,13 +415,17 @@ func (suite *Snake) BindRule(pk crypto.PrivateKey, ruleFile string) {
 	// deploy rule
 	bytes, err := ioutil.ReadFile(ruleFile)
 	suite.Require().Nil(err)
-	addr, err := suite.client.DeployContract(bytes, nil)
+	addr, err := client.DeployContract(bytes, nil)
 	suite.Require().Nil(err)
 
 	// register rule
-	res, err := suite.client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, pb.String(from.String()), pb.String(addr.String()))
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, pb.String("did:bitxhub:appchain"+from.String()+":."), pb.String(addr.String()))
 	suite.Require().Nil(err)
-	suite.Require().True(res.IsSuccess())
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	suite.Require().Nil(err)
+	err = suite.VotePass(result.ProposalID)
+	suite.Require().Nil(err)
 }
 
 func (suite *Snake) VotePass(id string) error {
@@ -615,8 +573,8 @@ func (suite *Snake) GetChainStatusById(id string) (*pb.Receipt, error) {
 func (suite Snake) sendInterchainWithReceipt() (crypto.PrivateKey, crypto.PrivateKey, *types.Address, *types.Address, *pb.Receipt, error) {
 	//sendInterchain
 	kA, kB, from, to := suite.prepare()
-	suite.registerAppchain(kA, "hyperchain")
-	suite.registerAppchain(kB, "fabric")
+	suite.RegisterAppchain(kA, "hyperchain")
+	suite.RegisterAppchain(kB, "fabric")
 	suite.BindRule(kA, "../../../config/rule.wasm")
 	proof := "test"
 	proofHash := sha256.Sum256([]byte(proof))
@@ -638,19 +596,21 @@ func (suite Snake) sendInterchainWithReceipt() (crypto.PrivateKey, crypto.Privat
 func (suite Snake) sendInterchain() (string, error) {
 	//sendInterchain
 	kA, kB, from, to := suite.prepare()
-	suite.registerAppchain(kA, "hyperchain")
-	suite.registerAppchain(kB, "fabric")
+	suite.RegisterAppchain(kA, "hyperchain")
+	suite.RegisterAppchain(kB, "fabric")
 	suite.BindRule(kA, "../../../config/rule.wasm")
 	proof := "test"
 	proofHash := sha256.Sum256([]byte(proof))
 
 	suite.client.SetPrivateKey(kA)
-	ib := &pb.IBTP{From: from.String(), To: to.String(), Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
+	ChainID1 := "did:bitxhub:appchain" + from.String() + ":."
+	ChainID2 := "did:bitxhub:appchain" + to.String() + ":."
+	ib := &pb.IBTP{From: ChainID1, To: ChainID2, Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
 
 	tx, _ := suite.client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
 	hash, err := suite.client.SendTransaction(tx, &rpcx.TransactOpts{
-		From: fmt.Sprintf("%s-%s-%d", ib.From, ib.To, ib.Category()),
+		From: from.String(),
 	})
 	if err != nil {
 		return "", err

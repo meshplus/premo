@@ -24,9 +24,9 @@ require (
 	github.com/looplab/fsm v0.2.0
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/meshplus/bitxhub-core v1.3.0
-	github.com/meshplus/bitxhub-kit v1.2.0
-	github.com/meshplus/bitxhub-model v1.2.0
-	github.com/meshplus/go-bitxhub-client v1.3.1-0.20210429032628-18797624d041
+	github.com/meshplus/bitxhub-kit v1.2.1-0.20210524063043-9afae78ac098
+	github.com/meshplus/bitxhub-model v1.2.1-0.20210604092755-473bcc9420fc
+	github.com/meshplus/go-bitxhub-client v1.3.1-0.20210604092745-d883783a86b3
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/pkg/errors v0.9.1

@@ -60,7 +60,7 @@ func (suite *Model4) Test0404_LegerSetWithErrorMethod() {
 	res, err := client.InvokeXVMContract(address, "state_test_set111", nil, rpcx.String("Alice"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
-	suite.Require().Contains(string(res.Ret), "wrong rule contract")
+	suite.Require().Contains(string(res.Ret), "does not exist")
 }
 
 func (suite *Model4) Test0405_LegerSetRepeat() {

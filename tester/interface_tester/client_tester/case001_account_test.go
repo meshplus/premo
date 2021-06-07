@@ -2,6 +2,7 @@ package interface_tester
 
 import (
 	"encoding/json"
+
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 )
@@ -13,7 +14,7 @@ type account struct {
 
 func (suite *Snake) TestGetAccount() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	suite.registerAppchain(pk, "fabric")
+	suite.RegisterAppchain(pk, "fabric")
 	from, err := suite.pk.PublicKey().Address()
 	suite.Require().Nil(err)
 
@@ -34,7 +35,7 @@ func (suite *Snake) TestGetAccount() {
 func (suite *Snake) TestGetAccountWithInvalidAddress01() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
-	suite.registerAppchain(pk, "fabric")
+	suite.RegisterAppchain(pk, "fabric")
 	from, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
 	account := from.String() + "123"
@@ -48,7 +49,7 @@ func (suite *Snake) TestGetAccountWithInvalidAddress01() {
 func (suite *Snake) TestGetAccountWithInvalidAddress02() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
-	suite.registerAppchain(pk, "fabric")
+	suite.RegisterAppchain(pk, "fabric")
 	from, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
 	account := from.String() + "我@#"

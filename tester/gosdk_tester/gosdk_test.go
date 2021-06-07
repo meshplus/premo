@@ -20,7 +20,7 @@ import (
 )
 
 type RegisterResult struct {
-	ChainID    string `json:"chain_id"`
+	Extra      []byte `json:"extra"`
 	ProposalID string `json:"proposal_id"`
 }
 
@@ -30,7 +30,7 @@ type SubscriptionKey struct {
 }
 
 func (suite *Snake) SetupSuite() {
-	res, err := suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "Init", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()))
+	_, err := suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "Init", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()))
 	suite.Require().Nil(err)
 
 	node2, err := repo.Node2Path()
@@ -42,9 +42,8 @@ func (suite *Snake) SetupSuite() {
 	node2Addr, err := key.PublicKey().Address()
 	suite.Require().Nil(err)
 
-	res, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), pb.String("did:bitxhub:relayroot:"+node2Addr.String()))
+	_, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), pb.String("did:bitxhub:relayroot:"+node2Addr.String()))
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 
 	node3, err := repo.Node3Path()
 	suite.Require().Nil(err)
@@ -55,9 +54,8 @@ func (suite *Snake) SetupSuite() {
 	node3Addr, err := key.PublicKey().Address()
 	suite.Require().Nil(err)
 
-	res, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), pb.String("did:bitxhub:relayroot:"+node3Addr.String()))
+	_, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), pb.String("did:bitxhub:relayroot:"+node3Addr.String()))
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 
 	node4, err := repo.Node4Path()
 	suite.Require().Nil(err)
@@ -68,9 +66,8 @@ func (suite *Snake) SetupSuite() {
 	node4Addr, err := key.PublicKey().Address()
 	suite.Require().Nil(err)
 
-	res, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), pb.String("did:bitxhub:relayroot:"+node4Addr.String()))
+	_, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), pb.String("did:bitxhub:relayroot:"+node4Addr.String()))
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 }
 
 func (suite *Snake) TestStopClient() {
@@ -125,43 +122,10 @@ func (suite *Snake) TestSendViewIsTrue() {
 	suite.Require().Equal(pb.Receipt_FAILED, receipt2.Status)
 }
 
-func (suite *Snake) TestSendViewIsFalse() {
-	BoltContractAddress := "0x000000000000000000000000000000000000000b"
-
-	rand.Seed(time.Now().UnixNano())
-	randKey := make([]byte, 20)
-	_, err := rand.Read(randKey)
-	suite.Require().Nil(err)
-
-	tx1, err := genContractTransaction(pb.TransactionData_BVM, suite.pk,
-		types.NewAddressByStr(BoltContractAddress), "Set", pb.String(string(randKey)), pb.String("value"))
-	suite.Require().Nil(err)
-	tx1.Nonce = 1
-	tx1.Payload = nil
-
-	err = tx1.Sign(suite.pk)
-	suite.Require().Nil(err)
-
-	_, err = suite.client.SendView(tx1)
-	suite.Require().NotNil(err)
-
-	tx2, err := genContractTransaction(pb.TransactionData_BVM, suite.pk,
-		types.NewAddressByStr(BoltContractAddress), "set", pb.String(string(randKey)), pb.String("value"))
-	suite.Require().Nil(err)
-	tx2.Nonce = 1
-
-	err = tx2.Sign(suite.pk)
-	suite.Require().Nil(err)
-
-	receipt, err := suite.client.SendView(tx2)
-	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, receipt.Status)
-}
-
 func (suite Snake) TestSendTransactionIsTrue() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: "1",
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -184,33 +148,10 @@ func (suite Snake) TestSendTransactionIsTrue() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
 }
 
-func (suite Snake) TestSendTransactionIsFalse() {
-	td := &pb.TransactionData{
-		Type:   pb.TransactionData_NORMAL,
-		Amount: 0,
-	}
-	payload, err := td.Marshal()
-	suite.Require().Nil(err)
-
-	tx := &pb.BxhTransaction{
-		From:      suite.from,
-		To:        suite.to,
-		Timestamp: time.Now().UnixNano(),
-		Nonce:     1,
-		Payload:   payload,
-	}
-	err = tx.Sign(suite.pk)
-	suite.Require().Nil(err)
-
-	_, err = suite.client.SendTransaction(tx, nil)
-	suite.Require().NotNil(err)
-	suite.Contains(err.Error(), "tx payload and ibtp can't both be nil")
-}
-
 func (suite Snake) TestSendTransactionWithReceiptIsTrue() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: "1",
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -233,7 +174,7 @@ func (suite Snake) TestSendTransactionWithReceiptIsTrue() {
 func (suite *Snake) TestSendTransactionWithReceiptWhenToIsNull() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: "1",
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -254,7 +195,7 @@ func (suite *Snake) TestSendTransactionWithReceiptWhenToIsNull() {
 func (suite *Snake) TestSendTransactionWithReceiptWhenFromIsNull() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: "1",
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -278,7 +219,7 @@ func (suite *Snake) TestSendTransactionWithReceiptWhenFromIsNull() {
 func (suite *Snake) TestGetReceiptByHashIsFalse() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: "1",
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -302,7 +243,7 @@ func (suite *Snake) TestGetReceiptByHashIsFalse() {
 func (suite *Snake) TestGetTransactionIsTrue() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: "1",
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -329,7 +270,7 @@ func (suite *Snake) TestGetTransactionIsTrue() {
 func (suite *Snake) TestGetTransactionIsFalse() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: "1",
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -365,7 +306,7 @@ func (suite *Snake) TestGetChainMeta() {
 func (suite Snake) TestGetBlocksIsTrue() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: "1",
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -405,7 +346,7 @@ func (suite Snake) TestGetBlocksIsTrue() {
 func (suite Snake) TestGetBlocksIsFalse() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: "1",
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -464,7 +405,7 @@ func (suite Snake) TestGetBlocksIsFalse() {
 func (suite *Snake) TestGetBlockIsTrue() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: "1",
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -498,7 +439,7 @@ func (suite *Snake) TestGetBlockIsTrue() {
 func (suite *Snake) TestGetBlockIsFalse() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
-		Amount: 1,
+		Amount: "1",
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -698,7 +639,7 @@ func (suite *Snake) TestSubscribe_BLOCK() {
 	suite.Require().Nil(err)
 
 	td := &pb.TransactionData{
-		Amount: 10,
+		Amount: "10",
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -737,7 +678,7 @@ func (suite *Snake) TestSubscribe_BLOCK_HEADER() {
 	suite.Require().Nil(err)
 
 	td := &pb.TransactionData{
-		Amount: 10,
+		Amount: "1",
 	}
 	payload, err := td.Marshal()
 	suite.Require().Nil(err)
@@ -904,7 +845,6 @@ func (suite *Snake) TestInvokeXVMContractIsFalse() {
 
 	receipt, err := suite.client.InvokeXVMContract(address, "abc", nil, rpcx.Int32(1), rpcx.Int32(2))
 	suite.Require().Nil(err)
-	fmt.Println(string(receipt.Ret))
 	suite.Require().Equal(pb.Receipt_FAILED, receipt.Status)
 }
 
@@ -1100,7 +1040,6 @@ func (suite *Snake) RegisterAppchain() (crypto.PrivateKey, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	fmt.Println(string(res.Ret))
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
 	if err != nil {
@@ -1110,7 +1049,7 @@ func (suite *Snake) RegisterAppchain() (crypto.PrivateKey, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	return pk, result.ChainID, nil
+	return pk, string(result.Extra), nil
 }
 
 func (suite *Snake) BindRule(pk crypto.PrivateKey, ruleFile string, ChainID string) {
@@ -1125,8 +1064,11 @@ func (suite *Snake) BindRule(pk crypto.PrivateKey, ruleFile string, ChainID stri
 	// register rule
 	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, pb.String(ChainID), pb.String(addr.String()))
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
-	suite.Require().True(res.IsSuccess())
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	suite.Require().Nil(err)
+	err = suite.VotePass(result.ProposalID)
+	suite.Require().Nil(err)
 }
 
 func (suite *Snake) NewClient(pk crypto.PrivateKey) *rpcx.ChainClient {

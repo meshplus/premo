@@ -2,6 +2,7 @@ package interface_tester
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/meshplus/bitxhub-model/pb"
@@ -13,6 +14,7 @@ func (suite Snake) TestGetReceipt() {
 
 	//wait for bitxhub
 	time.Sleep(time.Second * 3)
+	fmt.Println(hash)
 	url := getURL("receipt/" + hash)
 	suite.Require().Nil(err)
 
@@ -43,5 +45,5 @@ func (suite Snake) TestGetReceiptWithInvalidFormat() {
 	data, err := httpGet(url)
 	suite.Require().Nil(err)
 	suite.Require().Contains(string(data), "error")
-	suite.Require().Contains(string(data), "invalid format of receipt hash for querying receipt")
+	suite.Require().Contains(string(data), "invalid format of receipt hash")
 }

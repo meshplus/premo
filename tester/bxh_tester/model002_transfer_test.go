@@ -1,8 +1,11 @@
 package bxh_tester
 
 import (
+	"strconv"
 	"sync/atomic"
 	"time"
+
+	"github.com/meshplus/bitxhub-kit/crypto"
 
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	"github.com/meshplus/premo/internal/repo"
@@ -20,9 +23,7 @@ type Model2 struct {
 
 //tc:发送转账交易，from的金额少于转账的金额，交易回执显示失败
 func (suite *Model2) Test0201_TransferLessThanAmount() {
-	node2, err := repo.Node2Path()
-	suite.Require().Nil(err)
-	pk, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	from, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
@@ -36,7 +37,7 @@ func (suite *Model2) Test0201_TransferLessThanAmount() {
 	amount := balance + 1
 
 	data := &pb.TransactionData{
-		Amount: amount,
+		Amount: strconv.FormatUint(amount, 10),
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
@@ -48,9 +49,7 @@ func (suite *Model2) Test0201_TransferLessThanAmount() {
 		Payload:   payload,
 	}
 
-	ret, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		Nonce: atomic.AddUint64(&nonce2, 1),
-	})
+	ret, err := client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, ret.Status)
 	suite.Require().Contains(string(ret.Ret), "not sufficient funds")
@@ -67,7 +66,7 @@ func (suite *Model2) Test0202_ToAddressIs0X000___000() {
 	client := suite.NewClient(pk)
 
 	data := &pb.TransactionData{
-		Amount: 1,
+		Amount: "1",
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
@@ -97,7 +96,7 @@ func (suite *Model2) Test0203_TypeIsXVM() {
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_INVOKE,
 		VmType: pb.TransactionData_XVM,
-		Amount: 1,
+		Amount: "1",
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
@@ -125,7 +124,7 @@ func (suite *Model2) Test0204_Transfer() {
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
-		Amount: 1,
+		Amount: "1",
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
