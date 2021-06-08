@@ -6,10 +6,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"io/ioutil"
 	"math/rand"
 	"time"
+
+	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
@@ -89,39 +90,6 @@ func (suite *Snake) TestSendViewIsTrue() {
 	suite.Require().Equal(pb.Receipt_FAILED, receipt2.Status)
 }
 
-func (suite *Snake) TestSendViewIsFalse() {
-	BoltContractAddress := "0x000000000000000000000000000000000000000b"
-
-	rand.Seed(time.Now().UnixNano())
-	randKey := make([]byte, 20)
-	_, err := rand.Read(randKey)
-	suite.Require().Nil(err)
-
-	tx1, err := genContractTransaction(pb.TransactionData_BVM, suite.pk,
-		types.NewAddressByStr(BoltContractAddress), "Set", pb.String(string(randKey)), pb.String("value"))
-	suite.Require().Nil(err)
-	tx1.Nonce = 1
-	tx1.Payload = nil
-
-	err = tx1.Sign(suite.pk)
-	suite.Require().Nil(err)
-
-	_, err = suite.client.SendView(tx1)
-	suite.Require().NotNil(err)
-
-	tx2, err := genContractTransaction(pb.TransactionData_BVM, suite.pk,
-		types.NewAddressByStr(BoltContractAddress), "set", pb.String(string(randKey)), pb.String("value"))
-	suite.Require().Nil(err)
-	tx2.Nonce = 1
-
-	err = tx2.Sign(suite.pk)
-	suite.Require().Nil(err)
-
-	receipt, err := suite.client.SendView(tx2)
-	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, receipt.Status)
-}
-
 func (suite Snake) TestSendTransactionIsTrue() {
 	td := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
@@ -146,29 +114,6 @@ func (suite Snake) TestSendTransactionIsTrue() {
 	receipt, err := suite.client.GetReceipt(hash)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, receipt.Status)
-}
-
-func (suite Snake) TestSendTransactionIsFalse() {
-	td := &pb.TransactionData{
-		Type:   pb.TransactionData_NORMAL,
-		Amount: 0,
-	}
-	payload, err := td.Marshal()
-	suite.Require().Nil(err)
-
-	tx := &pb.Transaction{
-		From:      suite.from,
-		To:        suite.to,
-		Timestamp: time.Now().UnixNano(),
-		Nonce:     1,
-		Payload:   payload,
-	}
-	err = tx.Sign(suite.pk)
-	suite.Require().Nil(err)
-
-	_, err = suite.client.SendTransaction(tx, nil)
-	suite.Require().NotNil(err)
-	suite.Contains(err.Error(), "tx payload and ibtp can't both be nil")
 }
 
 func (suite Snake) TestSendTransactionWithReceiptIsTrue() {

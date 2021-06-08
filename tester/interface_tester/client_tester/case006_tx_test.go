@@ -4,10 +4,11 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
-	"github.com/meshplus/premo/internal/repo"
 	"io/ioutil"
 	"time"
+
+	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
+	"github.com/meshplus/premo/internal/repo"
 
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
@@ -362,34 +363,6 @@ func (suite Snake) TestTxSendWithEmptyNonce() {
 	ret, err := httpPost(url, reqData)
 	suite.Require().Nil(err)
 	suite.Require().Contains(string(ret), "nonce is illegal")
-}
-
-func (suite Snake) TestTxSendWithEmptyPayload() {
-
-	kA, kB, from, to := suite.prepare()
-	suite.registerAppchain(kA, "hyperchain")
-	suite.registerAppchain(kB, "fabric")
-	suite.registerRule(kA, "../../../config/rule.wasm")
-
-	tx := &pb.Transaction{
-		From:      from,
-		To:        to,
-		Timestamp: time.Now().UnixNano(),
-		//Payload:   payload,
-		Nonce: 1,
-	}
-
-	err := tx.Sign(kA)
-	suite.Require().Nil(err)
-
-	reqData, err := json.Marshal(tx)
-	suite.Require().Nil(err)
-
-	url := getURL("transaction")
-
-	ret, err := httpPost(url, reqData)
-	suite.Require().Nil(err)
-	suite.Require().Contains(string(ret), "tx payload and ibtp can't both be nil")
 }
 
 func (suite *Snake) prepare() (crypto.PrivateKey, crypto.PrivateKey, *types.Address, *types.Address) {

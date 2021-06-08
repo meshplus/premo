@@ -15,7 +15,7 @@ import (
 
 var cfg = &config{
 	addrs: []string{
-		"localhost:60011",
+		"172.29.185.253:60011",
 		"localhost:60012",
 		"localhost:60013",
 		"localhost:60014",
