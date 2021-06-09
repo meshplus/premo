@@ -185,7 +185,7 @@ func (suite *Client) SendTxSuccess(num int) error {
 	}
 	for i := 0; i < num; i++ {
 		data := &pb.TransactionData{
-			Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
+			Amount: "1",
 		}
 		payload, err := data.Marshal()
 		if err != nil {
@@ -225,7 +225,7 @@ func (suite *Client) SendTxFail(num int) error {
 	}
 	for i := 0; i < num; i++ {
 		data := &pb.TransactionData{
-			Amount: (*pb.BigInt)(new(big.Int).SetInt64(1)),
+			Amount: "1",
 		}
 		payload, err := data.Marshal()
 		if err != nil {
