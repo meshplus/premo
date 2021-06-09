@@ -241,17 +241,14 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 		return fmt.Errorf("chain error: %w", err)
 	}
 	ID := string(result.Extra)
-	fmt.Println(ID)
 
 	ruleAddr := "0x00000000000000000000000000000000000000a0"
 	// deploy rule
-	bee.client.SetPrivateKey(bee.normalPrivKey)
 	if chainType == "hyperchain" {
 		contractAddr, err := bee.client.DeployContract(contract, nil)
 		if err != nil {
 			return fmt.Errorf("deploy contract error:%w", err)
 		}
-		atomic.AddUint64(&bee.nonce, 1)
 		ruleAddr = contractAddr.String()
 		res, err = bee.invokeContract(bee.normalFrom, constant.RuleManagerContractAddr.Address(), atomic.LoadUint64(&bee.nonce),
 			"RegisterRule", rpcx.String(ID), rpcx.String(ruleAddr))
@@ -269,31 +266,19 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 		}
 		atomic.AddUint64(&bee.nonce, 1)
 	} else if chainType == "fabric:simple" {
-		res, err = bee.invokeContract(bee.normalFrom, constant.RuleManagerContractAddr.Address(), atomic.LoadUint64(&bee.nonce),
-			"UnbindRule", rpcx.String(ID), rpcx.String(ruleAddr))
-		if err != nil {
-			return fmt.Errorf("register rule error:%w", err)
-		}
-		result := &RegisterResult{}
-		err = json.Unmarshal(res.Ret, result)
-		if err != nil {
-			return err
-		}
-		err = bee.VotePass(result.ProposalID)
-		if err != nil {
-			return fmt.Errorf("contract vote error:%w", err)
-		}
-		atomic.AddUint64(&bee.nonce, 1)
 		ruleAddr = "0x00000000000000000000000000000000000000a1"
 		res, err = bee.invokeContract(bee.normalFrom, constant.RuleManagerContractAddr.Address(), atomic.LoadUint64(&bee.nonce),
-			"RegisterRule", rpcx.String(ID), rpcx.String(ruleAddr))
+			"UpdateMasterRule", rpcx.String(ID), rpcx.String(ruleAddr))
 		if err != nil {
-			return fmt.Errorf("register rule error:%w", err)
+			return fmt.Errorf("update rule error:%w", err)
 		}
 		result = &RegisterResult{}
 		err = json.Unmarshal(res.Ret, result)
+		if res.Status != pb.Receipt_SUCCESS {
+			fmt.Printf("ChainID:%s,Res:%s\n", ID, string(res.Ret))
+		}
 		if err != nil {
-			return err
+			return fmt.Errorf("unmarshal error:%w", err)
 		}
 		err = bee.VotePass(result.ProposalID)
 		if err != nil {

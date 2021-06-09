@@ -52,13 +52,15 @@ func (suite *Model6) Test0603_RegisterAppchainWithReject() {
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(pk),
 	)
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -94,13 +96,15 @@ func (suite *Model6) Test0604_RegisterAppchainWithRegisting() {
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(pk),
 	)
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -140,7 +144,9 @@ func (suite *Model6) Test0605_RegisterAppchainRepeat() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -173,13 +179,15 @@ func (suite *Model6) Test0606_RegisterAppchainWithUnavailable() {
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(pk),
 	)
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -223,7 +231,9 @@ func (suite *Model6) Test0607_RegisterAppchainWithUpdating() {
 	client := suite.NewClient(pk)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -289,7 +299,9 @@ func (suite *Model6) Test0608_RegisterAppchainWithFreezing() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -325,7 +337,9 @@ func (suite *Model6) Test0609_RegisterAppchainWithFrozen() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -363,7 +377,9 @@ func (suite *Model6) Test0610_RegisterAppchainWithLogouting() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -399,7 +415,9 @@ func (suite *Model6) Test0611_RegisterAppChainWithForbidden() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -455,13 +473,15 @@ func (suite *Model6) Test0614_ActivateAppchainWithRegisting() {
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(pk),
 	)
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -501,7 +521,9 @@ func (suite *Model6) Test0616_ActivateAppchainWithUpdating() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -637,9 +659,9 @@ func (suite *Model6) Test0622_UpdateAppchainLoseFields() {
 	pk, _, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
-	pubAddress, err := pk.PublicKey().Address()
+	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
@@ -660,13 +682,15 @@ func (suite *Model6) Test0623_UpdateAppchainWithRegisting() {
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(pk),
 	)
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -698,7 +722,9 @@ func (suite *Model6) Test0624_UpdateAppchain() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -736,7 +762,9 @@ func (suite *Model6) Test0625_UpdateAppchainWithReject() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -774,7 +802,9 @@ func (suite *Model6) Test0626_UpdateAppchainWithUpdating() {
 	client := suite.NewClient(pk)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -819,7 +849,9 @@ func (suite *Model6) Test0627_UpdateAppchainWithFreezing() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -854,7 +886,9 @@ func (suite *Model6) Test0628_UpdateAppchainWithFrozen() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -890,7 +924,9 @@ func (suite *Model6) Test0629_UpdateAppchainWithWithLogouting() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -924,7 +960,9 @@ func (suite *Model6) Test0630_UpdateAppchainWithUnavailable() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -960,13 +998,15 @@ func (suite *Model6) Test0632_FreezeAppchainWithRegisting() {
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(pk),
 	)
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -1035,7 +1075,9 @@ func (suite *Model6) Test0635_FreezeAppchainWithUpdating() {
 	client := suite.NewClient(pk)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -1145,13 +1187,15 @@ func (suite *Model6) Test0640_LogoutAppchainWithRegisting() {
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(pk),
 	)
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
@@ -1213,7 +1257,9 @@ func (suite *Model6) Test0643_LogoutAppchainWithUpdating() {
 	client := suite.NewClient(pk)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -1316,6 +1362,8 @@ func (suite *Model6) Test0648_GetAppchainByID() {
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
 
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
@@ -1324,7 +1372,7 @@ func (suite *Model6) Test0648_GetAppchainByID() {
 	)
 	suite.Require().Nil(err)
 
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubAddress.Bytes())
+	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
 		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID

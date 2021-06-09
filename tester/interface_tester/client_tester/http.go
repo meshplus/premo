@@ -48,5 +48,5 @@ func httpPost(url string, data []byte) ([]byte, error) {
 }
 
 func getURL(path string) string {
-	return "http://172.27.239.94:9091/v1/" + path
+	return "http://localhost:9091/v1/" + path
 }
