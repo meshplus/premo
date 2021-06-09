@@ -66,5 +66,4 @@ func TestTester(t *testing.T) {
 	require.Nil(t, err)
 
 	suite.Run(t, &Snake{client: client, from: from, pk: pk, to: to})
-	suite.Run(t, &TransactionMgrSuite{})
 }
