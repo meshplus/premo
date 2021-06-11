@@ -44,9 +44,8 @@ test-coverage:
 ## make bitxhub-tester: Run bitxhub test
 bitxhub-tester:
 ifeq ("${REPORT}", "Y")
-	@mkdir -p tester/bxh_tester/report
-	$(GO) get gotest.tools/gotestsum
-	cd tester/bxh_tester && gotestsum --junitfile report/report_${TEST_TIME}.xml -- -v -run TestTester
+	$(GO) get github.com/ilyubin/gotest2allure/cmd/gotest2allure
+	cd tester/bxh_tester && $(GO) test -v -run TestTester -json > json-report.txt && gotest2allure -f json-report.txt && zip -r allure-results.zip allure-results
 else
 	cd tester/bxh_tester && $(GO) test -v -run TestTester
 endif
@@ -58,9 +57,8 @@ interchain-tester:
 ## make gosdk-tester: Run gosdk test
 gosdk-tester:
 ifeq ("${REPORT}", "Y")
-	@mkdir -p tester/gosdk-tester/report
-	$(GO) get gotest.tools/gotestsum
-	cd tester/gosdk_tester && gotestsum --junitfile report/report_${TEST_TIME}.xml -- -v -run TestTester
+	$(GO) get github.com/ilyubin/gotest2allure/cmd/gotest2allure
+	cd tester/gosdk_tester && $(GO) test -v -run TestTester -json > json-report.txt && gotest2allure -f json-report.txt && zip -r allure-results.zip allure-results
 else
 	cd tester/gosdk_tester && $(GO) test -v -run TestTester
 endif
@@ -68,9 +66,8 @@ endif
 ## make http-tester: Run http test
 http-tester:
 ifeq ("${REPORT}", "Y")
-	@mkdir -p tester/http-tester/report
-	$(GO) get gotest.tools/gotestsum
-	cd tester/http_tester && gotestsum --junitfile report/report_${TEST_TIME}.xml -- -v -run TestTester
+	$(GO) get github.com/ilyubin/gotest2allure/cmd/gotest2allure
+	cd tester/http_tester && $(GO) test -v -run TestTester -json > json-report.txt && gotest2allure -f json-report.txtclear && zip -r allure-results.zip allure-results
 else
 	cd tester/http_tester && $(GO) test -v -run TestTester
 endif
