@@ -44,7 +44,7 @@ test-coverage:
 ## make bitxhub-tester: Run bitxhub test
 bitxhub-tester:
 ifeq ("${REPORT}", "Y")
-	@mkdir -p report
+	@mkdir -p tester/bxh_tester/report
 	$(GO) get gotest.tools/gotestsum
 	cd tester/bxh_tester && gotestsum --junitfile report/report_${TEST_TIME}.xml -- -v -run TestTester
 else
@@ -58,7 +58,7 @@ interchain-tester:
 ## make gosdk-tester: Run gosdk test
 gosdk-tester:
 ifeq ("${REPORT}", "Y")
-	@mkdir -p report
+	@mkdir -p tester/gosdk-tester/report
 	$(GO) get gotest.tools/gotestsum
 	cd tester/gosdk_tester && gotestsum --junitfile report/report_${TEST_TIME}.xml -- -v -run TestTester
 else
@@ -68,7 +68,7 @@ endif
 ## make http-tester: Run http test
 http-tester:
 ifeq ("${REPORT}", "Y")
-	@mkdir -p report
+	@mkdir -p tester/http-tester/report
 	$(GO) get gotest.tools/gotestsum
 	cd tester/http_tester && gotestsum --junitfile report/report_${TEST_TIME}.xml -- -v -run TestTester
 else
