@@ -13,7 +13,7 @@ GO_LDFLAGS += -X "${VERSION_DIR}.CurrentBranch=${GIT_BRANCH}"
 GO_LDFLAGS += -X "${VERSION_DIR}.CurrentVersion=${APP_VERSION}"
 
 TEST_PKGS := $(shell go list ./... | grep -v 'mock_*' | grep -v 'tester')
-TEST_TIME := $(shell date "+%Y%M%d%H%M%S")
+TEST_TIME := $(shell date "+%Y%m%d%H%M%S")
 
 RED=\033[0;31m
 GREEN=\033[0;32m
