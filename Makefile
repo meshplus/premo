@@ -45,7 +45,7 @@ test-coverage:
 bitxhub-tester:
 ifeq ("${REPORT}", "Y")
 	$(GO) get github.com/ilyubin/gotest2allure/cmd/gotest2allure
-	cd tester/bxh_tester && $(GO) test -v -run TestTester -json > json-report.txt && gotest2allure -f json-report.txt && zip -r allure-results.zip allure-results
+	cd tester/bxh_tester && $(GO) test -v -run TestTester -json > json-report.txt && gotest2allure -f json-report.txt
 else
 	cd tester/bxh_tester && $(GO) test -v -run TestTester
 endif
@@ -58,7 +58,7 @@ interchain-tester:
 gosdk-tester:
 ifeq ("${REPORT}", "Y")
 	$(GO) get github.com/ilyubin/gotest2allure/cmd/gotest2allure
-	cd tester/gosdk_tester && $(GO) test -v -run TestTester -json > json-report.txt && gotest2allure -f json-report.txt && zip -r allure-results.zip allure-results
+	cd tester/gosdk_tester && $(GO) test -v -run TestTester -json > json-report.txt && gotest2allure -f json-report.txt
 else
 	cd tester/gosdk_tester && $(GO) test -v -run TestTester
 endif
@@ -67,7 +67,7 @@ endif
 http-tester:
 ifeq ("${REPORT}", "Y")
 	$(GO) get github.com/ilyubin/gotest2allure/cmd/gotest2allure
-	cd tester/http_tester && $(GO) test -v -run TestTester -json > json-report.txt && gotest2allure -f json-report.txtclear && zip -r allure-results.zip allure-results
+	cd tester/http_tester && $(GO) test -v -run TestTester -json > json-report.txt && gotest2allure -f json-report.txt
 else
 	cd tester/http_tester && $(GO) test -v -run TestTester
 endif
