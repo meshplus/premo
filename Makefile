@@ -13,7 +13,7 @@ GO_LDFLAGS += -X "${VERSION_DIR}.CurrentBranch=${GIT_BRANCH}"
 GO_LDFLAGS += -X "${VERSION_DIR}.CurrentVersion=${APP_VERSION}"
 
 TEST_PKGS := $(shell go list ./... | grep -v 'mock_*' | grep -v 'tester')
-TEST_TIME := $(shell date "+%Y%M%d%H%M%S")
+TEST_TIME := $(shell date "+%Y%m%d%H%M%S")
 
 RED=\033[0;31m
 GREEN=\033[0;32m
@@ -44,7 +44,7 @@ test-coverage:
 ## make bitxhub-tester: Run bitxhub test
 bitxhub-tester:
 ifeq ("${REPORT}", "Y")
-	@mkdir -p report
+	@mkdir -p tester/bxh_tester/report
 	$(GO) get gotest.tools/gotestsum
 	cd tester/bxh_tester && gotestsum --junitfile report/report_${TEST_TIME}.xml -- -v -run TestTester
 else
@@ -58,7 +58,7 @@ interchain-tester:
 ## make gosdk-tester: Run gosdk test
 gosdk-tester:
 ifeq ("${REPORT}", "Y")
-	@mkdir -p report
+	@mkdir -p tester/gosdk-tester/report
 	$(GO) get gotest.tools/gotestsum
 	cd tester/gosdk_tester && gotestsum --junitfile report/report_${TEST_TIME}.xml -- -v -run TestTester
 else
@@ -68,7 +68,7 @@ endif
 ## make http-tester: Run http test
 http-tester:
 ifeq ("${REPORT}", "Y")
-	@mkdir -p report
+	@mkdir -p tester/http-tester/report
 	$(GO) get gotest.tools/gotestsum
 	cd tester/http_tester && gotestsum --junitfile report/report_${TEST_TIME}.xml -- -v -run TestTester
 else
