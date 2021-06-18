@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"sync/atomic"
 	"time"
 
@@ -23,6 +22,7 @@ import (
 var counter int64
 var sender int64
 var delayer int64
+var maxDelay int64
 var ibtppd []byte
 var proofHash [32]byte
 
@@ -80,7 +80,7 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expect
 }
 
 func (bee *bee) start(typ string) error {
-	ticker := time.NewTicker(time.Second)
+	ticker := time.NewTicker(time.Millisecond * 50)
 	defer ticker.Stop()
 
 	for {
@@ -88,7 +88,7 @@ func (bee *bee) start(typ string) error {
 		case <-bee.ctx.Done():
 			return nil
 		case <-ticker.C:
-			for i := 0; i < bee.tps; i++ {
+			for i := 0; i < bee.tps/20; i++ {
 				bee.count++
 				nonce := atomic.LoadUint64(&bee.nonce)
 				atomic.AddUint64(&bee.nonce, 1)
@@ -184,7 +184,6 @@ func (bee *bee) sendBVMTx(nonce uint64) error {
 	}
 	tx.TransactionHash = types.NewHashByStr(txHash)
 
-	go bee.counterReceipt(tx)
 	return nil
 }
 
@@ -306,7 +305,6 @@ func (bee *bee) sendTransferTx(to *types.Address, nonce uint64) error {
 		return err
 	}
 	tx.TransactionHash = types.NewHashByStr(txHash)
-	go bee.counterReceipt(tx)
 
 	return nil
 }
@@ -331,7 +329,6 @@ func (bee *bee) sendInterchainTx(i uint64, nonce uint64) error {
 		return err
 	}
 	tx.TransactionHash = types.NewHashByStr(txHash)
-	go bee.counterReceipt(tx)
 
 	return nil
 }
@@ -370,27 +367,6 @@ func mockIBTP(index uint64, from, to string, proof []byte) *pb.IBTP {
 		Timestamp: time.Now().UnixNano(),
 		Proof:     proofHash[:],
 	}
-}
-
-func (bee *bee) counterReceipt(tx *pb.Transaction) {
-	for {
-		receipt, err := bee.client.GetReceipt(tx.Hash().String())
-		if err != nil {
-			if strings.Contains(err.Error(), "not found in DB") {
-				continue
-			}
-			logger.Error(err)
-			return
-		}
-
-		if !receipt.IsSuccess() {
-			logger.Error("receipt for tx %s is failed, error msg: %s", tx.TransactionHash.String(), string(receipt.Ret))
-			return
-		}
-		break
-	}
-	atomic.AddInt64(&delayer, time.Now().UnixNano()-tx.Timestamp)
-	atomic.AddInt64(&counter, 1)
 }
 
 func (bee *bee) VotePass(id string) error {
