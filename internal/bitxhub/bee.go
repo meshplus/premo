@@ -114,8 +114,12 @@ func (bee *bee) sendTx(typ string, count, nonce uint64) error {
 		if err := bee.sendInterchainTx(count, nonce); err != nil {
 			return err
 		}
-	case "data":
-		if err := bee.sendBVMTx(nonce); err != nil {
+	case "getData":
+		if err := bee.sendBVMTx(nonce, true); err != nil {
+			return err
+		}
+	case "setData":
+		if err := bee.sendBVMTx(nonce, false); err != nil {
 			return err
 		}
 	case "transfer":
@@ -143,14 +147,22 @@ func (bee *bee) stop() {
 	return
 }
 
-func (bee *bee) sendBVMTx(nonce uint64) error {
+func (bee *bee) sendBVMTx(nonce uint64, isGet bool) error {
 	atomic.AddInt64(&sender, 1)
 	args := make([]*pb.Arg, 0)
-	args = append(args, rpcx.String("a"), rpcx.String("10"))
-
-	pl := &pb.InvokePayload{
-		Method: "Set",
-		Args:   args,
+	var pl *pb.InvokePayload
+	if isGet {
+		args = append(args, rpcx.String("a"))
+		pl = &pb.InvokePayload{
+			Method: "Get",
+			Args:   args,
+		}
+	} else {
+		args = append(args, rpcx.String("a"), rpcx.String("10"))
+		pl = &pb.InvokePayload{
+			Method: "Set",
+			Args:   args,
+		}
 	}
 
 	data, err := pl.Marshal()

@@ -50,7 +50,7 @@ var testCMD = &cli.Command{
 		},
 		&cli.StringFlag{
 			Name:  "type",
-			Usage: "Specify tx type: interchain, data, transfer",
+			Usage: "Specify tx type: interchain, getData, setData, transfer",
 			Value: "transfer",
 		},
 		&cli.StringFlag{
@@ -114,8 +114,8 @@ func benchmark(ctx *cli.Context) error {
 		Appchain:    appchain,
 	}
 
-	if config.Concurrent > config.TPS {
-		return fmt.Errorf("error: concurrent should be less than tps")
+	if config.Concurrent > config.TPS/20 {
+		return fmt.Errorf("error: concurrent should be <= tps / 20")
 	}
 
 	broker, err := bitxhub.New(config)
