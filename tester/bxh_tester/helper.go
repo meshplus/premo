@@ -21,7 +21,7 @@ import (
 
 var cfg = &config{
 	addrs: []string{
-		"localhost:60011",
+		"172.28.228.43:60011",
 		"localhost:60012",
 		"localhost:60013",
 		"localhost:60014",
@@ -414,4 +414,45 @@ func (suite *Snake) GetChainStatusById(id string) (*pb.Receipt, error) {
 		return nil, errors.New(string(res.Ret))
 	}
 	return res, nil
+}
+
+func (suite Snake) TransferFromAdmin(address string, amount string) error {
+	node4, err := repo.Node4Path()
+	if err != nil {
+		return err
+	}
+	pk, err := asym.RestorePrivateKey(node4, repo.KeyPassword)
+	if err != nil {
+		return err
+	}
+	from, err := pk.PublicKey().Address()
+	if err != nil {
+		return err
+	}
+	client := suite.NewClient(pk)
+	data := &pb.TransactionData{
+		Amount: amount + "000000000000000000",
+	}
+	payload, err := data.Marshal()
+	if err != nil {
+		return err
+	}
+
+	tx := &pb.BxhTransaction{
+		From:      from,
+		To:        types.NewAddressByStr(address),
+		Timestamp: time.Now().UnixNano(),
+		Payload:   payload,
+	}
+
+	ret, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		Nonce: atomic.AddUint64(&nonce4, 1),
+	})
+	if err != nil {
+		return err
+	}
+	if ret.Status != pb.Receipt_SUCCESS {
+		return errors.New(string(ret.Ret))
+	}
+	return nil
 }

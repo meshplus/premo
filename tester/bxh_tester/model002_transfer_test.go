@@ -1,20 +1,17 @@
 package bxh_tester
 
 import (
-	"strconv"
+	"encoding/json"
+	"math/big"
 	"sync/atomic"
 	"time"
 
 	"github.com/meshplus/bitxhub-kit/crypto"
-
-	rpcx "github.com/meshplus/go-bitxhub-client"
-	"github.com/meshplus/premo/internal/repo"
-
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
-
 	"github.com/meshplus/bitxhub-kit/types"
 	"github.com/meshplus/bitxhub-model/pb"
-	"github.com/tidwall/gjson"
+	rpcx "github.com/meshplus/go-bitxhub-client"
+	"github.com/meshplus/premo/internal/repo"
 )
 
 type Model2 struct {
@@ -27,17 +24,19 @@ func (suite *Model2) Test0201_TransferLessThanAmount() {
 	suite.Require().Nil(err)
 	from, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
+	err = suite.TransferFromAdmin(from.String(), "1")
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 
 	res, err := client.GetAccountBalance(from.String())
 	suite.Require().Nil(err)
-
-	balance := gjson.Get(string(res.Data), "balance").Uint()
+	account := Account{}
+	err = json.Unmarshal(res.Data, &account)
 	suite.Require().Nil(err)
-	amount := balance + 1
+	amount := account.Balance.Add(&account.Balance, big.NewInt(1))
 
 	data := &pb.TransactionData{
-		Amount: strconv.FormatUint(amount, 10),
+		Amount: amount.String(),
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
@@ -62,6 +61,8 @@ func (suite *Model2) Test0202_ToAddressIs0X000___000() {
 	pk, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
 	suite.Require().Nil(err)
 	from, err := pk.PublicKey().Address()
+	suite.Require().Nil(err)
+	err = suite.TransferFromAdmin(from.String(), "1")
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 
@@ -91,6 +92,8 @@ func (suite *Model2) Test0203_TypeIsXVM() {
 	pk, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
 	suite.Require().Nil(err)
 	from, err := pk.PublicKey().Address()
+	suite.Require().Nil(err)
+	err = suite.TransferFromAdmin(from.String(), "1")
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
