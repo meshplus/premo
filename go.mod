@@ -9,7 +9,7 @@ require (
 	github.com/cheynewallace/tabby v1.1.0
 	github.com/cloudflare/cfssl v0.0.0-20190409034051-768cd563887f // indirect
 	github.com/coreos/etcd v3.3.18+incompatible
-	github.com/ethereum/go-ethereum v1.10.2
+	github.com/ethereum/go-ethereum v1.10.4
 	github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5 // indirect
 	github.com/gballet/go-libpcsclite v0.0.0-20191108122812-4678299bea08 // indirect
 	github.com/gobuffalo/packd v1.0.0
@@ -23,16 +23,16 @@ require (
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
 	github.com/looplab/fsm v0.2.0
 	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/meshplus/bitxhub-core v1.3.0
-	github.com/meshplus/bitxhub-kit v1.2.1-0.20210524063043-9afae78ac098
-	github.com/meshplus/bitxhub-model v1.2.1-0.20210604092755-473bcc9420fc
-	github.com/meshplus/go-bitxhub-client v1.3.1-0.20210604092745-d883783a86b3
+	github.com/meshplus/bitxhub-core v1.3.1-0.20210626135301-b4332754e7f6
+	github.com/meshplus/bitxhub-kit v1.2.1-0.20210616114532-4849447f09e1
+	github.com/meshplus/bitxhub-model v1.2.1-0.20210629020432-d98febd566c1
+	github.com/meshplus/go-bitxhub-client v1.3.1-0.20210701063659-a0836fbc1c78
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.7.2-0.20200724220135-c650ae9fa103 // indirect
 	github.com/rjeczalik/notify v0.9.2 // indirect
-	github.com/shirou/gopsutil v2.20.5+incompatible
+	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.7.0
