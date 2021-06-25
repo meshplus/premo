@@ -1,150 +1,178 @@
 package bxh_tester
 
 import (
-	"fmt"
 	"io/ioutil"
+
+	"github.com/meshplus/bitxhub-kit/crypto"
+	"github.com/meshplus/bitxhub-kit/crypto/asym"
 
 	"github.com/meshplus/bitxhub-kit/types"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 )
 
-func (suite *Snake) Test0411_LegerSet() {
+type Model4 struct {
+	*Snake
+}
+
+func (suite *Model4) Test0411_LegerSet() {
 	address := suite.deployLedgerContract()
 
-	res, err := suite.client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	client := suite.NewClient(pk)
+	res, err := client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().Equal("1", string(res.Ret))
 }
 
-func (suite Snake) Test0412_LegerSetWithValueLoss() {
+func (suite Model4) Test0412_LegerSetWithValueLoss() {
 	address := suite.deployLedgerContract()
-	fmt.Println(address.String())
 
-	res, err := suite.client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"))
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	client := suite.NewClient(pk)
+	res, err := client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 	suite.Require().Contains(string(res.Ret), "Missing 1 argument(s)")
 }
 
-func (suite Snake) Test0413_LegerSetWithKVLoss() {
+func (suite Model4) Test0413_LegerSetWithKVLoss() {
 	address := suite.deployLedgerContract()
 
-	res, err := suite.client.InvokeXVMContract(address, "state_test_set", nil)
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	client := suite.NewClient(pk)
+	res, err := client.InvokeXVMContract(address, "state_test_set", nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 	suite.Require().Contains(string(res.Ret), "Missing 2 argument(s)")
 }
 
-func (suite Snake) Test0414_LegerSetWithErrorMethod() {
+func (suite Model4) Test0414_LegerSetWithErrorMethod() {
 	address := suite.deployLedgerContract()
 
-	res, err := suite.client.InvokeXVMContract(address, "state_test_set111", nil, rpcx.String("Alice"))
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	client := suite.NewClient(pk)
+	res, err := client.InvokeXVMContract(address, "state_test_set111", nil, rpcx.String("Alice"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 	suite.Require().Contains(string(res.Ret), "wrong rule contract")
 }
 
-func (suite *Snake) Test0415_LegerSetRepeat() {
+func (suite *Model4) Test0415_LegerSetRepeat() {
 	address := suite.deployLedgerContract()
 
-	res, err := suite.client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	client := suite.NewClient(pk)
+	res, err := client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().Equal("1", string(res.Ret))
 
-	res, err = suite.client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
+	res, err = client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().Equal("1", string(res.Ret))
 }
 
-func (suite *Snake) Test0416_LegerGetAliceWithoutSet() {
+func (suite *Model4) Test0416_LegerGetAliceWithoutSet() {
 	address := suite.deployLedgerContract()
 
-	res, err := suite.client.InvokeXVMContract(address, "state_test_get", nil, rpcx.String("Alice"), rpcx.String("111"))
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	client := suite.NewClient(pk)
+	res, err := client.InvokeXVMContract(address, "state_test_get", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 	suite.Require().Contains(string(res.Ret), "Failed to call the `state_test_get` exported function.")
 }
 
-func (suite *Snake) Test0417_GetNilWithoutSet() {
+func (suite *Model4) Test0417_GetNilWithoutSet() {
 	address := suite.deployLedgerContract()
 
-	res, err := suite.client.InvokeXVMContract(address, "state_test_get", nil)
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	client := suite.NewClient(pk)
+	res, err := client.InvokeXVMContract(address, "state_test_get", nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 	suite.Require().Contains(string(res.Ret), "Missing 2 argument(s)")
 }
 
-func (suite *Snake) Test0418_SetAliceGetAlice() {
+func (suite *Model4) Test0418_SetAliceGetAlice() {
 	address := suite.deployLedgerContract()
 
-	res, err := suite.client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	client := suite.NewClient(pk)
+	res, err := client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().Equal("1", string(res.Ret))
 
-	res, err = suite.client.InvokeXVMContract(address, "state_test_get", nil, rpcx.String("Alice"), rpcx.String("111"))
+	res, err = client.InvokeXVMContract(address, "state_test_get", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().Equal("1", string(res.Ret))
 }
 
-func (suite *Snake) Test0419_SetAliceGetBob() {
+func (suite *Model4) Test0419_SetAliceGetBob() {
 	address := suite.deployLedgerContract()
 
-	res, err := suite.client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	client := suite.NewClient(pk)
+	res, err := client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().Equal("1", string(res.Ret))
 
-	res, err = suite.client.InvokeXVMContract(address, "state_test_get", nil, rpcx.String("Bob"), rpcx.String("111"))
+	res, err = client.InvokeXVMContract(address, "state_test_get", nil, rpcx.String("Bob"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 	suite.Require().Contains(string(res.Ret), "Failed to call the `state_test_get` exported function.")
 }
 
-func (suite *Snake) Test0420_SetAliceGetNil() {
+func (suite *Model4) Test0420_SetAliceGetNil() {
 	address := suite.deployLedgerContract()
 
-	res, err := suite.client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	client := suite.NewClient(pk)
+	res, err := client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().Equal("1", string(res.Ret))
 
-	res, err = suite.client.InvokeXVMContract(address, "state_test_get", nil)
+	res, err = client.InvokeXVMContract(address, "state_test_get", nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 	suite.Require().Contains(string(res.Ret), "Missing 2 argument(s)")
 }
 
-func (suite Snake) Test0421_SetAliceGetAliceRepeat() {
+func (suite Model4) Test0421_SetAliceGetAliceRepeat() {
 	address := suite.deployLedgerContract()
 
-	res, err := suite.client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	client := suite.NewClient(pk)
+	res, err := client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().Equal("1", string(res.Ret))
 
-	res, err = suite.client.InvokeXVMContract(address, "state_test_get", nil, rpcx.String("Alice"), rpcx.String("111"))
+	res, err = client.InvokeXVMContract(address, "state_test_get", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().Equal("1", string(res.Ret))
 
-	res, err = suite.client.InvokeXVMContract(address, "state_test_get", nil, rpcx.String("Alice"), rpcx.String("111"))
+	res, err = client.InvokeXVMContract(address, "state_test_get", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().Equal("1", string(res.Ret))
 }
 
-func (suite *Snake) deployLedgerContract() *types.Address {
+func (suite *Model4) deployLedgerContract() *types.Address {
 	contract, err := ioutil.ReadFile("testdata/ledger_test_gc.wasm")
 	suite.Require().Nil(err)
 
-	address, err := suite.client.DeployContract(contract, nil)
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	client := suite.NewClient(pk)
+	address, err := client.DeployContract(contract, nil)
 	suite.Require().Nil(err)
 	suite.Require().NotNil(address)
 	return address

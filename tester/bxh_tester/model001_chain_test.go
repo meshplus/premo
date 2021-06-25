@@ -21,13 +21,11 @@ type Account struct {
 	CodeHash      types.Hash `json:"code_hash"`
 }
 
-
-//init
-func (suite *Snake) SetupTest() {
-	suite.sendTransaction()
+type Model1 struct {
+	*Snake
 }
 
-func (suite Snake) sendTransaction()  {
+func (suite Model1) sendTransaction() {
 	data := &pb.TransactionData{
 		Amount: 1,
 	}
@@ -43,10 +41,11 @@ func (suite Snake) sendTransaction()  {
 
 	res, err := suite.client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_SUCCESS,res.Status)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 }
+
 //tc: 根据区块高度查询区块，返回正确的区块信息
-func (suite *Snake) Test0101_GetBlockByHeight() {
+func (suite *Model1) Test0101_GetBlockByHeight() {
 	// first block
 	block, err := suite.client.GetBlock("1", pb.GetBlockRequest_HEIGHT)
 	suite.Require().Nil(err)
@@ -62,7 +61,7 @@ func (suite *Snake) Test0101_GetBlockByHeight() {
 }
 
 //tc:根据不存在的区块高度查询区块，返回错误信息
-func (suite *Snake) Test0102_GetBlockByNonexistentHeight() {
+func (suite *Model1) Test0102_GetBlockByNonexistentHeight() {
 	// get current block height
 	chainMeta, err := suite.client.GetChainMeta()
 	suite.Require().Nil(err)
@@ -81,7 +80,7 @@ func (suite *Snake) Test0102_GetBlockByNonexistentHeight() {
 }
 
 //tc:根据非法的区块高度查询区块，返回错误信息
-func (suite *Snake) Test0103_GetBlockByWrongHeight() {
+func (suite *Model1) Test0103_GetBlockByWrongHeight() {
 	_, err := suite.client.GetBlock("a", pb.GetBlockRequest_HEIGHT)
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "wrong block number")
@@ -92,7 +91,7 @@ func (suite *Snake) Test0103_GetBlockByWrongHeight() {
 }
 
 //tc: 根据当前区块的父区块高度查询区块，返回正确的区块信息
-func (suite *Snake) Test0104_GetBlockByParentHeight() {
+func (suite *Model1) Test0104_GetBlockByParentHeight() {
 	// get current block height
 	chainMeta, err := suite.client.GetChainMeta()
 	suite.Require().Nil(err)
@@ -106,7 +105,7 @@ func (suite *Snake) Test0104_GetBlockByParentHeight() {
 }
 
 //tc:根据区块哈希查询区块，返回正确的区块信息
-func (suite *Snake) Test0105_GetBlockByHash() {
+func (suite *Model1) Test0105_GetBlockByHash() {
 	// get current chain meta
 	chainMeta, err := suite.client.GetChainMeta()
 	suite.Require().Nil(err)
@@ -117,7 +116,7 @@ func (suite *Snake) Test0105_GetBlockByHash() {
 }
 
 //tc:根据错误的区块哈希查询区块，返回错误信息
-func (suite *Snake) Test0106_GetBlockByWrongHash() {
+func (suite *Model1) Test0106_GetBlockByWrongHash() {
 	_, err := suite.client.GetBlock(" ", pb.GetBlockRequest_HASH)
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "invalid format of block hash for querying block")
@@ -129,7 +128,7 @@ func (suite *Snake) Test0106_GetBlockByWrongHash() {
 }
 
 //tc:根据当前区块的父区块哈希查询区块，返回正确的区块信息
-func (suite *Snake) Test0107_GetBlockByParentHash() {
+func (suite *Model1) Test0107_GetBlockByParentHash() {
 	// get current chain meta
 	chainMeta, err := suite.client.GetChainMeta()
 	suite.Require().Nil(err)
@@ -144,14 +143,14 @@ func (suite *Snake) Test0107_GetBlockByParentHash() {
 }
 
 //tc:查询链的validators，返回中继链的validator信息
-func (suite *Snake) Test0108_GetValidators() {
+func (suite *Model1) Test0108_GetValidators() {
 	Validator, err := suite.client.GetValidators()
 	suite.Require().Nil(err)
 	suite.Require().NotNil(Validator)
 }
 
 //tc:根据指定范围查询区块头，返回正确范围内的区块头信息
-func (suite *Snake) Test0109_GetBlockHeader() {
+func (suite *Model1) Test0109_GetBlockHeader() {
 	ctx, cancel := context.WithTimeout(context.Background(), GetInfoTimeout)
 	defer cancel()
 
@@ -177,7 +176,7 @@ func (suite *Snake) Test0109_GetBlockHeader() {
 }
 
 //tc:根据不存在的范围查询区块头，返回区块头为空
-func (suite *Snake) Test0110_GetNonexistentBlockHeader() {
+func (suite *Model1) Test0110_GetNonexistentBlockHeader() {
 	// get current chain meta
 	chainMeta, err := suite.client.GetChainMeta()
 	suite.Require().Nil(err)
@@ -195,7 +194,7 @@ func (suite *Snake) Test0110_GetNonexistentBlockHeader() {
 }
 
 //tc:查询链的元数据，返回当前链的chain_meta信息
-func (suite *Snake) Test0111_GetChainMeta() {
+func (suite *Model1) Test0111_GetChainMeta() {
 	chainMeta, err := suite.client.GetChainMeta()
 	suite.Require().Nil(err)
 	suite.Require().True(chainMeta.Height > 0)
@@ -206,7 +205,7 @@ func (suite *Snake) Test0111_GetChainMeta() {
 }
 
 //tc:查询指定区块高度范围内的所有区块，返回正确范围区块信息
-func (suite *Snake) Test0112_GetBlocks() {
+func (suite *Model1) Test0112_GetBlocks() {
 	chainMeta, err := suite.client.GetChainMeta()
 	suite.Require().Nil(err)
 
@@ -225,7 +224,7 @@ func (suite *Snake) Test0112_GetBlocks() {
 }
 
 //tc:查询不存在的高度范围的所有区块，返回区块信息为空
-func (suite *Snake) Test0113_GetBlocksByNonexistentRange() {
+func (suite *Model1) Test0113_GetBlocksByNonexistentRange() {
 	chainMeta, err := suite.client.GetChainMeta()
 	suite.Require().Nil(err)
 
@@ -236,7 +235,7 @@ func (suite *Snake) Test0113_GetBlocksByNonexistentRange() {
 }
 
 //tc:根据指定地址查询余额，返回正确余额信息
-func (suite *Snake) Test0114_GetAccountBalance() {
+func (suite *Model1) Test0114_GetAccountBalance() {
 	res, err := suite.client.GetAccountBalance(suite.from.String())
 	suite.Require().Nil(err)
 
@@ -247,8 +246,8 @@ func (suite *Snake) Test0114_GetAccountBalance() {
 }
 
 //tc：根据空的地址查询余额，返回余额为0
-func (suite *Snake) Test0115_GetAccountBalanceByNilAddress() {
-	res, err := suite.client.GetAccountBalance("0x0000000000000000000000000000000000000000")
+func (suite *Model1) Test0115_GetAccountBalanceByNilAddress() {
+	res, err := suite.client.GetAccountBalance("0x0000000000000000000000000000000000000001")
 	suite.Require().Nil(err)
 
 	data := Account{}
@@ -257,7 +256,7 @@ func (suite *Snake) Test0115_GetAccountBalanceByNilAddress() {
 	suite.Require().Equal(uint64(0), data.Balance)
 }
 
-func (suite *Snake) Test0116_GetAccountBalanceByWrongAddress() {
+func (suite *Model1) Test0116_GetAccountBalanceByWrongAddress() {
 	_, err := suite.client.GetAccountBalance("ABC")
 	suite.Require().NotNil(err)
 
@@ -269,14 +268,14 @@ func (suite *Snake) Test0116_GetAccountBalanceByWrongAddress() {
 }
 
 //tc:查询链的共识状态，返回正确的状态信息
-func (suite *Snake) Test0117_GetChainStatus() {
+func (suite *Model1) Test0117_GetChainStatus() {
 	res, err := suite.client.GetChainStatus()
 	suite.Require().Nil(err)
 	suite.Require().Equal("normal", string(res.Data))
 }
 
 //tc:查询链的网络状态，返回正确的状态信息
-func (suite *Snake) Test0118_GetNetworkMeta() {
+func (suite *Model1) Test0118_GetNetworkMeta() {
 	networkInfo, err := suite.client.GetNetworkMeta()
 	suite.Require().Nil(err)
 	suite.Require().NotNil(networkInfo)
