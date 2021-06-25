@@ -12,7 +12,7 @@ import (
 )
 
 func TestTester(t *testing.T) {
-	keyPath, err := repo.Node1Path()
+	keyPath, err := repo.Node2Path()
 	require.Nil(t, err)
 
 	pk, err := asym.RestorePrivateKey(keyPath, repo.KeyPassword)

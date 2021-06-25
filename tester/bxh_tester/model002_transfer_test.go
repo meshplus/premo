@@ -1,20 +1,17 @@
 package bxh_tester
 
 import (
-	"strconv"
+	"encoding/json"
+	"math/big"
 	"sync/atomic"
 	"time"
 
 	"github.com/meshplus/bitxhub-kit/crypto"
-
-	rpcx "github.com/meshplus/go-bitxhub-client"
-	"github.com/meshplus/premo/internal/repo"
-
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
-
 	"github.com/meshplus/bitxhub-kit/types"
 	"github.com/meshplus/bitxhub-model/pb"
-	"github.com/tidwall/gjson"
+	rpcx "github.com/meshplus/go-bitxhub-client"
+	"github.com/meshplus/premo/internal/repo"
 )
 
 type Model2 struct {
@@ -31,13 +28,13 @@ func (suite *Model2) Test0201_TransferLessThanAmount() {
 
 	res, err := client.GetAccountBalance(from.String())
 	suite.Require().Nil(err)
-
-	balance := gjson.Get(string(res.Data), "balance").Uint()
+	account := Account{}
+	err = json.Unmarshal(res.Data, &account)
 	suite.Require().Nil(err)
-	amount := balance + 1
+	amount := account.Balance.Add(&account.Balance, big.NewInt(1))
 
 	data := &pb.TransactionData{
-		Amount: strconv.FormatUint(amount, 10),
+		Amount: amount.String(),
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)

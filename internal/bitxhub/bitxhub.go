@@ -6,17 +6,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/meshplus/bitxhub-model/constant"
-
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	"github.com/meshplus/premo/internal/repo"
 	"github.com/sirupsen/logrus"
 	"github.com/wonderivan/logger"
-)
-
-const (
-	DefaultTo = "000000000000000000000000000000000000000a"
 )
 
 var index1 uint64
@@ -85,12 +79,7 @@ func New(config *Config) (*Broker, error) {
 		return nil, err
 	}
 
-	//init and query nodes nonce
-	_, err = client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "Init", nil, rpcx.String("did:bitxhub:relayroot:"+adminFrom.String()))
-	if err != nil {
-		return nil, err
-	}
-
+	//query nodes nonce
 	node1, err := repo.Node1Path()
 	if err != nil {
 		return nil, err
@@ -117,7 +106,6 @@ func New(config *Config) (*Broker, error) {
 	if err != nil {
 		return nil, err
 	}
-	_, err = client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+adminFrom.String()), rpcx.String("did:bitxhub:relayroot:"+address.String()))
 	index2, err = client.GetPendingNonceByAccount(address.String())
 
 	node3, err := repo.Node3Path()
@@ -132,7 +120,6 @@ func New(config *Config) (*Broker, error) {
 	if err != nil {
 		return nil, err
 	}
-	_, err = client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+adminFrom.String()), rpcx.String("did:bitxhub:relayroot:"+address.String()))
 	index3, err = client.GetPendingNonceByAccount(address.String())
 
 	node4, err := repo.Node4Path()
@@ -147,9 +134,7 @@ func New(config *Config) (*Broker, error) {
 	if err != nil {
 		return nil, err
 	}
-	_, err = client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+adminFrom.String()), rpcx.String("did:bitxhub:relayroot:"+address.String()))
-
-	index1 += 2
+	index1 -= 1
 	index2 -= 1
 	index3 -= 1
 
@@ -283,7 +268,10 @@ func (broker *Broker) Stop(current time.Time) error {
 
 	logger.Info("Bees are quiting, please wait...")
 	for i := 0; i < len(broker.bees); i++ {
-		broker.bees[i].stop()
+		err := broker.bees[i].stop()
+		if err != nil {
+			return err
+		}
 	}
 	err := broker.client.Stop()
 	if err != nil {
