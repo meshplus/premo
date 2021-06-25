@@ -5,42 +5,14 @@ import (
 
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
-	"github.com/meshplus/bitxhub-kit/types"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	"github.com/meshplus/premo/internal/repo"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
-var cfg = &config{
-	addrs: []string{
-		"localhost:60011",
-		"localhost:60012",
-		"localhost:60013",
-		"localhost:60014",
-	},
-	logger: logrus.New(),
-}
-
-type config struct {
-	addrs  []string
-	logger rpcx.Logger
-}
-
-type Snake struct {
-	suite.Suite
-	//client0   rpcx.ChainClient
-	client    rpcx.Client
-	from      *types.Address
-	fromIndex uint64
-	pk        crypto.PrivateKey
-	toIndex   uint64
-	to        *types.Address
-}
-
 func TestTester(t *testing.T) {
-	keyPath, err := repo.KeyPath()
+	keyPath, err := repo.Node1Path()
 	require.Nil(t, err)
 
 	pk, err := asym.RestorePrivateKey(keyPath, repo.KeyPassword)
@@ -58,12 +30,25 @@ func TestTester(t *testing.T) {
 	//node1 := &rpcx.NodeInfo{Addr: cfg.addrs[1]}
 	//node2 := &rpcx.NodeInfo{Addr: cfg.addrs[2]}
 	//node3 := &rpcx.NodeInfo{Addr: cfg.addrs[3]}
-	client, err := rpcx.New(
-		rpcx.WithNodesInfo(node0),
-		rpcx.WithLogger(cfg.logger),
-		rpcx.WithPrivateKey(pk),
-	)
-	require.Nil(t, err)
-
-	suite.Run(t, &Snake{client: client, from: from, pk: pk, to: to})
+	var clients []*rpcx.ChainClient
+	for i := 0; i < 10; i++ {
+		client, err := rpcx.New(
+			rpcx.WithNodesInfo(node0),
+			rpcx.WithLogger(cfg.logger),
+			rpcx.WithPrivateKey(pk),
+		)
+		require.Nil(t, err)
+		clients = append(clients, client)
+	}
+	if len(clients) == 10 {
+		suite.Run(t, &Model1{&Snake{client: clients[0], from: from, pk: pk, to: to}})
+		suite.Run(t, &Model2{&Snake{client: clients[1], from: from, pk: pk, to: to}})
+		suite.Run(t, &Model3{&Snake{client: clients[2], from: from, pk: pk, to: to}})
+		suite.Run(t, &Model4{&Snake{client: clients[3], from: from, pk: pk, to: to}})
+		suite.Run(t, &Model5{&Snake{client: clients[4], from: from, pk: pk, to: to}})
+		suite.Run(t, &Model6{&Snake{client: clients[5], from: from, pk: pk, to: to}})
+		suite.Run(t, &Model7{&Snake{client: clients[6], from: from, pk: pk, to: to}})
+		suite.Run(t, &Model8{&Snake{client: clients[7], from: from, pk: pk, to: to}})
+		suite.Run(t, &Model9{&Snake{client: clients[8], from: from, pk: pk, to: to}})
+	}
 }
