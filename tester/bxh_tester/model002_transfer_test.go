@@ -24,8 +24,6 @@ func (suite *Model2) Test0201_TransferLessThanAmount() {
 	suite.Require().Nil(err)
 	from, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	err = suite.TransferFromAdmin(from.String(), "1")
-	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 
 	res, err := client.GetAccountBalance(from.String())
@@ -62,8 +60,6 @@ func (suite *Model2) Test0202_ToAddressIs0X000___000() {
 	suite.Require().Nil(err)
 	from, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	err = suite.TransferFromAdmin(from.String(), "1")
-	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 
 	data := &pb.TransactionData{
@@ -92,8 +88,6 @@ func (suite *Model2) Test0203_TypeIsXVM() {
 	pk, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
 	suite.Require().Nil(err)
 	from, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	err = suite.TransferFromAdmin(from.String(), "1")
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{

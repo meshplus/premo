@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 	"time"
 
@@ -95,11 +94,10 @@ func benchmark(ctx *cli.Context) error {
 
 	keyPath := ctx.String("key_path")
 	if keyPath == "" {
-		rootPath, err := repo.PathRoot()
+		keyPath, err = repo.Node4Path()
 		if err != nil {
 			return err
 		}
-		keyPath = filepath.Join(rootPath, "node1.json")
 	}
 	config := &bitxhub.Config{
 		Concurrent:  ctx.Int("concurrent"),

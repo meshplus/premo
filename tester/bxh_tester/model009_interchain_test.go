@@ -210,5 +210,4 @@ func (suite *Model9) Test0908_HandleIBTPWithTxInBlock() {
 	transaction, err := client.GetTransaction(hash)
 	suite.Require().Nil(err)
 	suite.Require().Equal(transaction.Tx.TransactionHash.String(), hash)
-
 }

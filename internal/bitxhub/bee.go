@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"sync/atomic"
@@ -26,7 +27,6 @@ var counter int64
 var sender int64
 var delayer int64
 var ibtppd []byte
-var proofHash [32]byte
 
 type bee struct {
 	adminPrivKey  crypto.PrivateKey
@@ -63,6 +63,10 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expect
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(normalPk),
 	)
+	if err != nil {
+		return nil, err
+	}
+	err = TransferFromAdmin(config, adminPk, adminFrom, normalFrom, "100", expectedNonce)
 	if err != nil {
 		return nil, err
 	}
@@ -140,9 +144,12 @@ func (bee *bee) sendTx(typ string, count, nonce uint64) error {
 	return nil
 }
 
-func (bee *bee) stop() {
-	bee.client.Stop()
-	return
+func (bee *bee) stop() error {
+	err := bee.client.Stop()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (bee *bee) sendBVMTx(normalNo uint64) error {
@@ -202,10 +209,9 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 		ct = chainType
 	}
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + bee.normalFrom.String() + ":" + bee.normalFrom.String()), //id
-		rpcx.String("did:bitxhub:appchain" + bee.normalFrom.String() + ":."),                          //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                           //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                                 //docHash
+		rpcx.String("appchain" + bee.normalFrom.String()),                   //ownerDID
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(validators), //validators
 		rpcx.String("raft"),     //consensus_type
 		rpcx.String(ct),         //chain_type
@@ -286,7 +292,7 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 		}
 		atomic.AddUint64(&bee.nonce, 1)
 	}
-	prepareInterchainTx(bee.config.Proof)
+	prepareInterchainTx()
 	return nil
 }
 
@@ -378,7 +384,7 @@ func (bee *bee) sendInterchainTx(i uint64, nonce uint64) error {
 	return nil
 }
 
-func prepareInterchainTx(proof []byte) {
+func prepareInterchainTx() {
 	if ibtppd != nil {
 		return
 	}
@@ -401,7 +407,6 @@ func prepareInterchainTx(proof []byte) {
 	}
 
 	ibtppd, _ = payload.Marshal()
-	proofHash = sha256.Sum256(proof)
 }
 
 func mockIBTP(index uint64, from, to string, proof []byte) *pb.IBTP {
@@ -533,7 +538,7 @@ func (bee *bee) vote(key crypto.PrivateKey, index uint64, args ...*pb.Arg) (*pb.
 }
 
 func (bee *bee) GetChainStatusById(id string) (*pb.Receipt, error) {
-	node, err := repo.Node1Path()
+	node, err := repo.Node2Path()
 	key, err := asym.RestorePrivateKey(node, repo.KeyPassword)
 	if err != nil {
 		return nil, err
@@ -578,10 +583,48 @@ func (bee *bee) GetChainStatusById(id string) (*pb.Receipt, error) {
 	}
 	receipt, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
 		From:  bee.adminFrom.String(),
-		Nonce: atomic.AddUint64(&index1, 1),
+		Nonce: atomic.AddUint64(&index2, 1),
 	})
 	if err != nil {
 		return nil, err
 	}
 	return receipt, nil
+}
+
+func TransferFromAdmin(config *Config, adminPrivKey crypto.PrivateKey, adminFrom *types.Address, address *types.Address, amount string, nonce uint64) error {
+	node0 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[0]}
+	client, err := rpcx.New(
+		rpcx.WithNodesInfo(node0),
+		rpcx.WithLogger(cfg.logger),
+		rpcx.WithPrivateKey(adminPrivKey),
+	)
+	if err != nil {
+		return err
+	}
+	data := &pb.TransactionData{
+		Amount: amount + "000000000000000000",
+	}
+	payload, err := data.Marshal()
+	if err != nil {
+		return err
+	}
+
+	tx := &pb.BxhTransaction{
+		From:      adminFrom,
+		To:        address,
+		Timestamp: time.Now().UnixNano(),
+		Payload:   payload,
+	}
+
+	ret, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From:  adminFrom.String(),
+		Nonce: nonce,
+	})
+	if err != nil {
+		return err
+	}
+	if ret.Status != pb.Receipt_SUCCESS {
+		return errors.New(string(ret.Ret))
+	}
+	return nil
 }

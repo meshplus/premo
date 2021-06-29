@@ -21,7 +21,7 @@ import (
 
 var cfg = &config{
 	addrs: []string{
-		"172.28.228.43:60011",
+		"localhost:60011",
 		"localhost:60012",
 		"localhost:60013",
 		"localhost:60014",
@@ -58,47 +58,36 @@ func (suite *Snake) SetupTest() {
 }
 
 func (suite *Snake) SetupSuite() {
-	_, err := suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "Init", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()))
-	suite.Require().Nil(err)
-
 	node2, err := repo.Node2Path()
 	suite.Require().Nil(err)
 
-	key, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
-	suite.Require().Nil(err)
-	suite.sendTransaction(key)
-
-	node2Addr, err := key.PublicKey().Address()
+	key2, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
 	suite.Require().Nil(err)
 
-	_, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), rpcx.String("did:bitxhub:relayroot:"+node2Addr.String()))
+	node2Addr, err := key2.PublicKey().Address()
 	suite.Require().Nil(err)
 
 	node3, err := repo.Node3Path()
 	suite.Require().Nil(err)
 
-	key, err = asym.RestorePrivateKey(node3, repo.KeyPassword)
-	suite.Require().Nil(err)
-	suite.sendTransaction(key)
-
-	node3Addr, err := key.PublicKey().Address()
+	key3, err := asym.RestorePrivateKey(node3, repo.KeyPassword)
 	suite.Require().Nil(err)
 
-	_, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), rpcx.String("did:bitxhub:relayroot:"+node3Addr.String()))
+	node3Addr, err := key3.PublicKey().Address()
 	suite.Require().Nil(err)
 
 	node4, err := repo.Node4Path()
 	suite.Require().Nil(err)
 
-	key, err = asym.RestorePrivateKey(node4, repo.KeyPassword)
-	suite.Require().Nil(err)
-	suite.sendTransaction(key)
-
-	node4Addr, err := key.PublicKey().Address()
+	key4, err := asym.RestorePrivateKey(node4, repo.KeyPassword)
 	suite.Require().Nil(err)
 
-	_, err = suite.client.InvokeBVMContract(constant.MethodRegistryContractAddr.Address(), "AddAdmin", nil, rpcx.String("did:bitxhub:relayroot:"+suite.from.String()), rpcx.String("did:bitxhub:relayroot:"+node4Addr.String()))
+	node4Addr, err := key4.PublicKey().Address()
 	suite.Require().Nil(err)
+
+	suite.sendTransaction(key2)
+	suite.sendTransaction(key3)
+	suite.sendTransaction(key4)
 
 	nonce, err := suite.client.GetPendingNonceByAccount(node2Addr.String())
 	suite.Require().Nil(err)
@@ -122,23 +111,15 @@ func (suite *Snake) RegisterAppchain() (crypto.PrivateKey, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	client, err := rpcx.New(
-		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
-		rpcx.WithLogger(cfg.logger),
-		rpcx.WithPrivateKey(pk),
-	)
-	if err != nil {
-		return nil, "", err
-	}
+	client := suite.NewClient(pk)
 	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String("appchain" + pubAddress.String()),                       //method
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -191,28 +172,11 @@ func (suite *Snake) NewClient(pk crypto.PrivateKey) *rpcx.ChainClient {
 		rpcx.WithPrivateKey(pk),
 	)
 	suite.Require().Nil(err)
-	return client
-}
-
-func (suite *Snake) sendTransaction(pk crypto.PrivateKey) {
-	client := suite.NewClient(pk)
 	from, err := pk.PublicKey().Address()
-	data := &pb.TransactionData{
-		Amount: "1",
-	}
-	payload, err := data.Marshal()
 	suite.Require().Nil(err)
-
-	tx := &pb.BxhTransaction{
-		From:      from,
-		To:        suite.to,
-		Timestamp: time.Now().UnixNano(),
-		Payload:   payload,
-	}
-
-	res, err := client.SendTransactionWithReceipt(tx, nil)
+	err = suite.TransferFromAdmin(from.String(), "1")
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+	return client
 }
 
 func (suite *Snake) VotePass(id string) error {
@@ -363,16 +327,39 @@ func (suite *Snake) vote(key crypto.PrivateKey, nonce uint64, args ...*pb.Arg) (
 	return res, nil
 }
 
+func (suite *Snake) sendTransaction(pk crypto.PrivateKey) {
+	node0 := &rpcx.NodeInfo{Addr: cfg.addrs[0]}
+	client, err := rpcx.New(
+		rpcx.WithNodesInfo(node0),
+		rpcx.WithLogger(cfg.logger),
+		rpcx.WithPrivateKey(pk),
+	)
+	suite.Require().Nil(err)
+	from, err := pk.PublicKey().Address()
+	data := &pb.TransactionData{
+		Amount: "1",
+	}
+	payload, err := data.Marshal()
+	suite.Require().Nil(err)
+
+	tx := &pb.BxhTransaction{
+		From:      from,
+		To:        suite.to,
+		Timestamp: time.Now().UnixNano(),
+		Payload:   payload,
+	}
+
+	res, err := client.SendTransactionWithReceipt(tx, nil)
+	suite.Require().Nil(err)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+}
+
 func (suite *Snake) GetChainStatusById(id string) (*pb.Receipt, error) {
 	key, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	if err != nil {
 		return nil, err
 	}
-	client, err := rpcx.New(
-		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
-		rpcx.WithLogger(cfg.logger),
-		rpcx.WithPrivateKey(key),
-	)
+	client := suite.NewClient(key)
 	address, err := key.PublicKey().Address()
 	if err != nil {
 		return nil, err
@@ -429,7 +416,15 @@ func (suite Snake) TransferFromAdmin(address string, amount string) error {
 	if err != nil {
 		return err
 	}
-	client := suite.NewClient(pk)
+	node0 := &rpcx.NodeInfo{Addr: cfg.addrs[0]}
+	client, err := rpcx.New(
+		rpcx.WithNodesInfo(node0),
+		rpcx.WithLogger(cfg.logger),
+		rpcx.WithPrivateKey(pk),
+	)
+	if err != nil {
+		return err
+	}
 	data := &pb.TransactionData{
 		Amount: amount + "000000000000000000",
 	}
