@@ -1,6 +1,8 @@
 package main
 
 import (
+	"path/filepath"
+
 	"github.com/gobuffalo/packr"
 	"github.com/meshplus/bitxhub-kit/log"
 	"github.com/meshplus/premo/internal/api"
@@ -24,6 +26,11 @@ var serverCMD = &cli.Command{
 			Aliases: []string{"c"},
 			Value:   100,
 			Usage:   "concurrent number",
+		},
+		&cli.StringFlag{
+			Name:    "key_path",
+			Aliases: []string{"k"},
+			Usage:   "Specify key path",
 		},
 		&cli.IntFlag{
 			Name:    "tps",
@@ -58,12 +65,22 @@ func server(ctx *cli.Context) error {
 		return err
 	}
 
+	keyPath := ctx.String("key_path")
+	if keyPath == "" {
+		rootPath, err := repo.PathRoot()
+		if err != nil {
+			return err
+		}
+		keyPath = filepath.Join(rootPath, "key.json")
+	}
+
 	port := ctx.Uint64("port")
 
 	config := &bitxhub.Config{
 		Concurrent:  ctx.Int("concurrent"),
 		BitxhubAddr: ctx.StringSlice("remote_bitxhub_addr"),
 		Validator:   string(val),
+		KeyPath:     keyPath,
 		Proof:       proof,
 		Rule:        contract,
 		Appchain:    "fabric:simple",

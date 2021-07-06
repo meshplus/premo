@@ -20,8 +20,8 @@ require (
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
 	github.com/meshplus/bitxhub-core v0.1.0-rc1.0.20210607124744-c1c8251462df
 	github.com/meshplus/bitxhub-kit v1.2.0
-	github.com/meshplus/bitxhub-model v1.1.2-0.20210513074749-d31e04a9f41d
-	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20210416022059-22729ce4c0f2
+	github.com/meshplus/bitxhub-model v1.1.2-0.20210706062851-23cae198f8d8
+	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20210706073046-300873f63763
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.7.2-0.20200724220135-c650ae9fa103 // indirect

@@ -5,12 +5,15 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/coreos/etcd/pkg/stringutil"
 	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
+	"github.com/meshplus/bitxhub-kit/hexutil"
 	"github.com/meshplus/bitxhub-kit/types"
 	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"
@@ -79,6 +82,10 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expect
 	}, nil
 }
 
+func (bee *Bee) GetAddress() *types.Address {
+	return bee.normalFrom
+}
+
 func (bee *Bee) start(typ string) error {
 	ticker := time.NewTicker(time.Millisecond * 50)
 	defer ticker.Stop()
@@ -95,7 +102,7 @@ func (bee *Bee) start(typ string) error {
 					case <-bee.ctx.Done():
 						return
 					default:
-						_, err := bee.SendTx(typ, count)
+						_, err := bee.SendTx(typ, "", count)
 						if err != nil {
 							logger.Error(err)
 						}
@@ -106,39 +113,77 @@ func (bee *Bee) start(typ string) error {
 	}
 }
 
-func (bee *Bee) SendTx(typ string, count uint64) (string, error) {
-	var (
-		txHash string
-		err    error
-	)
-	nonce := atomic.LoadUint64(&bee.nonce)
-	atomic.AddUint64(&bee.nonce, 1)
+func (bee *Bee) genTx(typ, key string, count uint64) (*pb.Transaction, error) {
 	switch typ {
 	case "interchain":
-		txHash, err = bee.sendInterchainTx(count, nonce)
-		if err != nil {
-			return "", err
-		}
+		return bee.genInterchainTx(count), nil
 	case "getData":
-		txHash, err = bee.sendBVMTx(nonce, true)
-		if err != nil {
-			return "", err
-		}
+		return bee.genBVMTx(key, true)
 	case "setData":
-		txHash, err = bee.sendBVMTx(nonce, false)
-		if err != nil {
-			return "", err
-		}
+		return bee.genBVMTx(key, false)
 	case "transfer":
 		fallthrough
 	default:
 		to := &types.Address{}
-		txHash, err = bee.sendTransferTx(to, nonce)
-		if err != nil {
-			return "", err
-		}
+		return bee.genTransferTx(to, 1)
 	}
-	return txHash, nil
+}
+
+func (bee *Bee) SendTx(typ, key string, count uint64) (string, error) {
+	nonce := atomic.LoadUint64(&bee.nonce)
+	atomic.AddUint64(&bee.nonce, 1)
+	tx, err := bee.genTx(typ, key, count)
+	if err != nil {
+		return "", err
+	}
+
+	return bee.client.SendTransaction(tx, &rpcx.TransactOpts{
+		Nonce: nonce,
+	})
+}
+
+func (bee *Bee) SendTxSync(typ, key string, count uint64) (*pb.Receipt, error) {
+	nonce := atomic.LoadUint64(&bee.nonce)
+	atomic.AddUint64(&bee.nonce, 1)
+	tx, err := bee.genTx(typ, key, count)
+	if err != nil {
+		return nil, err
+	}
+
+	return bee.client.SendTransactionSync(tx, &rpcx.TransactOpts{
+		Nonce: nonce,
+	})
+}
+
+func (bee *Bee) SendDoubleSpendTxs() ([]*pb.Receipt, error) {
+	var (
+		receipts []*pb.Receipt
+		wg       sync.WaitGroup
+		lock     sync.Mutex
+	)
+	wg.Add(2)
+	for i := 0; i < 2; i++ {
+		nonce := atomic.LoadUint64(&bee.nonce)
+		atomic.AddUint64(&bee.nonce, 1)
+		go func(nonce uint64, i int) {
+			defer wg.Done()
+			tx, err := bee.genTransferTx(types.NewAddress([]byte{byte(i)}), 100000)
+			if err != nil {
+				return
+			}
+			receipt, err := bee.client.SendTransactionSync(tx, &rpcx.TransactOpts{Nonce: nonce})
+			if err != nil {
+				return
+			}
+			lock.Lock()
+			receipts = append(receipts, receipt)
+			lock.Unlock()
+		}(nonce, i)
+	}
+
+	wg.Wait()
+
+	return receipts, nil
 }
 
 func (bee *Bee) stop() {
@@ -146,18 +191,25 @@ func (bee *Bee) stop() {
 	return
 }
 
-func (bee *Bee) sendBVMTx(nonce uint64, isGet bool) (string, error) {
+func (bee *Bee) genBVMTx(key string, isGet bool) (*pb.Transaction, error) {
 	atomic.AddInt64(&sender, 1)
 	args := make([]*pb.Arg, 0)
 	var pl *pb.InvokePayload
+
+	if key == "" {
+		keys := stringutil.RandomStrings(20, 1)
+		key = keys[0]
+	}
+
 	if isGet {
-		args = append(args, rpcx.String("a"))
+		args = append(args, rpcx.String(key))
 		pl = &pb.InvokePayload{
 			Method: "Get",
 			Args:   args,
 		}
 	} else {
-		args = append(args, rpcx.String("a"), rpcx.String("10"))
+		hash := sha256.Sum256([]byte(key))
+		args = append(args, rpcx.String(key), rpcx.String(hexutil.Encode(hash[:])))
 		pl = &pb.InvokePayload{
 			Method: "Set",
 			Args:   args,
@@ -166,7 +218,7 @@ func (bee *Bee) sendBVMTx(nonce uint64, isGet bool) (string, error) {
 
 	data, err := pl.Marshal()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	td := &pb.TransactionData{
@@ -176,26 +228,15 @@ func (bee *Bee) sendBVMTx(nonce uint64, isGet bool) (string, error) {
 	}
 	payload, err := td.Marshal()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	tx := &pb.Transaction{
+	return &pb.Transaction{
 		From:      bee.normalFrom,
 		To:        constant.StoreContractAddr.Address(),
 		Payload:   payload,
 		Timestamp: time.Now().UnixNano(),
-		Nonce:     nonce,
-	}
-
-	txHash, err := bee.client.SendTransaction(tx, &rpcx.TransactOpts{
-		Nonce: nonce,
-	})
-	if err != nil {
-		return "", err
-	}
-	tx.TransactionHash = types.NewHashByStr(txHash)
-
-	return txHash, nil
+	}, nil
 }
 
 func (bee *Bee) prepareChain(chainType, name, validators, version, desc string, contract []byte) error {
@@ -288,60 +329,38 @@ func (bee *Bee) invokeContract(from, to *types.Address, nonce uint64, method str
 	})
 }
 
-func (bee *Bee) sendTransferTx(to *types.Address, nonce uint64) (string, error) {
+func (bee *Bee) genTransferTx(to *types.Address, amount uint64) (*pb.Transaction, error) {
 	atomic.AddInt64(&sender, 1)
 
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
 		VmType: pb.TransactionData_XVM,
-		Amount: 0,
+		Amount: amount,
 	}
 	payload, err := data.Marshal()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	tx := &pb.Transaction{
+
+	return &pb.Transaction{
 		From:      bee.normalFrom,
 		To:        to,
 		Timestamp: time.Now().UnixNano(),
 		Payload:   payload,
-	}
-
-	txHash, err := bee.client.SendTransaction(tx, &rpcx.TransactOpts{
-		From:  bee.normalFrom.String(),
-		Nonce: nonce,
-	})
-
-	if err != nil {
-		return "", err
-	}
-	tx.TransactionHash = types.NewHashByStr(txHash)
-
-	return txHash, nil
+	}, nil
 }
 
-func (bee *Bee) sendInterchainTx(i uint64, nonce uint64) (string, error) {
+func (bee *Bee) genInterchainTx(i uint64) *pb.Transaction {
 	atomic.AddInt64(&sender, 1)
 	ibtp := mockIBTP(i, bee.normalFrom.String(), bee.normalFrom.String(), bee.config.Proof)
 
-	tx := &pb.Transaction{
+	return &pb.Transaction{
 		From:      bee.normalFrom,
 		To:        constant.InterchainContractAddr.Address(),
 		Timestamp: time.Now().UnixNano(),
 		Extra:     bee.config.Proof,
 		IBTP:      ibtp,
 	}
-
-	txHash, err := bee.client.SendTransaction(tx, &rpcx.TransactOpts{
-		From:  fmt.Sprintf("%s-%s-%d", ibtp.From, ibtp.To, ibtp.Category()),
-		Nonce: nonce,
-	})
-	if err != nil {
-		return "", err
-	}
-	tx.TransactionHash = types.NewHashByStr(txHash)
-
-	return txHash, nil
 }
 
 func prepareInterchainTx(proof []byte) {
