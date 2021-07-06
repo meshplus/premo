@@ -36,7 +36,7 @@ type config struct {
 
 type Broker struct {
 	config     *Config
-	bees       []*bee
+	bees       []*Bee
 	client     rpcx.Client
 	adminNonce uint64
 	ctx        context.Context
@@ -136,7 +136,7 @@ func New(config *Config) (*Broker, error) {
 		return nil, err
 	}
 
-	bees := make([]*bee, 0, config.Concurrent)
+	bees := make([]*Bee, 0, config.Concurrent)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg sync.WaitGroup
@@ -149,7 +149,7 @@ func New(config *Config) (*Broker, error) {
 			expectedNonce := atomic.AddUint64(&adminNonce, 1) - 1
 			bee, err := NewBee(config.TPS/config.Concurrent, adminPk, adminFrom, expectedNonce, config, ctx)
 			if err != nil {
-				logger.Error("New bee: ", err.Error())
+				logger.Error("New Bee: ", err.Error())
 				return
 			}
 			if config.Type == "interchain" {
@@ -200,7 +200,7 @@ func (broker *Broker) Start(typ string) error {
 			}
 			log.WithFields(logrus.Fields{
 				"index": i + 1,
-			}).Debug("start bee")
+			}).Debug("start Bee")
 		}(i)
 	}
 	log.WithFields(logrus.Fields{
