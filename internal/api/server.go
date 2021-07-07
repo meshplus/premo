@@ -152,12 +152,13 @@ func (g *Server) Start() error {
 						)
 						hash := tx.Hash().String()
 						if err := retry.Retry(func(attempt uint) error {
-							val, ok := g.txMap.LoadAndDelete(hash)
+							val, ok := g.txMap.Load(hash)
 							if !ok {
 								g.logger.Warnf("tx %s not found in map", hash)
 								return fmt.Errorf("tx not found")
 							}
 							ch = val.(chan struct{})
+							g.txMap.Delete(hash)
 							return nil
 						}, strategy.Wait(time.Millisecond*10), strategy.Limit(3)); err != nil {
 							return
