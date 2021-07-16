@@ -54,18 +54,12 @@ func (suite *Model6) Test0603_RegisterAppchainWithReject() {
 	suite.Require().Nil(err)
 	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
-	client, err := rpcx.New(
-		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
-		rpcx.WithLogger(cfg.logger),
-		rpcx.WithPrivateKey(pk),
-	)
-	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String("appchain" + pubAddress.String()),                       //method
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -98,18 +92,12 @@ func (suite *Model6) Test0604_RegisterAppchainWithRegisting() {
 	suite.Require().Nil(err)
 	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
-	client, err := rpcx.New(
-		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
-		rpcx.WithLogger(cfg.logger),
-		rpcx.WithPrivateKey(pk),
-	)
-	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String("appchain" + pubAddress.String()),                       //method
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -148,10 +136,9 @@ func (suite *Model6) Test0605_RegisterAppchainRepeat() {
 	suite.Require().Nil(err)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String("appchain" + pubAddress.String()),                       //method
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -181,18 +168,12 @@ func (suite *Model6) Test0606_RegisterAppchainWithUnavailable() {
 	suite.Require().Nil(err)
 	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
-	client, err := rpcx.New(
-		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
-		rpcx.WithLogger(cfg.logger),
-		rpcx.WithPrivateKey(pk),
-	)
-	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String("appchain" + pubAddress.String()),                       //method
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -235,7 +216,7 @@ func (suite *Model6) Test0607_RegisterAppchainWithUpdating() {
 	suite.Require().Nil(err)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
+		rpcx.String(ChainID), //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
 		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String("123"),              //validators
@@ -258,10 +239,9 @@ func (suite *Model6) Test0607_RegisterAppchainWithUpdating() {
 	suite.Require().Equal(governance.GovernanceUpdating, appchain.Status)
 
 	args = []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String("appchain" + pubAddress.String()),                       //method
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -303,10 +283,9 @@ func (suite *Model6) Test0608_RegisterAppchainWithFreezing() {
 	suite.Require().Nil(err)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String("appchain" + pubAddress.String()),                       //method
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -341,10 +320,9 @@ func (suite *Model6) Test0609_RegisterAppchainWithFrozen() {
 	suite.Require().Nil(err)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String("appchain" + pubAddress.String()),                       //method
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -381,10 +359,9 @@ func (suite *Model6) Test0610_RegisterAppchainWithLogouting() {
 	suite.Require().Nil(err)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String("appchain" + pubAddress.String()),                       //method
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -419,10 +396,9 @@ func (suite *Model6) Test0611_RegisterAppChainWithForbidden() {
 	suite.Require().Nil(err)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String("appchain" + pubAddress.String()),                       //method
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -475,18 +451,12 @@ func (suite *Model6) Test0614_ActivateAppchainWithRegisting() {
 	suite.Require().Nil(err)
 	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
-	client, err := rpcx.New(
-		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
-		rpcx.WithLogger(cfg.logger),
-		rpcx.WithPrivateKey(pk),
-	)
-	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String("appchain" + pubAddress.String()),                       //method
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -519,13 +489,11 @@ func (suite *Model6) Test0616_ActivateAppchainWithUpdating() {
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
 	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
+		rpcx.String(ChainID), //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
 		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String("111"),              //validators
@@ -684,18 +652,12 @@ func (suite *Model6) Test0623_UpdateAppchainWithRegisting() {
 	suite.Require().Nil(err)
 	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
-	client, err := rpcx.New(
-		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
-		rpcx.WithLogger(cfg.logger),
-		rpcx.WithPrivateKey(pk),
-	)
-	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String("appchain" + pubAddress.String()),                       //method
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -710,6 +672,7 @@ func (suite *Model6) Test0623_UpdateAppchainWithRegisting() {
 	err = json.Unmarshal(res.Ret, result)
 	suite.Require().Nil(err)
 
+	args[0] = rpcx.String(string(result.Extra))
 	args[6] = rpcx.String("AppChain111111111")
 	err = suite.updateAppchain(pk, args...)
 	suite.Require().NotNil(err)
@@ -720,13 +683,11 @@ func (suite *Model6) Test0624_UpdateAppchain() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
 	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
+		rpcx.String(ChainID), //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
 		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String("111"),              //validators
@@ -760,13 +721,11 @@ func (suite *Model6) Test0625_UpdateAppchainWithReject() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
 	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
+		rpcx.String(ChainID), //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
 		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String("111"),              //validators
@@ -800,13 +759,11 @@ func (suite *Model6) Test0626_UpdateAppchainWithUpdating() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
 	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
+		rpcx.String(ChainID), //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
 		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String("111"),              //validators
@@ -847,16 +804,13 @@ func (suite *Model6) Test0627_UpdateAppchainWithFreezing() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceFreezing, appchain.Status)
 
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
 	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String(ChainID), //method
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -884,16 +838,13 @@ func (suite *Model6) Test0628_UpdateAppchainWithFrozen() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceFrozen, appchain.Status)
 
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
 	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String(ChainID), //method
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -922,16 +873,13 @@ func (suite *Model6) Test0629_UpdateAppchainWithWithLogouting() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceLogouting, appchain.Status)
 
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
 	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String(ChainID), //method
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -958,16 +906,13 @@ func (suite *Model6) Test0630_UpdateAppchainWithUnavailable() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceForbidden, appchain.Status)
 
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
 	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String(ChainID), //method
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -1000,18 +945,12 @@ func (suite *Model6) Test0632_FreezeAppchainWithRegisting() {
 	suite.Require().Nil(err)
 	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
-	client, err := rpcx.New(
-		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
-		rpcx.WithLogger(cfg.logger),
-		rpcx.WithPrivateKey(pk),
-	)
-	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String("appchain" + pubAddress.String()),                       //method
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -1073,13 +1012,11 @@ func (suite *Model6) Test0635_FreezeAppchainWithUpdating() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
 	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
+		rpcx.String(ChainID), //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
 		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String("111"),              //validators
@@ -1189,18 +1126,12 @@ func (suite *Model6) Test0640_LogoutAppchainWithRegisting() {
 	suite.Require().Nil(err)
 	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
-	client, err := rpcx.New(
-		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
-		rpcx.WithLogger(cfg.logger),
-		rpcx.WithPrivateKey(pk),
-	)
-	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String("appchain" + pubAddress.String()),                       //method
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
@@ -1255,13 +1186,11 @@ func (suite *Model6) Test0643_LogoutAppchainWithUpdating() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
 	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),    //ownerDID
+		rpcx.String(ChainID), //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
 		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String("111"),              //validators
@@ -1365,19 +1294,13 @@ func (suite *Model6) Test0648_GetAppchainByID() {
 	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 
-	client, err := rpcx.New(
-		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: cfg.addrs[0]}),
-		rpcx.WithLogger(cfg.logger),
-		rpcx.WithPrivateKey(pk),
-	)
-	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
 
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":" + pubAddress.String()), //id
-		rpcx.String("did:bitxhub:appchain" + pubAddress.String() + ":."),                      //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                   //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),                         //docHash
+		rpcx.String("appchain" + pubAddress.String()),                       //method
+		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
+		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type

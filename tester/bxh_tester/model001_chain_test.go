@@ -3,6 +3,7 @@ package bxh_tester
 import (
 	"context"
 	"encoding/json"
+	"math/big"
 	"strconv"
 	"time"
 
@@ -16,7 +17,7 @@ const (
 
 type Account struct {
 	Type          string     `json:"type"`
-	Balance       uint64     `json:"balance"`
+	Balance       big.Int    `json:"balance"`
 	ContractCount uint64     `json:"contract_count"`
 	CodeHash      types.Hash `json:"code_hash"`
 }
@@ -223,7 +224,7 @@ func (suite *Model1) Test0114_GetAccountBalance() {
 	data := Account{}
 	err = json.Unmarshal(res.Data, &data)
 	suite.Require().Nil(err)
-	suite.Require().NotEqual(0, data.Balance)
+	suite.Require().NotEqual("0", data.Balance.String())
 }
 
 //tc：根据空的地址查询余额，返回余额为0
@@ -234,7 +235,7 @@ func (suite *Model1) Test0115_GetAccountBalanceByNilAddress() {
 	data := Account{}
 	err = json.Unmarshal(res.Data, &data)
 	suite.Require().Nil(err)
-	suite.Require().Equal(uint64(0), data.Balance)
+	suite.Require().Equal("0", data.Balance.String())
 }
 
 func (suite *Model1) Test0116_GetAccountBalanceByWrongAddress() {
