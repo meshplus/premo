@@ -15,6 +15,10 @@ type Model4 struct {
 	*Snake
 }
 
+func (suite *Model4) SetupTest() {
+	suite.T().Parallel()
+}
+
 func (suite *Model4) Test0401_LegerSet() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)

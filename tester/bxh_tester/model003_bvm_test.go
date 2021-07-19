@@ -14,6 +14,10 @@ type Model3 struct {
 	*Snake
 }
 
+func (suite *Model3) SetupTest() {
+	suite.T().Parallel()
+}
+
 //tc:调用store合约，set 10M数据，交易回执显示失败
 func (suite *Model3) Test0301_Set10MData() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
