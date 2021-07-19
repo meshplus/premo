@@ -26,6 +26,10 @@ type Model1 struct {
 	*Snake
 }
 
+func (suite *Model1) SetupTest() {
+	suite.T().Parallel()
+}
+
 //tc: 根据区块高度查询区块，返回正确的区块信息
 func (suite *Model1) Test0101_GetBlockByHeight() {
 	// first block

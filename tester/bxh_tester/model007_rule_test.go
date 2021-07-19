@@ -32,6 +32,10 @@ type Model7 struct {
 	*Snake
 }
 
+func (suite *Model7) SetupTest() {
+	suite.T().Parallel()
+}
+
 //tc：正确部署验证规则,并返回地址
 func (suite *Model7) Test0701_DeployRule() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)

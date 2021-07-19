@@ -18,6 +18,10 @@ type Model6 struct {
 	*Snake
 }
 
+func (suite *Model6) SetupTest() {
+	suite.T().Parallel()
+}
+
 //tc:注册信息缺失或错误
 func (suite *Model6) Test0601_RegisterAppchainLoseFields() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)

@@ -14,6 +14,10 @@ type Model9 struct {
 	*Snake
 }
 
+func (suite *Model9) SetupTest() {
+	suite.T().Parallel()
+}
+
 // ------ interchain tests ------
 func (suite *Model9) Test0901_HandleIBTPShouldSucceed() {
 	kA, ChainID1, err := suite.RegisterAppchain()
