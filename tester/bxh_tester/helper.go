@@ -48,16 +48,21 @@ type RegisterResult struct {
 	ProposalID string `json:"proposal_id"`
 }
 
+var nonce1 uint64
 var nonce2 uint64
 var nonce3 uint64
 var nonce4 uint64
 
-// SetupTest init
-func (suite *Snake) SetupTest() {
-	suite.T().Parallel()
-}
-
 func (suite *Snake) SetupSuite() {
+	node1, err := repo.Node1Path()
+	suite.Require().Nil(err)
+
+	key1, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
+	suite.Require().Nil(err)
+
+	node1Addr, err := key1.PublicKey().Address()
+	suite.Require().Nil(err)
+
 	node2, err := repo.Node2Path()
 	suite.Require().Nil(err)
 
@@ -85,11 +90,16 @@ func (suite *Snake) SetupSuite() {
 	node4Addr, err := key4.PublicKey().Address()
 	suite.Require().Nil(err)
 
+	suite.sendTransaction(key1)
 	suite.sendTransaction(key2)
 	suite.sendTransaction(key3)
 	suite.sendTransaction(key4)
 
-	nonce, err := suite.client.GetPendingNonceByAccount(node2Addr.String())
+	nonce, err := suite.client.GetPendingNonceByAccount(node1Addr.String())
+	suite.Require().Nil(err)
+	nonce1 = nonce - 1
+
+	nonce, err = suite.client.GetPendingNonceByAccount(node2Addr.String())
 	suite.Require().Nil(err)
 	nonce2 = nonce - 1
 
@@ -180,20 +190,29 @@ func (suite *Snake) NewClient(pk crypto.PrivateKey) *rpcx.ChainClient {
 }
 
 func (suite *Snake) VotePass(id string) error {
+	node1, err := repo.Node1Path()
+	if err != nil {
+		return err
+	}
+
+	key, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
+	if err != nil {
+		return err
+	}
+
+	_, err = suite.vote(key, atomic.AddUint64(&nonce1, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
+
 	node2, err := repo.Node2Path()
 	if err != nil {
 		return err
 	}
 
-	key, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
+	key, err = asym.RestorePrivateKey(node2, repo.KeyPassword)
 	if err != nil {
 		return err
 	}
 
 	_, err = suite.vote(key, atomic.AddUint64(&nonce2, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
-	if err != nil {
-		return err
-	}
 
 	node3, err := repo.Node3Path()
 	if err != nil {
@@ -207,10 +226,6 @@ func (suite *Snake) VotePass(id string) error {
 
 	_, err = suite.vote(key, atomic.AddUint64(&nonce3, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
 
-	if err != nil {
-		return err
-	}
-
 	node4, err := repo.Node4Path()
 	if err != nil {
 		return err
@@ -222,10 +237,6 @@ func (suite *Snake) VotePass(id string) error {
 	}
 
 	_, err = suite.vote(key, atomic.AddUint64(&nonce4, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -316,6 +327,7 @@ func (suite *Snake) vote(key crypto.PrivateKey, nonce uint64, args ...*pb.Arg) (
 		return nil, err
 	}
 	res, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From:  address.String(),
 		Nonce: nonce,
 	})
 	if err != nil {

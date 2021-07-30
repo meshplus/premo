@@ -17,6 +17,10 @@ type Model5 struct {
 	*Snake
 }
 
+func (suite *Model5) SetupTest() {
+	suite.T().Parallel()
+}
+
 //tc:向中继链发送只读交易查询交易余额
 func (suite *Model5) Test0501_NormalReadOnly() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)

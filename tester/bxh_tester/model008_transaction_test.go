@@ -19,6 +19,10 @@ type Model8 struct {
 	*Snake
 }
 
+func (suite *Model8) SetupTest() {
+	suite.T().Parallel()
+}
+
 func (suite *Model8) Test0801_TXEmptyFrom() {
 	node2, err := repo.Node2Path()
 	suite.Require().Nil(err)

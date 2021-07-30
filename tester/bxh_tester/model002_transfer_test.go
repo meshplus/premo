@@ -18,6 +18,10 @@ type Model2 struct {
 	*Snake
 }
 
+func (suite *Model2) SetupTest() {
+	suite.T().Parallel()
+}
+
 //tc:发送转账交易，from的金额少于转账的金额，交易回执显示失败
 func (suite *Model2) Test0201_TransferLessThanAmount() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
