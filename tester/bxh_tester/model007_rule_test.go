@@ -294,8 +294,43 @@ func (suite *Model7) Test0712_UpdateRule() {
 	suite.Require().Equal(governance.GovernanceAvailable, status)
 }
 
+//tc：正确更新验证规则后，再次更新验证规则，中间链投票通过，验证规则状态为available
+func (suite *Model7) Test0713_UpdateRuleRepeat() {
+	pk, ChainID, err := suite.RegisterAppchain()
+	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
+
+	contract, err := ioutil.ReadFile("../../config/rule.wasm")
+	suite.Require().Nil(err)
+
+	contractAddr1, err := client.DeployContract(contract, nil)
+	suite.Require().Nil(err)
+	contractAddr2, err := client.DeployContract(contract, nil)
+	suite.Require().Nil(err)
+
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr1, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, UpdateMasterRule)
+	suite.Require().Nil(err)
+
+	status, err := suite.getRuleStatus(pk, ChainID, contractAddr1)
+	suite.Require().Equal(governance.GovernanceBindable, status)
+	status, err = suite.getRuleStatus(pk, ChainID, contractAddr2)
+	suite.Require().Equal(governance.GovernanceAvailable, status)
+
+	err = suite.InvokeRuleContract(pk, ChainID, contractAddr1, UpdateMasterRule)
+	suite.Require().Nil(err)
+
+	status, err = suite.getRuleStatus(pk, ChainID, contractAddr1)
+	suite.Require().Equal(governance.GovernanceAvailable, status)
+	status, err = suite.getRuleStatus(pk, ChainID, contractAddr2)
+	suite.Require().Equal(governance.GovernanceBindable, status)
+}
+
 //tc:发起正确更新规则的请求，中继链管理员投票不通过，验证规则状态为bindable
-func (suite *Model7) Test0713_UpdateRuleWithReject() {
+func (suite *Model7) Test0714_UpdateRuleWithReject() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -322,7 +357,7 @@ func (suite *Model7) Test0713_UpdateRuleWithReject() {
 }
 
 //tc:发起正确绑定规则的请求，中继链管理员投票过程中，验证规则状态为binding
-func (suite *Model7) Test0714_UpdateRuleWithDoing() {
+func (suite *Model7) Test0715_UpdateRuleWithDoing() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -353,7 +388,7 @@ func (suite *Model7) Test0714_UpdateRuleWithDoing() {
 }
 
 //tc:验证规则状态为binding，发起更新请求，提示对应错误信息
-func (suite *Model7) Test0715_UpdateRuleWithBinding() {
+func (suite *Model7) Test0716_UpdateRuleWithBinding() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -387,7 +422,7 @@ func (suite *Model7) Test0715_UpdateRuleWithBinding() {
 }
 
 //tc:验证规则状态为available，发起更新请求，提示对应错误信息
-func (suite *Model7) Test0716_UpdateRuleWithAvailable() {
+func (suite *Model7) Test0717_UpdateRuleWithAvailable() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -408,7 +443,7 @@ func (suite *Model7) Test0716_UpdateRuleWithAvailable() {
 }
 
 //tc:验证规则状态为forbidden，发起更新请求，提示对应错误信息
-func (suite *Model7) Test0717_UpdateRuleWithForbidden() {
+func (suite *Model7) Test0718_UpdateRuleWithForbidden() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -438,7 +473,7 @@ func (suite *Model7) Test0717_UpdateRuleWithForbidden() {
 }
 
 //tc：验证规则不存在，注销验证规则
-func (suite *Model7) Test0718_LogoutRuleWithNoRule() {
+func (suite *Model7) Test0719_LogoutRuleWithNoRule() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -448,7 +483,7 @@ func (suite *Model7) Test0718_LogoutRuleWithNoRule() {
 }
 
 //tc:验证规则从available状态发起注销的请求，中继链管理员投票不通过，注销失败，验证规则状态不变
-func (suite *Model7) Test0719_LogoutRuleWithBinding() {
+func (suite *Model7) Test0720_LogoutRuleWithBinding() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -485,7 +520,7 @@ func (suite *Model7) Test0719_LogoutRuleWithBinding() {
 }
 
 //tc:验证规则状态为bindable，发起注销请求，提示对应错误信息
-func (suite *Model7) Test0720_LogoutRule() {
+func (suite *Model7) Test0721_LogoutRule() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -513,7 +548,7 @@ func (suite *Model7) Test0720_LogoutRule() {
 }
 
 //tc:验证规则状态为available，发起绑定请求，提示对应错误信息
-func (suite *Model7) Test0721_LogoutRuleWithAvailable() {
+func (suite *Model7) Test0722_LogoutRuleWithAvailable() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -538,7 +573,7 @@ func (suite *Model7) Test0721_LogoutRuleWithAvailable() {
 }
 
 //tc:验证规则状态为forbidden，发起注销请求，提示对应错误信息
-func (suite *Model7) Test0722_LogoutRuleWithForbidden() {
+func (suite *Model7) Test0723_LogoutRuleWithForbidden() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
