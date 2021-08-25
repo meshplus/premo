@@ -246,6 +246,7 @@ func (suite *Model8) Test0809_GetTxByHash() {
 	}
 	nonce := atomic.AddUint64(&nonce2, 1)
 	hash, err := client.SendTransaction(tx, &rpcx.TransactOpts{
+		From:  from.String(),
 		Nonce: nonce,
 	})
 	suite.Require().Nil(err)

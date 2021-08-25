@@ -213,5 +213,5 @@ func (suite *Model9) Test0908_HandleIBTPWithTxInBlock() {
 	time.Sleep(time.Second * 2)
 	transaction, err := client.GetTransaction(hash)
 	suite.Require().Nil(err)
-	suite.Require().Equal(transaction.Tx.TransactionHash.String(), hash)
+	suite.Require().Equal(transaction.Txs.Transactions[0].GetHash().String(), hash)
 }

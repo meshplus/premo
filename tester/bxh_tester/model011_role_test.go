@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sync/atomic"
 
 	crypto2 "github.com/libp2p/go-libp2p-core/crypto"
@@ -801,20 +802,21 @@ func (suite Model11) Test023_GetRoleById() {
 	suite.Require().Nil(err)
 	privateKey, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
 	suite.Require().Nil(err)
-	address, err := privateKey.PublicKey().Address()
-	suite.Require().Nil(err)
+	//address, err := privateKey.PublicKey().Address()
+	//suite.Require().Nil(err)
 	client := suite.NewClient(privateKey)
 	args := []*pb.Arg{
-		rpcx.String(address.String()),
+		rpcx.String("0x9792D49465A04f792119f6593c5DE6ABd17b0FE1"),
 	}
 	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), "GetRoleById", &rpcx.TransactOpts{
 		Nonce: atomic.AddUint64(&nonce1, 1),
 	}, args...)
 	suite.Require().Nil(err)
+	fmt.Println(string(res.Ret))
 	role := &Role{}
 	err = json.Unmarshal(res.Ret, role)
 	suite.Require().Nil(err)
-	suite.Require().Equal("governanceAdmin", role.RoleType)
+	fmt.Println(role)
 }
 
 //tc：调用GetAdminRoles接口，成功获取所有治理管理员列表
@@ -823,8 +825,11 @@ func (suite Model11) Test024_GetAdminRoles() {
 	suite.Require().Nil(err)
 	privateKey, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
 	suite.Require().Nil(err)
+	from, err := privateKey.PublicKey().Address()
+	suite.Require().Nil(err)
 	client := suite.NewClient(privateKey)
 	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), "GetAdminRoles", &rpcx.TransactOpts{
+		From:  from.String(),
 		Nonce: atomic.AddUint64(&nonce1, 1),
 	})
 	suite.Require().Nil(err)

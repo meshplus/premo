@@ -161,7 +161,7 @@ func (suite *Snake) RegisterRule(pk crypto.PrivateKey, ruleFile string, ChainID 
 	suite.Require().Nil(err)
 
 	// register rule
-	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, pb.String(ChainID), pb.String(addr.String()))
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, rpcx.String(ChainID), rpcx.String(addr.String()), rpcx.String("reason"))
 	suite.Require().Nil(err)
 	suite.Require().True(res.IsSuccess())
 	result := &RegisterResult{}
