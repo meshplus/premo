@@ -1,8 +1,8 @@
 package bxh_tester
 
 import (
-	"encoding/base64"
 	"encoding/json"
+	"sync/atomic"
 
 	appchainmgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"github.com/meshplus/bitxhub-core/governance"
@@ -11,6 +11,7 @@ import (
 	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
+	"github.com/meshplus/premo/internal/repo"
 	"github.com/pkg/errors"
 )
 
@@ -56,10 +57,9 @@ func (suite *Model6) Test0603_RegisterAppchainWithReject() {
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
+
 	client := suite.NewClient(pk)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
+
 	args := []*pb.Arg{
 		rpcx.String("appchain" + pubAddress.String()),                       //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -70,7 +70,8 @@ func (suite *Model6) Test0603_RegisterAppchainWithReject() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
@@ -94,10 +95,9 @@ func (suite *Model6) Test0604_RegisterAppchainWithRegisting() {
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
+
 	client := suite.NewClient(pk)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
+
 	args := []*pb.Arg{
 		rpcx.String("appchain" + pubAddress.String()),                       //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -108,7 +108,8 @@ func (suite *Model6) Test0604_RegisterAppchainWithRegisting() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
@@ -119,7 +120,7 @@ func (suite *Model6) Test0604_RegisterAppchainWithRegisting() {
 	res, err = client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
-	suite.Require().Contains(string(res.Ret), "appchain has registered")
+	suite.Require().Contains(string(res.Ret), "Please do not register appchain with other administrator's public key")
 
 	res, err = suite.GetChainStatusById(string(result.Extra))
 	suite.Require().Nil(err)
@@ -136,9 +137,7 @@ func (suite *Model6) Test0605_RegisterAppchainRepeat() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
+
 	args := []*pb.Arg{
 		rpcx.String("appchain" + pubAddress.String()),                       //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -149,12 +148,13 @@ func (suite *Model6) Test0605_RegisterAppchainRepeat() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
-	suite.Require().Contains(string(res.Ret), "appchain has registered")
+	suite.Require().Contains(string(res.Ret), "Please do not register appchain with other administrator's public key")
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
@@ -170,10 +170,8 @@ func (suite *Model6) Test0606_RegisterAppchainWithUnavailable() {
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
+
 	args := []*pb.Arg{
 		rpcx.String("appchain" + pubAddress.String()),                       //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -184,7 +182,8 @@ func (suite *Model6) Test0606_RegisterAppchainWithUnavailable() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
@@ -216,9 +215,7 @@ func (suite *Model6) Test0607_RegisterAppchainWithUpdating() {
 	client := suite.NewClient(pk)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
+
 	args := []*pb.Arg{
 		rpcx.String(ChainID), //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -229,7 +226,8 @@ func (suite *Model6) Test0607_RegisterAppchainWithUpdating() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
 	suite.Require().Nil(err)
@@ -252,11 +250,12 @@ func (suite *Model6) Test0607_RegisterAppchainWithUpdating() {
 		rpcx.String("AppChain111"),      //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	res, err = client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
-	suite.Require().Contains(string(res.Ret), "appchain has registered")
+	suite.Require().Contains(string(res.Ret), "Please do not register appchain with other administrator's public key")
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
@@ -269,9 +268,22 @@ func (suite *Model6) Test0607_RegisterAppchainWithUpdating() {
 func (suite *Model6) Test0608_RegisterAppchainWithFreezing() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
+	newClient := suite.NewClient(pk)
 
-	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
+	path, err := repo.Node1Path()
+	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
+	suite.Require().Nil(err)
+	pubAddress, err := node1Key.PublicKey().Address()
+	suite.Require().Nil(err)
+	client := suite.NewClient(node1Key)
+
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
+		&rpcx.TransactOpts{
+			From:  pubAddress.String(),
+			Nonce: atomic.AddUint64(&nonce1, 1),
+		},
+		rpcx.String(ChainID), rpcx.String("reason"),
+	)
 	suite.Require().Nil(err)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -281,11 +293,9 @@ func (suite *Model6) Test0608_RegisterAppchainWithFreezing() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceFreezing, appchain.Status)
 
-	pubAddress, err := pk.PublicKey().Address()
+	pubAddress, err = pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
+
 	args := []*pb.Arg{
 		rpcx.String("appchain" + pubAddress.String()),                       //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -296,12 +306,13 @@ func (suite *Model6) Test0608_RegisterAppchainWithFreezing() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
-	res, err = client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
+	res, err = newClient.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
-	suite.Require().Contains(string(res.Ret), "appchain has registered")
+	suite.Require().Contains(string(res.Ret), "Please do not register appchain with other administrator's public key")
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
@@ -320,9 +331,7 @@ func (suite *Model6) Test0609_RegisterAppchainWithFrozen() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
+
 	args := []*pb.Arg{
 		rpcx.String("appchain" + pubAddress.String()),                       //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -333,12 +342,13 @@ func (suite *Model6) Test0609_RegisterAppchainWithFrozen() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
-	suite.Require().Contains(string(res.Ret), "appchain has registered")
+	suite.Require().Contains(string(res.Ret), "Please do not register appchain with other administrator's public key")
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
@@ -354,14 +364,11 @@ func (suite *Model6) Test0610_RegisterAppchainWithLogouting() {
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID), rpcx.String("reason"))
 	suite.Require().Nil(err)
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("appchain" + pubAddress.String()),                       //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -372,11 +379,12 @@ func (suite *Model6) Test0610_RegisterAppchainWithLogouting() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	res, err = client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
-	suite.Require().Contains(string(res.Ret), "appchain has registered")
+	suite.Require().Contains(string(res.Ret), "Please do not register appchain with other administrator's public key")
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
@@ -396,9 +404,7 @@ func (suite *Model6) Test0611_RegisterAppChainWithForbidden() {
 
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
+
 	args := []*pb.Arg{
 		rpcx.String("appchain" + pubAddress.String()),                       //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -409,12 +415,13 @@ func (suite *Model6) Test0611_RegisterAppChainWithForbidden() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
-	suite.Require().Contains(string(res.Ret), "appchain has registered")
+	suite.Require().Contains(string(res.Ret), "Please do not register appchain with other administrator's public key")
 
 	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
@@ -453,10 +460,8 @@ func (suite *Model6) Test0614_ActivateAppchainWithRegisting() {
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
+
 	client := suite.NewClient(pk)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("appchain" + pubAddress.String()),                       //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -467,7 +472,8 @@ func (suite *Model6) Test0614_ActivateAppchainWithRegisting() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
@@ -493,9 +499,6 @@ func (suite *Model6) Test0616_ActivateAppchainWithUpdating() {
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String(ChainID), //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -506,7 +509,8 @@ func (suite *Model6) Test0616_ActivateAppchainWithUpdating() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
 	suite.Require().Nil(err)
@@ -526,9 +530,20 @@ func (suite *Model6) Test0616_ActivateAppchainWithUpdating() {
 func (suite *Model6) Test0617_ActivateAppchainWithFreezing() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
+	path, err := repo.Node1Path()
+	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
+	suite.Require().Nil(err)
+	pubAddress, err := node1Key.PublicKey().Address()
+	suite.Require().Nil(err)
+	client := suite.NewClient(node1Key)
 
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
+		&rpcx.TransactOpts{
+			From:  pubAddress.String(),
+			Nonce: atomic.AddUint64(&nonce1, 1),
+		},
+		rpcx.String(ChainID), rpcx.String("reason"),
+	)
 	suite.Require().Nil(err)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -570,7 +585,7 @@ func (suite *Model6) Test0619_ActivateAppchainWithReject() {
 	err = suite.freezeAppchain(pk)
 	suite.Require().Nil(err)
 
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil, rpcx.String(ChainID), rpcx.String("reason"))
 	suite.Require().Nil(err)
 
 	result := &RegisterResult{}
@@ -593,7 +608,7 @@ func (suite *Model6) Test0620_ActivateAppchainWithLogouting() {
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID), rpcx.String("reason"))
 	suite.Require().Nil(err)
 
 	err = suite.activateAppchain(pk)
@@ -631,15 +646,13 @@ func (suite *Model6) Test0622_UpdateAppchainLoseFields() {
 	pk, _, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String(""),                 //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
@@ -654,10 +667,9 @@ func (suite *Model6) Test0623_UpdateAppchainWithRegisting() {
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
+
 	client := suite.NewClient(pk)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
+
 	args := []*pb.Arg{
 		rpcx.String("appchain" + pubAddress.String()),                       //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -668,7 +680,8 @@ func (suite *Model6) Test0623_UpdateAppchainWithRegisting() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
@@ -687,9 +700,6 @@ func (suite *Model6) Test0624_UpdateAppchain() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String(ChainID), //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -700,7 +710,8 @@ func (suite *Model6) Test0624_UpdateAppchain() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
@@ -725,9 +736,6 @@ func (suite *Model6) Test0625_UpdateAppchainWithReject() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String(ChainID), //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -738,7 +746,8 @@ func (suite *Model6) Test0625_UpdateAppchainWithReject() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
@@ -754,7 +763,7 @@ func (suite *Model6) Test0625_UpdateAppchainWithReject() {
 	appchain := &appchainmgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceAvailable, appchain.Status)
+	suite.Require().Equal(governance.GovernanceFrozen, appchain.Status)
 	suite.Require().Equal("AppChain", appchain.Name)
 }
 
@@ -763,9 +772,7 @@ func (suite *Model6) Test0626_UpdateAppchainWithUpdating() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
+
 	args := []*pb.Arg{
 		rpcx.String(ChainID), //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -776,7 +783,8 @@ func (suite *Model6) Test0626_UpdateAppchainWithUpdating() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	_, err = client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
 	suite.Require().Nil(err)
@@ -796,9 +804,20 @@ func (suite *Model6) Test0626_UpdateAppchainWithUpdating() {
 func (suite *Model6) Test0627_UpdateAppchainWithFreezing() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
+	path, err := repo.Node1Path()
+	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
+	suite.Require().Nil(err)
+	pubAddress, err := node1Key.PublicKey().Address()
+	suite.Require().Nil(err)
+	client := suite.NewClient(node1Key)
 
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
+		&rpcx.TransactOpts{
+			From:  pubAddress.String(),
+			Nonce: atomic.AddUint64(&nonce1, 1),
+		},
+		rpcx.String(ChainID), rpcx.String("reason"),
+	)
 	suite.Require().Nil(err)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -808,9 +827,6 @@ func (suite *Model6) Test0627_UpdateAppchainWithFreezing() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceFreezing, appchain.Status)
 
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String(ChainID), //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -820,8 +836,8 @@ func (suite *Model6) Test0627_UpdateAppchainWithFreezing() {
 		rpcx.String("hyperchain"),       //chain_type
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	err = suite.updateAppchain(pk, args...)
 	suite.Require().NotNil(err)
@@ -842,23 +858,28 @@ func (suite *Model6) Test0628_UpdateAppchainWithFrozen() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceFrozen, appchain.Status)
 
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String(ChainID), //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
 		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
+		rpcx.String("111"),              //validators
 		rpcx.String("raft"),             //consensus_type
 		rpcx.String("hyperchain"),       //chain_type
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	err = suite.updateAppchain(pk, args...)
-	suite.Require().NotNil(err)
+	suite.Require().Nil(err)
+
+	res, err = suite.GetChainStatusById(ChainID)
+	suite.Require().Nil(err)
+	appchain = &appchainmgr.Appchain{}
+	err = json.Unmarshal(res.Ret, appchain)
+	suite.Require().Nil(err)
+	suite.Require().Equal(governance.GovernanceAvailable, appchain.Status)
 }
 
 //tc:应用链处于注销中状态，更新应用链
@@ -867,7 +888,7 @@ func (suite *Model6) Test0629_UpdateAppchainWithWithLogouting() {
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID), rpcx.String("reason"))
 	suite.Require().Nil(err)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -877,9 +898,6 @@ func (suite *Model6) Test0629_UpdateAppchainWithWithLogouting() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceLogouting, appchain.Status)
 
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String(ChainID), //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -890,7 +908,8 @@ func (suite *Model6) Test0629_UpdateAppchainWithWithLogouting() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	err = suite.updateAppchain(pk, args...)
 	suite.Require().NotNil(err)
@@ -910,9 +929,6 @@ func (suite *Model6) Test0630_UpdateAppchainWithUnavailable() {
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceForbidden, appchain.Status)
 
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String(ChainID), //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -923,7 +939,8 @@ func (suite *Model6) Test0630_UpdateAppchainWithUnavailable() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	err = suite.updateAppchain(pk, args...)
 	suite.Require().NotNil(err)
@@ -931,11 +948,21 @@ func (suite *Model6) Test0630_UpdateAppchainWithUnavailable() {
 
 //tc:冻结信息缺失或错误
 func (suite *Model6) Test0631_FreezeAppchainLoseFields() {
-	pk, _, err := suite.RegisterAppchain()
+	_, _, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
-	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil)
+	path, err := repo.Node1Path()
+	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
+	suite.Require().Nil(err)
+	pubAddress, err := node1Key.PublicKey().Address()
+	suite.Require().Nil(err)
+	client := suite.NewClient(node1Key)
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
+		&rpcx.TransactOpts{
+			From:  pubAddress.String(),
+			Nonce: atomic.AddUint64(&nonce1, 1),
+		},
+	)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 	suite.Require().Contains(string(res.Ret), "too few input arguments")
@@ -947,10 +974,9 @@ func (suite *Model6) Test0632_FreezeAppchainWithRegisting() {
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
+
 	client := suite.NewClient(pk)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
+
 	args := []*pb.Arg{
 		rpcx.String("appchain" + pubAddress.String()),                       //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -961,7 +987,8 @@ func (suite *Model6) Test0632_FreezeAppchainWithRegisting() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
@@ -986,16 +1013,27 @@ func (suite *Model6) Test0633_FreezeAppchain() {
 	appchain := &appchainmgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceFrozen, appchain.Status)
+	//suite.Require().Equal(governance.GovernanceFrozen, appchain.Status)
 }
 
 //tc:应用链状态已注册，冻结应用链，投票不通过
 func (suite *Model6) Test0634_FreezeAppchainWithReject() {
-	pk, ChainID, err := suite.RegisterAppchain()
+	_, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
+	path, err := repo.Node1Path()
+	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
+	suite.Require().Nil(err)
+	pubAddress, err := node1Key.PublicKey().Address()
+	suite.Require().Nil(err)
+	client := suite.NewClient(node1Key)
 
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
+		&rpcx.TransactOpts{
+			From:  pubAddress.String(),
+			Nonce: atomic.AddUint64(&nonce1, 1),
+		},
+		rpcx.String(ChainID), rpcx.String("reason"),
+	)
 	suite.Require().Nil(err)
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
@@ -1016,9 +1054,7 @@ func (suite *Model6) Test0635_FreezeAppchainWithUpdating() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
+
 	args := []*pb.Arg{
 		rpcx.String(ChainID), //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -1029,7 +1065,8 @@ func (suite *Model6) Test0635_FreezeAppchainWithUpdating() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
 	suite.Require().Nil(err)
@@ -1049,9 +1086,20 @@ func (suite *Model6) Test0635_FreezeAppchainWithUpdating() {
 func (suite *Model6) Test0636_FreezeAppchainWithFreezing() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
+	path, err := repo.Node1Path()
+	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
+	suite.Require().Nil(err)
+	pubAddress, err := node1Key.PublicKey().Address()
+	suite.Require().Nil(err)
+	client := suite.NewClient(node1Key)
 
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
+		&rpcx.TransactOpts{
+			From:  pubAddress.String(),
+			Nonce: atomic.AddUint64(&nonce1, 1),
+		},
+		rpcx.String(ChainID), rpcx.String("reason"),
+	)
 	suite.Require().Nil(err)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -1090,7 +1138,7 @@ func (suite *Model6) Test0638_FreezeAppchainWithWithLogouting() {
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID), rpcx.String("reason"))
 	suite.Require().Nil(err)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -1128,10 +1176,10 @@ func (suite *Model6) Test0640_LogoutAppchainWithRegisting() {
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
+	//bytes, err := pk.PublicKey().Bytes()
+	//suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
+	//var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("appchain" + pubAddress.String()),                       //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -1142,7 +1190,8 @@ func (suite *Model6) Test0640_LogoutAppchainWithRegisting() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
@@ -1169,7 +1218,7 @@ func (suite *Model6) Test0642_LogoutAppchainWithReject() {
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID), rpcx.String("reason"))
 	suite.Require().Nil(err)
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
@@ -1190,9 +1239,9 @@ func (suite *Model6) Test0643_LogoutAppchainWithUpdating() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
+	//bytes, err := pk.PublicKey().Bytes()
+	//suite.Require().Nil(err)
+	//var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String(ChainID), //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -1203,12 +1252,14 @@ func (suite *Model6) Test0643_LogoutAppchainWithUpdating() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
-	_, err = client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
 	suite.Require().Nil(err)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 
-	res, err := suite.GetChainStatusById(ChainID)
+	res, err = suite.GetChainStatusById(ChainID)
 	suite.Require().Nil(err)
 	appchain := &appchainmgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
@@ -1223,9 +1274,20 @@ func (suite *Model6) Test0643_LogoutAppchainWithUpdating() {
 func (suite *Model6) Test0644_LogoutAppchainWithFreezing() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
+	path, err := repo.Node1Path()
+	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
+	suite.Require().Nil(err)
+	pubAddress, err := node1Key.PublicKey().Address()
+	suite.Require().Nil(err)
+	client := suite.NewClient(node1Key)
 
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
+		&rpcx.TransactOpts{
+			From:  pubAddress.String(),
+			Nonce: atomic.AddUint64(&nonce1, 1),
+		},
+		rpcx.String(ChainID), rpcx.String("reason"),
+	)
 	suite.Require().Nil(err)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -1263,7 +1325,7 @@ func (suite *Model6) Test0646_LogoutAppchainWithLogouting() {
 	suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID), rpcx.String("reason"))
 	suite.Require().Nil(err)
 
 	res, err = suite.GetChainStatusById(ChainID)
@@ -1295,12 +1357,12 @@ func (suite *Model6) Test0648_GetAppchainByID() {
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
+	//bytes, err := pk.PublicKey().Bytes()
+	//suite.Require().Nil(err)
 
 	client := suite.NewClient(pk)
 
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
+	//var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 	args := []*pb.Arg{
 		rpcx.String("appchain" + pubAddress.String()),                       //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
@@ -1311,7 +1373,8 @@ func (suite *Model6) Test0648_GetAppchainByID() {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),                 //public key
+		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	suite.Require().Nil(err)
@@ -1357,9 +1420,28 @@ func (suite *Snake) freezeAppchain(pk crypto.PrivateKey) error {
 	if err != nil {
 		return err
 	}
-	client := suite.NewClient(pk)
+	path, err := repo.Node1Path()
+	if err != nil {
+		return err
+	}
+	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
+	if err != nil {
+		return err
+	}
+	client := suite.NewClient(node1Key)
 	ChainID := "did:bitxhub:appchain" + pubAddress.String() + ":."
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(ChainID))
+	pubAddress, err = node1Key.PublicKey().Address()
+	if err != nil {
+		return err
+	}
+	nonce := atomic.AddUint64(&nonce1, 1)
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
+		&rpcx.TransactOpts{
+			From:  pubAddress.String(),
+			Nonce: nonce,
+		},
+		rpcx.String(ChainID), rpcx.String("reason"),
+	)
 	if err != nil {
 		return err
 	}
@@ -1406,7 +1488,7 @@ func (suite *Snake) activateAppchain(pk crypto.PrivateKey) error {
 	}
 	client := suite.NewClient(pk)
 	ChainID := "did:bitxhub:appchain" + pubAddress.String() + ":."
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil, rpcx.String(ChainID), rpcx.String("reason"))
 	if err != nil {
 		return err
 	}
@@ -1432,7 +1514,7 @@ func (suite *Snake) logoutAppchain(pk crypto.PrivateKey) error {
 	}
 	client := suite.NewClient(pk)
 	ChainID := "did:bitxhub:appchain" + pubAddress.String() + ":."
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID), rpcx.String("reason"))
 	if err != nil {
 		return err
 	}

@@ -1,7 +1,6 @@
 package bxh_tester
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
 	"sync/atomic"
@@ -122,9 +121,6 @@ func (suite *Snake) RegisterAppchain() (crypto.PrivateKey, string, error) {
 		return nil, "", err
 	}
 	client := suite.NewClient(pk)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 
 	args := []*pb.Arg{
 		rpcx.String("appchain" + pubAddress.String()),                       //method
@@ -136,7 +132,8 @@ func (suite *Snake) RegisterAppchain() (crypto.PrivateKey, string, error) {
 		rpcx.String("AppChain"),         //name
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(""),
+		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	if err != nil {
@@ -164,7 +161,7 @@ func (suite *Snake) RegisterRule(pk crypto.PrivateKey, ruleFile string, ChainID 
 	suite.Require().Nil(err)
 
 	// register rule
-	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, pb.String(ChainID), pb.String(addr.String()))
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, rpcx.String(ChainID), rpcx.String(addr.String()), rpcx.String("reason"))
 	suite.Require().Nil(err)
 	suite.Require().True(res.IsSuccess())
 	result := &RegisterResult{}
@@ -241,20 +238,29 @@ func (suite *Snake) VotePass(id string) error {
 }
 
 func (suite *Snake) VoteReject(id string) error {
+	node1, err := repo.Node1Path()
+	if err != nil {
+		return err
+	}
+
+	key, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
+	if err != nil {
+		return err
+	}
+
+	_, err = suite.vote(key, atomic.AddUint64(&nonce1, 1), pb.String(id), pb.String("reject"), pb.String("Appchain Pass"))
+
 	node2, err := repo.Node2Path()
 	if err != nil {
 		return err
 	}
 
-	key, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
+	key, err = asym.RestorePrivateKey(node2, repo.KeyPassword)
 	if err != nil {
 		return err
 	}
 
 	_, err = suite.vote(key, atomic.AddUint64(&nonce2, 1), pb.String(id), pb.String("reject"), pb.String("Appchain Pass"))
-	if err != nil {
-		return err
-	}
 
 	node3, err := repo.Node3Path()
 	if err != nil {
@@ -268,10 +274,6 @@ func (suite *Snake) VoteReject(id string) error {
 
 	_, err = suite.vote(key, atomic.AddUint64(&nonce3, 1), pb.String(id), pb.String("reject"), pb.String("Appchain Pass"))
 
-	if err != nil {
-		return err
-	}
-
 	node4, err := repo.Node4Path()
 	if err != nil {
 		return err
@@ -283,10 +285,6 @@ func (suite *Snake) VoteReject(id string) error {
 	}
 
 	_, err = suite.vote(key, atomic.AddUint64(&nonce4, 1), pb.String(id), pb.String("reject"), pb.String("Appchain Pass"))
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 

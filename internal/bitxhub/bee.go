@@ -329,8 +329,6 @@ func (bee *bee) invokeContract(from, to *types.Address, nonce uint64, method str
 }
 
 func (bee *bee) sendTransferTx(to *types.Address, normalNo uint64) error {
-	atomic.AddInt64(&sender, 1)
-
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
 		VmType: pb.TransactionData_XVM,
@@ -352,11 +350,14 @@ func (bee *bee) sendTransferTx(to *types.Address, normalNo uint64) error {
 		Nonce: normalNo,
 	})
 	if err != nil {
+		if strings.Contains(err.Error(), rpcx.ErrBrokenNetwork.Error()) {
+			err = bee.sendTransferTx(to, normalNo)
+		}
 		return err
 	}
 	tx.TransactionHash = types.NewHashByStr(txHash)
 	go bee.counterReceipt(tx)
-
+	atomic.AddInt64(&sender, 1)
 	return nil
 }
 
