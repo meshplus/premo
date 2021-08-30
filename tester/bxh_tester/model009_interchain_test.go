@@ -2,7 +2,10 @@ package bxh_tester
 
 import (
 	"crypto/sha256"
+	"fmt"
 	"time"
+
+	rpcx "github.com/meshplus/go-bitxhub-client"
 
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
@@ -30,13 +33,20 @@ func (suite *Model9) Test0901_HandleIBTPShouldSucceed() {
 	proofHash := sha256.Sum256([]byte(proof))
 
 	client := suite.NewClient(kA)
+	err = suite.RegisterServer(ChainID1, "test", "test", "test contract", "contract", true, "1356:"+ChainID2+":test")
+	suite.Require().Nil(err)
+	err = suite.RegisterServer(ChainID2, "test", "test", "test contract", "contract", true, "1356:"+ChainID1+":test")
+	suite.Require().Nil(err)
+	serverID1 := suite.GetServerID(ChainID1)
+	serverID2 := suite.GetServerID(ChainID2)
 
-	ib := &pb.IBTP{From: ChainID1, To: ChainID2, Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
+	ib := &pb.IBTP{From: serverID1, To: serverID2, Index: 1, TimeoutHeight: 10, Proof: proofHash[:]}
 
 	tx, _ := client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
 	res, err := client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
+	fmt.Println(string(res.Ret))
 	suite.Require().Equal(res.Status, pb.Receipt_SUCCESS)
 }
 
@@ -51,11 +61,17 @@ func (suite *Model9) Test0902_HandleIBTPWithNonexistentFrom() {
 	suite.Require().Nil(err)
 	from, err := kA.PublicKey().Address()
 	suite.Require().Nil(err)
-	ChainID1 := "did:bitxhub:appchain" + from.String() + ":."
+	ChainID1 := from.String()
 
 	client := suite.NewClient(kA)
+	err = suite.RegisterServer(ChainID1, "test", "test", "test contract", "contract", true, "1356:"+ChainID2+":test")
+	suite.Require().NotNil(err)
+	err = suite.RegisterServer(ChainID2, "test", "test", "test contract", "contract", true, "1356:"+ChainID1+":test")
+	suite.Require().Nil(err)
+	serverID1 := suite.GetServerID(ChainID1)
+	serverID2 := suite.GetServerID(ChainID2)
 
-	ib := &pb.IBTP{From: ChainID1, To: ChainID2, Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
+	ib := &pb.IBTP{From: serverID1, To: serverID2, Index: 1, TimeoutHeight: 10, Proof: proofHash[:]}
 
 	tx, _ := client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
@@ -76,18 +92,24 @@ func (suite *Model9) Test0903_HandleIBTPWithNonexistentTo() {
 	suite.Require().Nil(err)
 	to, err := kB.PublicKey().Address()
 	suite.Require().Nil(err)
-	ChainID2 := "did:bitxhub:appchain" + to.String() + ":."
+	ChainID2 := to.String()
 
 	client := suite.NewClient(kA)
+	err = suite.RegisterServer(ChainID1, "test", "test", "test contract", "contract", true, "1356:"+ChainID2+":test")
+	suite.Require().Nil(err)
+	err = suite.RegisterServer(ChainID2, "test", "test", "test contract", "contract", true, "1356:"+ChainID1+":test")
+	suite.Require().NotNil(err)
+	serverID1 := suite.GetServerID(ChainID1)
+	serverID2 := suite.GetServerID(ChainID2)
 
-	ib := &pb.IBTP{From: ChainID1, To: ChainID2, Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
+	ib := &pb.IBTP{From: serverID1, To: serverID2, Index: 1, TimeoutHeight: 10, Proof: proofHash[:]}
 
 	tx, _ := client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
 	res, err := client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(res.Status, pb.Receipt_FAILED)
-	suite.Require().Contains(string(res.Ret), "is not registered")
+	suite.Require().Contains(string(res.Ret), "cannot get service")
 }
 
 func (suite *Model9) Test0904_HandleIBTPWithNonexistentRule() {
@@ -100,8 +122,14 @@ func (suite *Model9) Test0904_HandleIBTPWithNonexistentRule() {
 	proofHash := sha256.Sum256([]byte(proof))
 
 	client := suite.NewClient(kA)
+	err = suite.RegisterServer(ChainID1, "test", "test", "test contract", "contract", true, "1356:"+ChainID2+":test")
+	suite.Require().Nil(err)
+	err = suite.RegisterServer(ChainID2, "test", "test", "test contract", "contract", true, "1356:"+ChainID1+":test")
+	suite.Require().Nil(err)
+	serverID1 := suite.GetServerID(ChainID1)
+	serverID2 := suite.GetServerID(ChainID2)
 
-	ib := &pb.IBTP{From: ChainID1, To: ChainID2, Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
+	ib := &pb.IBTP{From: serverID1, To: serverID2, Index: 1, TimeoutHeight: 10, Proof: proofHash[:]}
 
 	tx, _ := client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
@@ -122,7 +150,14 @@ func (suite *Model9) Test0905_HandleIBTPWithWrongIBTPIndex() {
 	proofHash := sha256.Sum256([]byte(proof))
 
 	client := suite.NewClient(kA)
-	ib := &pb.IBTP{From: ChainID1, To: ChainID2, Index: 2, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
+	err = suite.RegisterServer(ChainID1, "test", "test", "test contract", "contract", true, "1356:"+ChainID2+":test")
+	suite.Require().Nil(err)
+	err = suite.RegisterServer(ChainID2, "test", "test", "test contract", "contract", true, "1356:"+ChainID1+":test")
+	suite.Require().Nil(err)
+	serverID1 := suite.GetServerID(ChainID1)
+	serverID2 := suite.GetServerID(ChainID2)
+
+	ib := &pb.IBTP{From: serverID1, To: serverID2, Index: 2, TimeoutHeight: 10, Proof: proofHash[:]}
 
 	tx, _ := client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
@@ -142,7 +177,14 @@ func (suite *Model9) Test0906_GetIBTPByID() {
 	proofHash := sha256.Sum256([]byte(proof))
 
 	client := suite.NewClient(kA)
-	ib := &pb.IBTP{From: ChainID1, To: ChainID2, Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
+	err = suite.RegisterServer(ChainID1, "test", "test", "test contract", "contract", true, "1356:"+ChainID2+":test")
+	suite.Require().Nil(err)
+	err = suite.RegisterServer(ChainID2, "test", "test", "test contract", "contract", true, "1356:"+ChainID1+":test")
+	suite.Require().Nil(err)
+	serverID1 := suite.GetServerID(ChainID1)
+	serverID2 := suite.GetServerID(ChainID2)
+
+	ib := &pb.IBTP{From: serverID1, To: serverID2, Index: 1, TimeoutHeight: 10, Proof: proofHash[:]}
 
 	tx, _ := client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
@@ -167,7 +209,7 @@ func (suite *Model9) Test0906_GetIBTPByID() {
 
 	// get IBTP by ID
 	ib.Index = 2
-	res, err = client.InvokeBVMContract(constant.InterchainContractAddr.Address(), "GetIBTPByID", nil, pb.String(ib.ID()))
+	res, err = client.InvokeBVMContract(constant.InterchainContractAddr.Address(), "GetIBTPByID", nil, rpcx.String(ib.ID()), rpcx.Bool(true))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().NotNil(res.Ret)
@@ -184,11 +226,18 @@ func (suite *Model9) Test0907_HandleIBTPWithWrongProof() {
 	proofHash := sha256.Sum256([]byte(proof))
 
 	client := suite.NewClient(kA)
-	ib := &pb.IBTP{From: ChainID1, To: ChainID2, Index: 1, Timestamp: time.Now().UnixNano(), Proof: proofHash[:]}
+	err = suite.RegisterServer(ChainID1, "test", "test", "test contract", "contract", true, "1356:"+ChainID2+":test")
+	suite.Require().Nil(err)
+	err = suite.RegisterServer(ChainID2, "test", "test", "test contract", "contract", true, "1356:"+ChainID1+":test")
+	suite.Require().Nil(err)
+	serverID1 := suite.GetServerID(ChainID1)
+	serverID2 := suite.GetServerID(ChainID2)
+
+	ib := &pb.IBTP{From: serverID1, To: serverID2, Index: 1, TimeoutHeight: 1, Proof: proofHash[:]}
 	data, err := ib.Marshal()
 	suite.Require().Nil(err)
 
-	tx, _ := client.GenerateContractTx(pb.TransactionData_BVM, constant.InterchainContractAddr.Address(), "HandleIBTP", pb.Bytes(data))
+	tx, _ := client.GenerateContractTx(pb.TransactionData_BVM, constant.InterchainContractAddr.Address(), "HandleIBTP", rpcx.Bytes(data))
 	tx.Extra = []byte(proof)
 	res, err := client.SendTransactionWithReceipt(tx, nil)
 	suite.Require().Nil(err)
@@ -203,8 +252,14 @@ func (suite *Model9) Test0908_HandleIBTPWithTxInBlock() {
 	suite.RegisterRule(kA, "./testdata/simple_rule.wasm", ChainID1)
 
 	client := suite.NewClient(kA)
+	err = suite.RegisterServer(ChainID1, "test", "test", "test contract", "contract", true, "1356:"+ChainID2+":test")
+	suite.Require().Nil(err)
+	err = suite.RegisterServer(ChainID2, "test", "test", "test contract", "contract", true, "1356:"+ChainID1+":test")
+	suite.Require().Nil(err)
+	serverID1 := suite.GetServerID(ChainID1)
+	serverID2 := suite.GetServerID(ChainID2)
 
-	ib := &pb.IBTP{From: ChainID1, To: ChainID2, Index: 1, Timestamp: time.Now().UnixNano()}
+	ib := &pb.IBTP{From: serverID1, To: serverID2, Index: 1, TimeoutHeight: 1}
 	tx, _ := client.GenerateIBTPTx(ib)
 
 	hash, err := client.SendTransaction(tx, nil)

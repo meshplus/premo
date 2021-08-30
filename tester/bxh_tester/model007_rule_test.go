@@ -122,6 +122,7 @@ func (suite *Model7) Test0706_BindRuleWithDoing() {
 	args := []*pb.Arg{
 		rpcx.String(ChainID),
 		rpcx.String(contractAddr.String()),
+		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), RegisterRule, nil, args...)
 	suite.Require().Nil(err)
@@ -146,6 +147,7 @@ func (suite *Model7) Test0707_BindRuleWithBinding() {
 	args := []*pb.Arg{
 		rpcx.String(ChainID),
 		rpcx.String(contractAddr.String()),
+		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), RegisterRule, nil, args...)
 	suite.Require().Nil(err)
@@ -261,6 +263,7 @@ func (suite *Model7) Test0711_UpdateRuleWithNoRule() {
 	args := []*pb.Arg{
 		rpcx.String(ChainID),
 		rpcx.String(contractAddr2.String()),
+		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), UpdateMasterRule, nil, args...)
 	suite.Require().Nil(err)
@@ -342,6 +345,7 @@ func (suite *Model7) Test0714_UpdateRuleWithDoing() {
 	args := []*pb.Arg{
 		rpcx.String(ChainID),
 		rpcx.String(contractAddr2.String()),
+		rpcx.String("reason"),
 	}
 	_, err = client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), UpdateMasterRule, nil, args...)
 	suite.Require().Nil(err)
@@ -373,6 +377,7 @@ func (suite *Model7) Test0715_UpdateRuleWithBinding() {
 	args := []*pb.Arg{
 		rpcx.String(ChainID),
 		rpcx.String(contractAddr2.String()),
+		rpcx.String("reason"),
 	}
 	_, err = client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), UpdateMasterRule, nil, args...)
 	suite.Require().Nil(err)
@@ -471,6 +476,7 @@ func (suite *Model7) Test0719_LogoutRuleWithBinding() {
 	args := []*pb.Arg{
 		rpcx.String(ChainID),
 		rpcx.String(contractAddr2.String()),
+		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), UpdateMasterRule, nil, args...)
 	suite.Require().Nil(err)
@@ -570,10 +576,20 @@ func (suite *Model7) Test0722_LogoutRuleWithForbidden() {
 
 func (suite *Snake) InvokeRuleContract(pk crypto.PrivateKey, ChainID string, contractAddr *types.Address, method string) error {
 	client := suite.NewClient(pk)
-	args := []*pb.Arg{
-		rpcx.String(ChainID),
-		rpcx.String(contractAddr.String()),
+	var args []*pb.Arg
+	if method == LogoutRule {
+		args = []*pb.Arg{
+			rpcx.String(ChainID),
+			rpcx.String(contractAddr.String()),
+		}
+	} else {
+		args = []*pb.Arg{
+			rpcx.String(ChainID),
+			rpcx.String(contractAddr.String()),
+			rpcx.String("reason"),
+		}
 	}
+
 	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), method, nil, args...)
 	if err != nil {
 		return err
@@ -598,6 +614,7 @@ func (suite *Snake) InvokeRuleContractWithReject(pk crypto.PrivateKey, ChainID s
 	args := []*pb.Arg{
 		rpcx.String(ChainID),
 		rpcx.String(contractAddr.String()),
+		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), method, nil, args...)
 	if err != nil {

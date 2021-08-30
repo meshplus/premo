@@ -127,7 +127,7 @@ func (suite *Snake) RegisterAppchain() (crypto.PrivateKey, string, error) {
 	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
 
 	args := []*pb.Arg{
-		rpcx.String("appchain" + pubAddress.String()),                       //method
+		rpcx.String(pubAddress.String()),                                    //method
 		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
 		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
 		rpcx.String(""),                 //validators
@@ -137,6 +137,7 @@ func (suite *Snake) RegisterAppchain() (crypto.PrivateKey, string, error) {
 		rpcx.String("Appchain for tax"), //desc
 		rpcx.String("1.8"),              //version
 		rpcx.String(pubKeyStr),          //public key
+		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
 	if err != nil {
@@ -164,7 +165,7 @@ func (suite *Snake) RegisterRule(pk crypto.PrivateKey, ruleFile string, ChainID 
 	suite.Require().Nil(err)
 
 	// register rule
-	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, pb.String(ChainID), pb.String(addr.String()))
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, rpcx.String(ChainID), rpcx.String(addr.String()), rpcx.String("reason"))
 	suite.Require().Nil(err)
 	suite.Require().True(res.IsSuccess())
 	result := &RegisterResult{}
@@ -462,4 +463,34 @@ func (suite Snake) TransferFromAdmin(address string, amount string) error {
 		return errors.New(string(ret.Ret))
 	}
 	return nil
+}
+
+func (suite Snake) RegisterServer(chainID, serviceID, name, desc, typ string, ordered bool, permit string) error {
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	if err != nil {
+		return err
+	}
+	args := []*pb.Arg{
+		rpcx.String(chainID),
+		rpcx.String(serviceID),
+		rpcx.String(name),
+		rpcx.String(desc),
+		rpcx.String(typ),
+		rpcx.Bool(ordered),
+		rpcx.String(permit),
+		rpcx.Bytes([]byte("")),
+	}
+	client := suite.NewClient(pk)
+	res, err := client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "Register", nil, args...)
+	if err != nil {
+		return err
+	}
+	if res.Status != pb.Receipt_SUCCESS {
+		return errors.New(string(res.Ret))
+	}
+	return nil
+}
+
+func (suite Snake) GetServerID(chainID string) string {
+	return "1356:" + chainID + ":test"
 }

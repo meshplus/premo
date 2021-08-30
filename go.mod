@@ -22,17 +22,16 @@ require (
 	github.com/libp2p/go-libp2p-core v0.6.1
 	github.com/looplab/fsm v0.2.0
 	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/meshplus/bitxhub-core v1.3.1-0.20210707032901-c385d9112a49
-	github.com/meshplus/bitxhub-kit v1.2.1-0.20210616114532-4849447f09e1
-	github.com/meshplus/bitxhub-model v1.2.1-0.20210629020432-d98febd566c1
+	github.com/meshplus/bitxhub-core v1.3.1-0.20210819114413-70449f8bd324
+	github.com/meshplus/bitxhub-kit v1.2.1-0.20210813111404-c50fb6384374
+	github.com/meshplus/bitxhub-model v1.2.1-0.20210811073359-62d4143881d5
 	github.com/meshplus/go-bitxhub-client v1.3.1-0.20210701063659-a0836fbc1c78
-	github.com/meshplus/go-libp2p-cert v0.0.0-20210125114242-7d9ed2eaaccd
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.7.2-0.20200724220135-c650ae9fa103 // indirect
 	github.com/rjeczalik/notify v0.9.2 // indirect
 	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible
-	github.com/sirupsen/logrus v1.6.0
+	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.6.8
