@@ -392,13 +392,11 @@ func prepareInterchainTx() {
 	}
 
 	content := &pb.Content{
-		SrcContractId: "mychannel&transfer",
-		DstContractId: "0x30c5D3aeb4681af4D13384DBc2a717C51cb1cc11",
-		Func:          "interchainCharge",
-		Args:          [][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
-		Callback:      "",
-		Rollback:      "interchainRollback",
-		ArgsRb:        [][]byte{[]byte("Alice"), []byte("1")},
+		Func:     "interchainCharge",
+		Args:     [][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
+		Callback: "",
+		Rollback: "interchainRollback",
+		ArgsRb:   [][]byte{[]byte("Alice"), []byte("1")},
 	}
 
 	bytes, _ := content.Marshal()
@@ -414,13 +412,13 @@ func prepareInterchainTx() {
 func mockIBTP(index uint64, from, to string, proof []byte) *pb.IBTP {
 	proofHash := sha256.Sum256(proof)
 	return &pb.IBTP{
-		From:      from,
-		To:        to,
-		Payload:   ibtppd,
-		Index:     index,
-		Type:      pb.IBTP_INTERCHAIN,
-		Timestamp: time.Now().UnixNano(),
-		Proof:     proofHash[:],
+		From:          from,
+		To:            to,
+		Payload:       ibtppd,
+		Index:         index,
+		Type:          pb.IBTP_INTERCHAIN,
+		TimeoutHeight: 10,
+		Proof:         proofHash[:],
 	}
 }
 

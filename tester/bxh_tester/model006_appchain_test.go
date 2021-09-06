@@ -1,11 +1,9 @@
 package bxh_tester
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"sync/atomic"
 
-	appchainmgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"github.com/meshplus/bitxhub-core/governance"
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
@@ -24,1437 +22,722 @@ func (suite *Model6) SetupTest() {
 	suite.T().Parallel()
 }
 
-//tc:注册信息缺失或错误
-func (suite *Model6) Test0601_RegisterAppchainLoseFields() {
+//tc：非应用链管理员注册应用链，应用链注册失败
+func (suite Model6) Test0601_RegisterAppchainWithNoAdminIsFail() {
+	_, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	args := []*pb.Arg{
-		rpcx.String(""),     //validators
-		rpcx.String("raft"), //consensus_type
-		rpcx.String("1.8"),  //version
-	}
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
-	suite.Require().Nil(err)
-	suite.Require().Equal(res.Status, pb.Receipt_FAILED)
-	suite.Require().Contains(string(res.Ret), "too few input arguments")
+	err = suite.RegisterAppchain(pk, chainID, address)
+	suite.Require().NotNil(err)
 }
 
-//tc:应用链未注册，注册应用链
-func (suite *Model6) Test0602_RegisterAppchain() {
-	_, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	res, err := suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceAvailable, appchain.Status)
-}
-
-//tc:应用链未注册，注册应用链，投票不通过
-func (suite *Model6) Test0603_RegisterAppchainWithReject() {
+//tc：应用链管理员未注册，注册应用链。应用链注册成功
+func (suite Model6) Test0602_RegisterAppchainWithNoRegisterAdminIsSuccess() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
-	pubAddress, err := pk.PublicKey().Address()
+	chainID := suite.GetChainID(pk)
+	err = suite.RegisterAppchain(pk, chainID, SimFabricRuleAddr)
 	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(pubAddress.String()),                                    //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
-	suite.Require().Nil(err)
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
-	err = suite.VoteReject(result.ProposalID)
-	suite.Require().Nil(err)
-
-	res, err = suite.GetChainStatusById(string(result.Extra))
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceUnavailable, appchain.Status)
 }
 
-//tc:应用链处于注册中状态，注册应用链
-func (suite *Model6) Test0604_RegisterAppchainWithRegisting() {
+//tc：应用链管理员已注册，注册应用链。应用链注册成功
+func (suite Model6) Test0603_RegisterAppchainWithRegisteredAdminIsSuccess() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address)
+	suite.Require().Nil(err)
+}
+
+//tc：应用链已注册，注册应用链，应用链注册失败
+func (suite Model6) Test0604_RegisterAppchainWithRegisteredChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于registing状态注册应用链，应用链注册失败
+func (suite Model6) Test0605_RegisterAppchainWithRegistingChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToRegisting(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于unavailable状态注册应用链，应用链注册成功
+func (suite Model6) Test0606_RegisterAppchainWithUnavailableChainIsSuccess() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToUnavailable(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address)
+	suite.Require().Nil(err)
+}
+
+//tc：应用链处于activating状态注册应用链，应用链注册失败
+func (suite Model6) Test0607_RegisterAppchainWithActivatingChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToActivating(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于freezing状态注册应用链，应用链注册失败
+func (suite Model6) Test0608_RegisterAppchainWithFreezingChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToFreezing(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于frozen状态注册应用链，应用链注册失败
+func (suite Model6) Test0609_RegisterAppchainWithFrozenChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToFrozen(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于logouting状态注册应用链，应用链注册失败
+func (suite Model6) Test0610_RegisterAppchainWithLogoutingChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToLogouting(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于forbidden状态注册应用链，应用链注册失败
+func (suite Model6) Test0611_RegisterAppchainWithForbiddenChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToForbidden(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address)
+	suite.Require().NotNil(err)
+}
+
+//tc：非应用链管理员更新应用链，应用链更新失败
+func (suite Model6) Test0612_UpdateAppchainWithNoAdminIsFail() {
+	pk1, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk1, chainID, address)
+	suite.Require().Nil(err)
+	pk2, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	err = suite.UpdateAppchain(pk2, chainID, "test")
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链未注册，更新应用链。应用链更新失败
+func (suite Model6) Test0613_UpdateAppchainWithNoRegisterChainIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(pubAddress.String()),                                    //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
-	suite.Require().Nil(err)
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
+	err = suite.UpdateAppchain(pk, suite.GetChainID(pk), "test")
+	suite.Require().NotNil(err)
+}
 
-	res, err = client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
+//tc：应用链已注册，更新应用链，应用链更新成功
+func (suite Model6) Test0614_UpdateAppchainIsSuccess() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.UpdateAppchain(pk, chainID, "test")
+	suite.Require().Nil(err)
+}
+
+//tc：应用链处于registing状态更新应用链，应用链更新失败
+func (suite Model6) Test0615_UpdateAppchainWithRegistingChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToRegisting(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.UpdateAppchain(pk, chainID, "test")
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于unavailable状态更新应用链，应用链更新失败
+func (suite Model6) Test0616_UpdateAppchainWithUnavailableChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToUnavailable(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.UpdateAppchain(pk, chainID, "test")
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于activating状态更新应用链，应用链更新失败
+func (suite Model6) Test0617_UpdateAppchainWithActivatingChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToActivating(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.UpdateAppchain(pk, chainID, "test")
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于freezing状态更新应用链，应用链更新失败
+func (suite Model6) Test0618_UpdateAppchainWithFreezingChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToFreezing(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.UpdateAppchain(pk, chainID, "test")
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于frozen状态更新应用链，应用链更新成功
+func (suite Model6) Test0619_UpdateAppchainWithFrozenChainIsSuccess() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToFrozen(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.UpdateAppchain(pk, chainID, "test")
+	suite.Require().Nil(err)
+}
+
+//tc：应用链处于logouting状态更新应用链，应用链更新失败
+func (suite Model6) Test0620_UpdateAppchainWithLogoutingChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToLogouting(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.UpdateAppchain(pk, chainID, "test")
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于forbidden状态更新应用链，应用链更新失败
+func (suite Model6) Test0621_UpdateAppchainWithForbiddenChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToForbidden(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.UpdateAppchain(pk, chainID, "test")
+	suite.Require().NotNil(err)
+}
+
+//tc：非中继链管理员冻结应用链，应用链冻结失败
+func (suite Model6) Test0622_FreezeAppchainWithNoAdminIsFail() {
+	pk1, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk1, chainID, address)
+	suite.Require().Nil(err)
+	pk2, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	client := suite.NewClient(pk2)
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(chainID), rpcx.String("reason"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
-	suite.Require().Contains(string(res.Ret), "Please do not register appchain with other administrator's public key")
-
-	res, err = suite.GetChainStatusById(string(result.Extra))
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceRegisting, appchain.Status)
 }
 
-//tc:应用链状态已注册，注册应用链
-func (suite *Model6) Test0605_RegisterAppchainRepeat() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(pubAddress.String()),                                    //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
-	suite.Require().Nil(err)
-	suite.Require().Contains(string(res.Ret), "Please do not register appchain with other administrator's public key")
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceAvailable, appchain.Status)
-}
-
-//tc:应用链处于不可用状态，注册应用链
-func (suite *Model6) Test0606_RegisterAppchainWithUnavailable() {
+//tc：应用链未注册，冻结应用链，应用链冻结失败
+func (suite Model6) Test0623_FreezeAppchainWithNoRegisterChainIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(pubAddress.String()),                                    //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain", nil, rpcx.String(suite.GetChainID(pk)), rpcx.String("reason"))
 	suite.Require().Nil(err)
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
-	err = suite.VoteReject(result.ProposalID)
-	suite.Require().Nil(err)
-
-	res, err = suite.GetChainStatusById(string(result.Extra))
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceUnavailable, appchain.Status)
-
-	_, ChainID, err := suite.RegisterAppchain()
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceAvailable, appchain.Status)
+	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 }
 
-//tc:应用链处于更新中状态，注册应用链
-func (suite *Model6) Test0607_RegisterAppchainWithUpdating() {
-	pk, ChainID, err := suite.RegisterAppchain()
+//tc：中继链管理员冻结应用链，应用链冻结成功
+func (suite Model6) Test0624_FreezeAppchainIsSuccess() {
+	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	pubAddress, err := pk.PublicKey().Address()
+	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
+	err = suite.FreezeAppchain(chainID)
 	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(ChainID), //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String("123"),              //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
+}
+
+//tc：应用链处于registing状态冻结应用链，应用链冻结失败
+func (suite Model6) Test0625_FreezeAppchainWithRegistingChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToRegisting(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.FreezeAppchain(chainID)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于unavailable状态冻结应用链，应用链冻结失败
+func (suite Model6) Test0626_FreezeAppchainWithUnavailableChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToUnavailable(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.FreezeAppchain(chainID)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于activating状态冻结应用链，应用链冻结成功
+func (suite Model6) Test0627_FreezeAppchainWithActivatingChainIsSuccess() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToActivating(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.FreezeAppchain(chainID)
+	suite.Require().Nil(err)
+	err = suite.CheckChainStatus(chainID, governance.GovernanceFrozen)
+	suite.Require().Nil(err)
+}
+
+//tc：应用链处于freezing状态冻结应用链，应用链冻结失败
+func (suite Model6) Test0628_FreezeAppchainWithFreezingChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToFreezing(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.FreezeAppchain(chainID)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于frozen状态冻结应用链，应用链冻结失败
+func (suite Model6) Test0629_FreezeAppchainWithFrozenChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.FreezeAppchain(chainID)
+	suite.Require().Nil(err)
+	err = suite.CheckChainStatus(chainID, governance.GovernanceFrozen)
+	suite.Require().Nil(err)
+	err = suite.FreezeAppchain(chainID)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于logouting状态冻结应用链，应用链冻结失败
+func (suite Model6) Test0630_FreezeAppchainWithLogoutingChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToLogouting(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.FreezeAppchain(chainID)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于forbidden状态冻结应用链，应用链冻结失败
+func (suite Model6) Test0631_FreezeAppchainWithForbiddenChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToForbidden(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.FreezeAppchain(chainID)
+	suite.Require().NotNil(err)
+}
+
+//tc：非中继链管理员非应用链管理员激活应用链，应用链激活失败
+func (suite Model6) Test0632_ActivateAppchainWithNoAdminIsFail() {
+	pk1, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToFrozen(pk1, chainID, address)
+	suite.Require().Nil(err)
+	pk2, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	err = suite.ActivateAppchain(pk2, chainID)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链管理员激活应用链，应用链激活成功
+func (suite Model6) Test0633_ActivateAppchainIsSuccess() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToFrozen(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.ActivateAppchain(pk, chainID)
+	suite.Require().Nil(err)
+}
+
+//tc：中继链管理员激活应用链，应用链激活成功
+func (suite Model6) Test0634_ActivateAppchainWithRelayAdminIsSuccess() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToFrozen(pk, chainID, address)
+	suite.Require().Nil(err)
+	path, err := repo.Node1Path()
+	suite.Require().Nil(err)
+	node1pk, err := asym.RestorePrivateKey(path, repo.KeyPassword)
+	suite.Require().Nil(err)
+	from, err := node1pk.PublicKey().Address()
+	suite.Require().Nil(err)
+	client := suite.NewClient(node1pk)
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", &rpcx.TransactOpts{
+		From:  from.String(),
+		Nonce: atomic.AddUint64(&nonce1, 1),
+	}, rpcx.String(chainID), rpcx.String("reason"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceUpdating, appchain.Status)
-
-	args = []*pb.Arg{
-		rpcx.String(pubAddress.String()),                                    //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain111"),      //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	res, err = client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
-	suite.Require().Nil(err)
-	suite.Require().Contains(string(res.Ret), "Please do not register appchain with other administrator's public key")
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceUpdating, appchain.Status)
-}
-
-//tc:应用链处于冻结中状态，注册应用链
-func (suite *Model6) Test0608_RegisterAppchainWithFreezing() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	newClient := suite.NewClient(pk)
-
-	path, err := repo.Node1Path()
-	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
-	suite.Require().Nil(err)
-	pubAddress, err := node1Key.PublicKey().Address()
-	suite.Require().Nil(err)
-	client := suite.NewClient(node1Key)
-
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
-		&rpcx.TransactOpts{
-			From:  pubAddress.String(),
-			Nonce: atomic.AddUint64(&nonce1, 1),
-		},
-		rpcx.String(ChainID), rpcx.String("reason"),
-	)
-	suite.Require().Nil(err)
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceFreezing, appchain.Status)
-
-	pubAddress, err = pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-
-	args := []*pb.Arg{
-		rpcx.String(pubAddress.String()),                                    //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	res, err = newClient.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
-	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
-	suite.Require().Contains(string(res.Ret), "Please do not register appchain with other administrator's public key")
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceFreezing, appchain.Status)
-}
-
-//tc:应用链处于冻结状态，注册应用链
-func (suite *Model6) Test0609_RegisterAppchainWithFrozen() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-
-	err = suite.freezeAppchain(pk)
-	suite.Require().Nil(err)
-
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(pubAddress.String()),                                    //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
-	suite.Require().Nil(err)
-	suite.Require().Contains(string(res.Ret), "Please do not register appchain with other administrator's public key")
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceFrozen, appchain.Status)
-}
-
-//tc:应用链处于注销中状态，注册应用链
-func (suite *Model6) Test0610_RegisterAppchainWithLogouting() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-
-	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID), rpcx.String("reason"))
-	suite.Require().Nil(err)
-
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(pubAddress.String()),                                    //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	res, err = client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
-	suite.Require().Nil(err)
-	suite.Require().Contains(string(res.Ret), "Please do not register appchain with other administrator's public key")
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceLogouting, appchain.Status)
-}
-
-//tc:应用链处于注销状态，注册应用链
-func (suite *Model6) Test0611_RegisterAppChainWithForbidden() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-
-	err = suite.logoutAppchain(pk)
-	suite.Require().Nil(err)
-
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(pubAddress.String()),                                    //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
-	suite.Require().Nil(err)
-	suite.Require().Contains(string(res.Ret), "Please do not register appchain with other administrator's public key")
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceForbidden, appchain.Status)
-}
-
-//tc:激活信息缺失或错误
-func (suite *Model6) Test0612_ActivateAppchainLoseFields() {
-	pk, _, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-
-	err = suite.freezeAppchain(pk)
-	suite.Require().Nil(err)
-
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil)
-	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
-	suite.Require().Contains(string(res.Ret), "too few input arguments")
-}
-
-//tc:应用链未注册，激活应用链
-func (suite *Model6) Test0613_ActivateAppchainWithNoRegister() {
-	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	suite.Require().Nil(err)
-	err = suite.activateAppchain(pk)
-	suite.Require().NotNil(err)
-}
-
-//tc:应用链处于注册中状态，激活应用链
-func (suite *Model6) Test0614_ActivateAppchainWithRegisting() {
-	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	suite.Require().Nil(err)
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(pubAddress.String()),                                    //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
-	suite.Require().Nil(err)
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
-
-	err = suite.activateAppchain(pk)
-	suite.Require().NotNil(err)
-}
-
-//tc:应用链状态已注册，激活应用链
-func (suite *Model6) Test0615_ActivateAppchainWithAvailable() {
-	pk, _, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	err = suite.activateAppchain(pk)
-	suite.Require().NotNil(err)
-}
-
-//tc:应用链处于更新中状态，激活应用链
-func (suite *Model6) Test0616_ActivateAppchainWithUpdating() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(ChainID), //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String("111"),              //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
-	suite.Require().Nil(err)
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceUpdating, appchain.Status)
-
-	err = suite.activateAppchain(pk)
-	suite.Require().NotNil(err)
-}
-
-//tc:应用链处于冻结中状态，激活应用链
-func (suite *Model6) Test0617_ActivateAppchainWithFreezing() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	path, err := repo.Node1Path()
-	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
-	suite.Require().Nil(err)
-	pubAddress, err := node1Key.PublicKey().Address()
-	suite.Require().Nil(err)
-	client := suite.NewClient(node1Key)
-
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
-		&rpcx.TransactOpts{
-			From:  pubAddress.String(),
-			Nonce: atomic.AddUint64(&nonce1, 1),
-		},
-		rpcx.String(ChainID), rpcx.String("reason"),
-	)
-	suite.Require().Nil(err)
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceFreezing, appchain.Status)
-
-	err = suite.activateAppchain(pk)
-	suite.Require().NotNil(err)
-}
-
-//tc:应用链处于冻结状态，激活应用链
-func (suite *Model6) Test0618_ActivateAppchain() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-
-	err = suite.freezeAppchain(pk)
-	suite.Require().Nil(err)
-
-	err = suite.activateAppchain(pk)
-	suite.Require().Nil(err)
-
-	res, err := suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceAvailable, appchain.Status)
-}
-
-//tc:tc:应用链处于冻结状态，激活应用链,投票不通过
-func (suite *Model6) Test0619_ActivateAppchainWithReject() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-
-	err = suite.freezeAppchain(pk)
-	suite.Require().Nil(err)
-
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil, rpcx.String(ChainID), rpcx.String("reason"))
-	suite.Require().Nil(err)
-
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
-	err = suite.VoteReject(result.ProposalID)
-	suite.Require().Nil(err)
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceFrozen, appchain.Status)
-}
-
-//tc:应用链处于注销中状态，激活应用链
-func (suite *Model6) Test0620_ActivateAppchainWithLogouting() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-
-	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID), rpcx.String("reason"))
-	suite.Require().Nil(err)
-
-	err = suite.activateAppchain(pk)
-	suite.Require().NotNil(err)
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceLogouting, appchain.Status)
-}
-
-//tc:应用链处于注销状态，激活应用链
-func (suite *Model6) Test0621_ActivateAppchainWithForbidden() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-
-	err = suite.logoutAppchain(pk)
-	suite.Require().Nil(err)
-
-	res, err := suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceForbidden, appchain.Status)
-
-	err = suite.activateAppchain(pk)
-	suite.Require().NotNil(err)
-}
-
-//tc:更新信息缺失或错误
-func (suite *Model6) Test0622_UpdateAppchainLoseFields() {
-	pk, _, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-	}
-	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
-	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
-	suite.Require().Contains(string(res.Ret), "too few input arguments")
-}
-
-//tc:应用链处于注册中的状态，更新应用链
-func (suite *Model6) Test0623_UpdateAppchainWithRegisting() {
-	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	suite.Require().Nil(err)
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(pubAddress.String()),                                    //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
-	suite.Require().Nil(err)
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
-
-	args[0] = rpcx.String(string(result.Extra))
-	args[6] = rpcx.String("AppChain111111111")
-	err = suite.updateAppchain(pk, args...)
-	suite.Require().NotNil(err)
-}
-
-//tc:应用链状态已注册，更新应用链
-func (suite *Model6) Test0624_UpdateAppchain() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(ChainID), //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String("111"),              //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
-	suite.Require().Nil(err)
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
 	suite.Require().Nil(err)
 	err = suite.VotePass(result.ProposalID)
 	suite.Require().Nil(err)
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceAvailable, appchain.Status)
-	suite.Require().Equal("AppChain", appchain.Name)
 }
 
-//tc:应用链状态已注册，更新应用链,投票不通过
-func (suite *Model6) Test0625_UpdateAppchainWithReject() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(ChainID), //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String("111"),              //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
-	suite.Require().Nil(err)
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
-	err = suite.VoteReject(result.ProposalID)
-	suite.Require().Nil(err)
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceFrozen, appchain.Status)
-	suite.Require().Equal("AppChain", appchain.Name)
-}
-
-//tc:应用链处于更新中的状态，更新应用链
-func (suite *Model6) Test0626_UpdateAppchainWithUpdating() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(ChainID), //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String("111"),              //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	_, err = client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
-	suite.Require().Nil(err)
-
-	res, err := suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceUpdating, appchain.Status)
-
-	err = suite.updateAppchain(pk, args...)
-	suite.Require().NotNil(err)
-}
-
-//tc:应用链处于冻结中的状态，更新应用链
-func (suite *Model6) Test0627_UpdateAppchainWithFreezing() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	path, err := repo.Node1Path()
-	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
-	suite.Require().Nil(err)
-	pubAddress, err := node1Key.PublicKey().Address()
-	suite.Require().Nil(err)
-	client := suite.NewClient(node1Key)
-
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
-		&rpcx.TransactOpts{
-			From:  pubAddress.String(),
-			Nonce: atomic.AddUint64(&nonce1, 1),
-		},
-		rpcx.String(ChainID), rpcx.String("reason"),
-	)
-	suite.Require().Nil(err)
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceFreezing, appchain.Status)
-
-	args := []*pb.Arg{
-		rpcx.String(ChainID), //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String(""),                 //public key
-		rpcx.String("reason"),
-	}
-	err = suite.updateAppchain(pk, args...)
-	suite.Require().NotNil(err)
-}
-
-//tc:应用链处于冻结的状态，更新应用链
-func (suite *Model6) Test0628_UpdateAppchainWithFrozen() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-
-	err = suite.freezeAppchain(pk)
-	suite.Require().Nil(err)
-
-	res, err := suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceFrozen, appchain.Status)
-
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(ChainID), //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-	}
-	err = suite.updateAppchain(pk, args...)
-	suite.Require().NotNil(err)
-}
-
-//tc:应用链处于注销中状态，更新应用链
-func (suite *Model6) Test0629_UpdateAppchainWithWithLogouting() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-
-	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID), rpcx.String("reason"))
-	suite.Require().Nil(err)
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceLogouting, appchain.Status)
-
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(ChainID), //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	err = suite.updateAppchain(pk, args...)
-	suite.Require().NotNil(err)
-}
-
-//tc:应用链处于注销状态，更新应用链
-func (suite *Model6) Test0630_UpdateAppchainWithUnavailable() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-
-	err = suite.logoutAppchain(pk)
-	suite.Require().Nil(err)
-	res, err := suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceForbidden, appchain.Status)
-
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(ChainID), //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	err = suite.updateAppchain(pk, args...)
-	suite.Require().NotNil(err)
-}
-
-//tc:冻结信息缺失或错误
-func (suite *Model6) Test0631_FreezeAppchainLoseFields() {
-	_, _, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-
-	path, err := repo.Node1Path()
-	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
-	suite.Require().Nil(err)
-	pubAddress, err := node1Key.PublicKey().Address()
-	suite.Require().Nil(err)
-	client := suite.NewClient(node1Key)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
-		&rpcx.TransactOpts{
-			From:  pubAddress.String(),
-			Nonce: atomic.AddUint64(&nonce1, 1),
-		},
-	)
-	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
-	suite.Require().Contains(string(res.Ret), "too few input arguments")
-}
-
-//tc:应用链处于注册中的状态，冻结应用链
-func (suite *Model6) Test0632_FreezeAppchainWithRegisting() {
+//tc：应用链未注册，激活应用链，应用链激活失败
+func (suite Model6) Test0635_ActivateAppchainWithNoRegisterChainIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(pubAddress.String()),                                    //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
-	suite.Require().Nil(err)
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
-
-	err = suite.freezeAppchain(pk)
+	err = suite.ActivateAppchain(pk, suite.GetChainID(pk))
 	suite.Require().NotNil(err)
 }
 
-//tc:应用链状态已注册，冻结应用链
-func (suite *Model6) Test0633_FreezeAppchain() {
-	pk, ChainID, err := suite.RegisterAppchain()
+//tc：应用链处于registing状态激活应用链，应用链激活失败
+func (suite Model6) Test0636_ActivateAppchainWithRegistingChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
-
-	err = suite.freezeAppchain(pk)
+	err = suite.ChainToRegisting(pk, chainID, address)
 	suite.Require().Nil(err)
-
-	res, err := suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceFrozen, appchain.Status)
-}
-
-//tc:应用链状态已注册，冻结应用链，投票不通过
-func (suite *Model6) Test0634_FreezeAppchainWithReject() {
-	_, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	path, err := repo.Node1Path()
-	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
-	suite.Require().Nil(err)
-	pubAddress, err := node1Key.PublicKey().Address()
-	suite.Require().Nil(err)
-	client := suite.NewClient(node1Key)
-
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
-		&rpcx.TransactOpts{
-			From:  pubAddress.String(),
-			Nonce: atomic.AddUint64(&nonce1, 1),
-		},
-		rpcx.String(ChainID), rpcx.String("reason"),
-	)
-	suite.Require().Nil(err)
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
-	err = suite.VoteReject(result.ProposalID)
-	suite.Require().Nil(err)
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceAvailable, appchain.Status)
-}
-
-//tc:应用链处于更新中的状态，冻结应用链
-func (suite *Model6) Test0635_FreezeAppchainWithUpdating() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(ChainID), //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String("111"),              //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
-	suite.Require().Nil(err)
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceUpdating, appchain.Status)
-
-	err = suite.freezeAppchain(pk)
-	suite.Require().Nil(err)
-}
-
-//tc:应用链处于冻结中的状态，冻结应用链
-func (suite *Model6) Test0636_FreezeAppchainWithFreezing() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	path, err := repo.Node1Path()
-	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
-	suite.Require().Nil(err)
-	pubAddress, err := node1Key.PublicKey().Address()
-	suite.Require().Nil(err)
-	client := suite.NewClient(node1Key)
-
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
-		&rpcx.TransactOpts{
-			From:  pubAddress.String(),
-			Nonce: atomic.AddUint64(&nonce1, 1),
-		},
-		rpcx.String(ChainID), rpcx.String("reason"),
-	)
-	suite.Require().Nil(err)
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceFreezing, appchain.Status)
-
-	err = suite.freezeAppchain(pk)
+	err = suite.ActivateAppchain(pk, chainID)
 	suite.Require().NotNil(err)
 }
 
-//tc:应用链处于冻结的状态，冻结应用链
-func (suite *Model6) Test0637_FreezeAppchainWithFrozen() {
-	pk, ChainID, err := suite.RegisterAppchain()
+//tc：应用链处于unavailable状态激活应用链，应用链激活失败
+func (suite Model6) Test0637_ActivateAppchainWithUnavailableChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
-
-	err = suite.freezeAppchain(pk)
+	err = suite.ChainToUnavailable(pk, chainID, address)
 	suite.Require().Nil(err)
-
-	err = suite.freezeAppchain(pk)
-	suite.Require().NotNil(err)
-
-	res, err := suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceFrozen, appchain.Status)
-}
-
-//tc:应用链处于注销中状态，冻结应用链
-func (suite *Model6) Test0638_FreezeAppchainWithWithLogouting() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-
-	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID), rpcx.String("reason"))
-	suite.Require().Nil(err)
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceLogouting, appchain.Status)
-
-	err = suite.freezeAppchain(pk)
+	err = suite.ActivateAppchain(pk, chainID)
 	suite.Require().NotNil(err)
 }
 
-//tc:应用链处于注销状态，冻结应用链
-func (suite *Model6) Test0639_FreezeAppchainWithForbidden() {
-	pk, ChainID, err := suite.RegisterAppchain()
+//tc：应用链处于activating状态激活应用链，应用链激活失败
+func (suite Model6) Test0638_ActivateAppchainWithActivatingChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
-
-	err = suite.logoutAppchain(pk)
+	err = suite.ChainToActivating(pk, chainID, address)
 	suite.Require().Nil(err)
-	res, err := suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceForbidden, appchain.Status)
-
-	err = suite.freezeAppchain(pk)
+	err = suite.ActivateAppchain(pk, chainID)
 	suite.Require().NotNil(err)
 }
 
-//tc:应用链处于注册中的状态，注销应用链
-func (suite *Model6) Test0640_LogoutAppchainWithRegisting() {
+//tc：应用链处于freezing状态激活应用链，应用链激活失败
+func (suite Model6) Test0639_ActivateAppchainWithFreezingChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToFreezing(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.ActivateAppchain(pk, chainID)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于logouting状态激活应用链，应用链激活失败
+func (suite Model6) Test0640_ActivateAppchainWithLogoutingChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToLogouting(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.ActivateAppchain(pk, chainID)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于forbidden状态激活应用链，应用链激活失败
+func (suite Model6) Test0641_ActivateAppchainWithForbiddenChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToForbidden(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.ActivateAppchain(pk, chainID)
+	suite.Require().NotNil(err)
+}
+
+//tc：非应用链管理员注销应用链，应用链注销失败
+func (suite Model6) Test0642_LogoutAppchainWithNoAdminIsFail() {
+	pk1, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk1, chainID, address)
+	suite.Require().Nil(err)
+	pk2, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	err = suite.LogoutAppchain(pk2, chainID)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链管理员注销应用链，应用链注销成功
+func (suite Model6) Test0643_LogoutAppchainIsSuccess() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.LogoutAppchain(pk, chainID)
+	suite.Require().Nil(err)
+}
+
+//tc：应用链未注册，注销应用链，应用链注销失败
+func (suite Model6) Test0644_LogoutAppchainWithNoRegisterChainIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(pubAddress.String()),                                    //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
-	suite.Require().Nil(err)
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
-
-	err = suite.logoutAppchain(pk)
+	err = suite.LogoutAppchain(pk, suite.GetChainID(pk))
 	suite.Require().NotNil(err)
 }
 
-//tc:应用链状态已注册，注销应用链
-func (suite *Model6) Test0641_LogoutAppchain() {
-	pk, _, err := suite.RegisterAppchain()
+//tc：应用链处于registing状态注销应用链，应用链注销失败
+func (suite Model6) Test0645_LogoutAppchainWithRegistingChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
+	err = suite.ChainToRegisting(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.LogoutAppchain(pk, chainID)
+	suite.Require().NotNil(err)
+}
 
-	err = suite.logoutAppchain(pk)
+//tc：应用链处于unavailable状态注销应用链，应用链注销失败
+func (suite Model6) Test0646_LogoutAppchainWithUnavailableChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToUnavailable(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.LogoutAppchain(pk, chainID)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于activating状态注销应用链，应用链注销成功
+func (suite Model6) Test0647_LogoutAppchainWithActivatingChainIsSuccess() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToActivating(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.LogoutAppchain(pk, chainID)
 	suite.Require().Nil(err)
 }
 
-//tc:应用链状态已注册，注销应用链,投票不通过
-func (suite *Model6) Test0642_LogoutAppchainWithReject() {
-	pk, ChainID, err := suite.RegisterAppchain()
+//tc：应用链处于freezing状态注销应用链，应用链激活成功
+func (suite Model6) Test0648_LogoutAppchainWithFreezingChainIsSuccess() {
+	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
-
-	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID), rpcx.String("reason"))
+	err = suite.ChainToFreezing(pk, chainID, address)
 	suite.Require().Nil(err)
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
-	err = suite.VoteReject(result.ProposalID)
-	suite.Require().Nil(err)
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceAvailable, appchain.Status)
-}
-
-//tc:应用链处于更新中的状态，注销应用链
-func (suite *Model6) Test0643_LogoutAppchainWithUpdating() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(ChainID), //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String("111"),              //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
-	}
-	_, err = client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
-	suite.Require().Nil(err)
-
-	res, err := suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceUpdating, appchain.Status)
-
-	err = suite.logoutAppchain(pk)
+	err = suite.LogoutAppchain(pk, chainID)
 	suite.Require().Nil(err)
 }
 
-//tc:应用链处于冻结中的状态，注销应用链
-func (suite *Model6) Test0644_LogoutAppchainWithFreezing() {
-	pk, ChainID, err := suite.RegisterAppchain()
+//tc：应用链处于frozen状态注销应用链，应用链注销成功
+func (suite Model6) Test0649_LogoutAppchainWithFrozenChainIsSuccess() {
+	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
+	err = suite.ChainToFrozen(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.LogoutAppchain(pk, chainID)
+	suite.Require().Nil(err)
+}
+
+//tc：应用链处于logouting状态注销应用链，应用链注销失败
+func (suite Model6) Test0650_LogoutAppchainWithLogoutingChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToLogouting(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.LogoutAppchain(pk, chainID)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于forbidden状态注销应用链，应用链注销失败
+func (suite Model6) Test0651_LogoutAppchainWithForbiddenChainIsFail() {
+	pk, chainID, address, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToForbidden(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.LogoutAppchain(pk, chainID)
+	suite.Require().NotNil(err)
+}
+
+func (suite *Snake) FreezeAppchain(chainID string) error {
 	path, err := repo.Node1Path()
+	if err != nil {
+		return err
+	}
 	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
-	suite.Require().Nil(err)
-	pubAddress, err := node1Key.PublicKey().Address()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	client := suite.NewClient(node1Key)
-
+	from, err := node1Key.PublicKey().Address()
+	if err != nil {
+		return err
+	}
+	nonce := atomic.AddUint64(&nonce1, 1)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
 		&rpcx.TransactOpts{
-			From:  pubAddress.String(),
-			Nonce: atomic.AddUint64(&nonce1, 1),
+			From:  from.String(),
+			Nonce: nonce,
 		},
-		rpcx.String(ChainID), rpcx.String("reason"),
+		rpcx.String(chainID), rpcx.String("reason"),
 	)
-	suite.Require().Nil(err)
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceFreezing, appchain.Status)
-
-	err = suite.logoutAppchain(pk)
-	suite.Require().Nil(err)
-}
-
-//tc:应用链处于冻结的状态，注销应用链
-func (suite *Model6) Test0645_LogoutAppchainWithFrozen() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-
-	err = suite.freezeAppchain(pk)
-
-	res, err := suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceFrozen, appchain.Status)
-
-	err = suite.logoutAppchain(pk)
-	suite.Require().Nil(err)
-}
-
-//tc:应用链处于注销中状态，注销应用链
-func (suite *Model6) Test0646_LogoutAppchainWithLogouting() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-
-	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID), rpcx.String("reason"))
-	suite.Require().Nil(err)
-
-	res, err = suite.GetChainStatusById(ChainID)
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceLogouting, appchain.Status)
-
-	err = suite.logoutAppchain(pk)
-	suite.Require().NotNil(err)
-}
-
-//tc:应用链处于注销状态，注销应用链
-func (suite *Model6) Test0647_LogoutAppchainWithUnavailable() {
-	pk, _, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-
-	err = suite.logoutAppchain(pk)
-	suite.Require().Nil(err)
-
-	err = suite.logoutAppchain(pk)
-	suite.Require().NotNil(err)
-}
-
-//tc:根据指定ID查询应用链信息
-func (suite *Model6) Test0648_GetAppchainByID() {
-	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	suite.Require().Nil(err)
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-
-	client := suite.NewClient(pk)
-
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-	args := []*pb.Arg{
-		rpcx.String(pubAddress.String()),                                    //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
-		rpcx.String("reason"),
+	if err != nil {
+		return err
 	}
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
-	suite.Require().Nil(err)
+	if res.Status == pb.Receipt_FAILED {
+		return errors.New(string(res.Ret))
+	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
-	suite.Require().NotNil(string(result.Extra))
+	if err != nil {
+		return err
+	}
 	err = suite.VotePass(result.ProposalID)
-	suite.Require().Nil(err)
-
-	res, err = suite.GetChainStatusById(string(result.Extra))
-	suite.Require().Nil(err)
-	appchain := &appchainmgr.Appchain{}
-	err = json.Unmarshal(res.Ret, appchain)
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceAvailable, appchain.Status)
-
-	args = []*pb.Arg{
-		rpcx.String(string(result.Extra)),
+	if err != nil {
+		return err
 	}
-	res, err = client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "GetAppchain", nil, args...)
-	suite.Require().Nil(err)
-	suite.Require().Equal(res.Status, pb.Receipt_SUCCESS)
-	suite.Require().NotNil(res.Ret)
+	return nil
 }
 
-//tc:根据错误的ID查询应用链信息
-func (suite *Model6) Test0649_GetAppchainByErrorID() {
-	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	suite.Require().Nil(err)
+func (suite *Snake) UpdateAppchain(pk crypto.PrivateKey, chainID, desc string) error {
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
-		rpcx.String(suite.from.String() + "123"),
+		rpcx.String(chainID),
+		rpcx.String(desc),
 	}
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "GetAppchain", nil, args...)
-	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
-	suite.Require().Equal("call error: this appchain does not exist", string(res.Ret))
+
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
+	if err != nil {
+		return err
+	}
+	if res.Status == pb.Receipt_FAILED {
+		return errors.New(string(res.Ret))
+	}
+	return nil
 }
 
-func (suite *Snake) freezeAppchain(pk crypto.PrivateKey) error {
-	pubAddress, err := pk.PublicKey().Address()
+func (suite *Snake) ActivateAppchain(pk crypto.PrivateKey, chainID string) error {
+	client := suite.NewClient(pk)
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil, rpcx.String(chainID), rpcx.String("reason"))
+	if err != nil {
+		return err
+	}
+	if res.Status == pb.Receipt_FAILED {
+		return errors.New(string(res.Ret))
+	}
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	if err != nil {
+		return err
+	}
+	err = suite.VotePass(result.ProposalID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (suite *Snake) LogoutAppchain(pk crypto.PrivateKey, chainID string) error {
+	client := suite.NewClient(pk)
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(chainID), rpcx.String("reason"))
+	if err != nil {
+		return err
+	}
+	if res.Status == pb.Receipt_FAILED {
+		return errors.New(string(res.Ret))
+	}
+
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	if err != nil {
+		return err
+	}
+	err = suite.VotePass(result.ProposalID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (suite Snake) ChainToRegisting(pk crypto.PrivateKey, chainID, address string) error {
+	client := suite.NewClient(pk)
+	args := []*pb.Arg{
+		rpcx.String(chainID),   //ID
+		rpcx.Bytes([]byte("")), //trustRoot
+		rpcx.String("0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"), //broker
+		rpcx.String("desc"),   //desc
+		rpcx.String(address),  //masterRule
+		rpcx.String("reason"), //reason
+	}
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "RegisterAppchain", nil, args...)
+	if err != nil {
+		return err
+	}
+	if res.Status != pb.Receipt_SUCCESS {
+		return err
+	}
+	err = suite.CheckChainStatus(chainID, governance.GovernanceRegisting)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (suite Snake) ChainToUnavailable(pk crypto.PrivateKey, chainID, address string) error {
+	client := suite.NewClient(pk)
+	args := []*pb.Arg{
+		rpcx.String(chainID),   //ID
+		rpcx.Bytes([]byte("")), //trustRoot
+		rpcx.String("0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"), //broker
+		rpcx.String("desc"),   //desc
+		rpcx.String(address),  //masterRule
+		rpcx.String("reason"), //reason
+	}
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "RegisterAppchain", nil, args...)
+	if err != nil {
+		return err
+	}
+	if res.Status != pb.Receipt_SUCCESS {
+		return err
+	}
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	if err != nil {
+		return err
+	}
+	err = suite.VoteReject(result.ProposalID)
+	if err != nil {
+		return err
+	}
+	err = suite.CheckChainStatus(chainID, governance.GovernanceUnavailable)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (suite Snake) ChainToActivating(pk crypto.PrivateKey, chainID, address string) error {
+	err := suite.RegisterAppchain(pk, chainID, address)
+	if err != nil {
+		return err
+	}
+	err = suite.FreezeAppchain(chainID)
+	if err != nil {
+		return err
+	}
+	client := suite.NewClient(pk)
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil, rpcx.String(chainID), rpcx.String("reason"))
+	if err != nil {
+		return err
+	}
+	if res.Status == pb.Receipt_FAILED {
+		return errors.New(string(res.Ret))
+	}
+	err = suite.CheckChainStatus(chainID, governance.GovernanceActivating)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (suite Snake) ChainToFreezing(pk crypto.PrivateKey, chainID, address string) error {
+	err := suite.RegisterAppchain(pk, chainID, address)
 	if err != nil {
 		return err
 	}
@@ -1467,8 +750,7 @@ func (suite *Snake) freezeAppchain(pk crypto.PrivateKey) error {
 		return err
 	}
 	client := suite.NewClient(node1Key)
-	ChainID := pubAddress.String()
-	pubAddress, err = node1Key.PublicKey().Address()
+	pubAddress, err := node1Key.PublicKey().Address()
 	if err != nil {
 		return err
 	}
@@ -1478,7 +760,7 @@ func (suite *Snake) freezeAppchain(pk crypto.PrivateKey) error {
 			From:  pubAddress.String(),
 			Nonce: nonce,
 		},
-		rpcx.String(ChainID), rpcx.String("reason"),
+		rpcx.String(chainID), rpcx.String("reason"),
 	)
 	if err != nil {
 		return err
@@ -1486,86 +768,59 @@ func (suite *Snake) freezeAppchain(pk crypto.PrivateKey) error {
 	if res.Status == pb.Receipt_FAILED {
 		return errors.New(string(res.Ret))
 	}
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
-	err = suite.VotePass(result.ProposalID)
+	err = suite.CheckChainStatus(chainID, governance.GovernanceFreezing)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (suite *Snake) updateAppchain(pk crypto.PrivateKey, args ...*pb.Arg) error {
-	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
+func (suite Snake) ChainToFrozen(pk crypto.PrivateKey, chainID, address string) error {
+	err := suite.RegisterAppchain(pk, chainID, address)
 	if err != nil {
 		return err
 	}
-	if res.Status == pb.Receipt_FAILED {
-		return errors.New(string(res.Ret))
-	}
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
+	err = suite.FreezeAppchain(chainID)
 	if err != nil {
 		return err
 	}
-	err = suite.VotePass(result.ProposalID)
+	err = suite.CheckChainStatus(chainID, governance.GovernanceFrozen)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (suite *Snake) activateAppchain(pk crypto.PrivateKey) error {
-	pubAddress, err := pk.PublicKey().Address()
+func (suite Snake) ChainToLogouting(pk crypto.PrivateKey, chainID, address string) error {
+	err := suite.RegisterAppchain(pk, chainID, address)
 	if err != nil {
 		return err
 	}
 	client := suite.NewClient(pk)
-	ChainID := pubAddress.String()
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil, rpcx.String(ChainID), rpcx.String("reason"))
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(chainID), rpcx.String("reason"))
 	if err != nil {
 		return err
 	}
 	if res.Status == pb.Receipt_FAILED {
 		return errors.New(string(res.Ret))
 	}
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
-	err = suite.VotePass(result.ProposalID)
+	err = suite.CheckChainStatus(chainID, governance.GovernanceLogouting)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (suite *Snake) logoutAppchain(pk crypto.PrivateKey) error {
-	pubAddress, err := pk.PublicKey().Address()
+func (suite Snake) ChainToForbidden(pk crypto.PrivateKey, chainID, address string) error {
+	err := suite.RegisterAppchain(pk, chainID, address)
 	if err != nil {
 		return err
 	}
-	client := suite.NewClient(pk)
-	ChainID := pubAddress.String()
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(ChainID), rpcx.String("reason"))
+	err = suite.LogoutAppchain(pk, chainID)
 	if err != nil {
 		return err
 	}
-	if res.Status == pb.Receipt_FAILED {
-		return errors.New(string(res.Ret))
-	}
-
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
-	err = suite.VotePass(result.ProposalID)
+	err = suite.CheckChainStatus(chainID, governance.GovernanceForbidden)
 	if err != nil {
 		return err
 	}

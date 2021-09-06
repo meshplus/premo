@@ -1,7 +1,6 @@
 package bxh_tester
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"sync/atomic"
@@ -27,18 +26,18 @@ const (
 	LogoutRole           = "LogoutRole"
 )
 
+type RoleType string
 type Role struct {
-	ID       string `toml:"id" json:"id"`
-	RoleType string `toml:"role_type" json:"role_type"`
-
+	ID       string   `toml:"id" json:"id"`
+	RoleType RoleType `toml:"role_type" json:"role_type"`
 	// 	GovernanceAdmin info
 	Weight uint64 `json:"weight" toml:"weight"`
-
 	// AuditAdmin info
 	NodePid string `toml:"pid" json:"pid"`
-
-	Status governance.GovernanceStatus `toml:"status" json:"status"`
-	FSM    *fsm.FSM                    `json:"fsm"`
+	// Appchain info
+	AppchainID string                      `toml:"appchain_id" json:"appchain_id"`
+	Status     governance.GovernanceStatus `toml:"status" json:"status"`
+	FSM        *fsm.FSM                    `json:"fsm"`
 }
 
 type Model11 struct {
@@ -46,18 +45,19 @@ type Model11 struct {
 }
 
 //tc：更新超级治理管理员，更新失败
-func (suite *Model11) Test001_UpdateSuperAdminIsFail() {
+func (suite *Model11) Test1101_UpdateSuperAdminIsFail() {
 	node1, err := repo.Node1Path()
 	suite.Require().Nil(err)
 	pk, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
 	suite.Require().Nil(err)
 	address, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	pid, err := suite.createPid()
+	pid, err := suite.CreatePid()
 	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
 		rpcx.String(pid),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(UpdateAuditAdminNode, args...)
 	suite.Require().NotNil(err)
@@ -65,7 +65,7 @@ func (suite *Model11) Test001_UpdateSuperAdminIsFail() {
 }
 
 //tc：冻结超级管理员，冻结失败
-func (suite *Model11) Test002_FreezeSuperAdminIsFail() {
+func (suite *Model11) Test1102_FreezeSuperAdminIsFail() {
 	node1, err := repo.Node1Path()
 	suite.Require().Nil(err)
 	pk, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
@@ -74,6 +74,7 @@ func (suite *Model11) Test002_FreezeSuperAdminIsFail() {
 	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(FreezeRole, args...)
 	suite.Require().NotNil(err)
@@ -81,7 +82,7 @@ func (suite *Model11) Test002_FreezeSuperAdminIsFail() {
 }
 
 //tc：激活超级管理员，激活失败
-func (suite *Model11) Test003_ActivateSuperAdminIsFail() {
+func (suite *Model11) Test1103_ActivateSuperAdminIsFail() {
 	node1, err := repo.Node1Path()
 	suite.Require().Nil(err)
 	pk, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
@@ -90,6 +91,7 @@ func (suite *Model11) Test003_ActivateSuperAdminIsFail() {
 	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(ActivateRole, args...)
 	suite.Require().NotNil(err)
@@ -97,7 +99,7 @@ func (suite *Model11) Test003_ActivateSuperAdminIsFail() {
 }
 
 //tc：注销超级管理员，注销失败
-func (suite *Model11) Test004_LogoutSuperAdminIsFail() {
+func (suite *Model11) Test1104_LogoutSuperAdminIsFail() {
 	node1, err := repo.Node1Path()
 	suite.Require().Nil(err)
 	pk, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
@@ -106,6 +108,7 @@ func (suite *Model11) Test004_LogoutSuperAdminIsFail() {
 	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(LogoutRole, args...)
 	suite.Require().NotNil(err)
@@ -113,46 +116,46 @@ func (suite *Model11) Test004_LogoutSuperAdminIsFail() {
 }
 
 //tc：注册普通治理管理员，注册成功
-func (suite *Model11) Test005_RegisterAdminIsSuccess() {
+func (suite *Model11) Test1105_RegisterAdminIsSuccess() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	address, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	pid, err := suite.createPid()
-	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
 		rpcx.String("governanceAdmin"),
-		rpcx.String(pid),
+		rpcx.String(""),
+		rpcx.String(""),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(RegisterRole, args...)
 	suite.Require().Nil(err)
-	role, err := suite.getRoleById(address.String())
+	role, err := suite.GetRoleInfoById(address.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceAvailable, role.Status)
-
 	//recover
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(LogoutRole, args...)
 	suite.Require().Nil(err)
 }
 
 //tc：更新普通治理管理员，更新失败
-func (suite Model11) Test006_UpdateAdminIsFail() {
+func (suite Model11) Test1106_UpdateAdminIsFail() {
 	node3, err := repo.Node3Path()
 	suite.Require().Nil(err)
 	pk, err := asym.RestorePrivateKey(node3, repo.KeyPassword)
 	suite.Require().Nil(err)
 	address, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	pid, err := suite.createPid()
+	pid, err := suite.CreatePid()
 	suite.Require().Nil(err)
-
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
 		rpcx.String(pid),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(UpdateAuditAdminNode, args...)
 	suite.Require().NotNil(err)
@@ -160,63 +163,55 @@ func (suite Model11) Test006_UpdateAdminIsFail() {
 }
 
 //tc：冻结普通治理管理员，冻结成功，发起投票失败，发起提案失败
-func (suite Model11) Test007_FreezeAdminIsSuccess() {
+func (suite Model11) Test1107_FreezeAdminIsSuccess() {
 	node3, err := repo.Node3Path()
 	suite.Require().Nil(err)
-	pk, err := asym.RestorePrivateKey(node3, repo.KeyPassword)
+	node3pk, err := asym.RestorePrivateKey(node3, repo.KeyPassword)
 	suite.Require().Nil(err)
-	address, err := pk.PublicKey().Address()
+	from, err := node3pk.PublicKey().Address()
 	suite.Require().Nil(err)
 	args := []*pb.Arg{
-		rpcx.String(address.String()),
+		rpcx.String(from.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(FreezeRole, args...)
 	suite.Require().Nil(err)
-	role, err := suite.getRoleById(address.String())
+	role, err := suite.GetRoleInfoById(from.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceFrozen, role.Status)
-
+	address, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	chainID := suite.GetChainID(pk)
 	client := suite.NewClient(pk)
-	pk, err = asym.GenerateKeyPair(crypto.Secp256k1)
-	suite.Require().Nil(err)
-	pubAddress, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-
 	args = []*pb.Arg{
-		rpcx.String("appchain" + pubAddress.String()),                       //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(chainID),
+		rpcx.String(address),
+		rpcx.String("reason"),
 	}
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", &rpcx.TransactOpts{
-		Nonce: atomic.AddUint64(&nonce3, 1),
-	}, args...)
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), RegisterRule, nil, args...)
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
-
-	args = []*pb.Arg{
-		rpcx.String(address.String()),
-	}
-
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	suite.Require().Nil(err)
+	_, err = suite.vote(node3pk, atomic.AddUint64(&nonce3, 1), rpcx.String(result.ProposalID), rpcx.String("approve"), rpcx.String("pass"))
+	suite.Require().NotNil(err)
 	//recover
+	args = []*pb.Arg{
+		rpcx.String(from.String()),
+		rpcx.String("reason"),
+	}
 	err = suite.InvokeRoleContract(ActivateRole, args...)
 	suite.Require().Nil(err)
-	role, err = suite.getRoleById(address.String())
+	role, err = suite.GetRoleInfoById(from.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceAvailable, role.Status)
 }
 
 //tc：冻结已冻结的普通治理管理员，冻结失败
-func (suite Model11) Test008_FreezeFrozenAdminIsFail() {
+func (suite Model11) Test1108_FreezeFrozenAdminIsFail() {
 	node3, err := repo.Node3Path()
 	suite.Require().Nil(err)
 	pk, err := asym.RestorePrivateKey(node3, repo.KeyPassword)
@@ -225,24 +220,23 @@ func (suite Model11) Test008_FreezeFrozenAdminIsFail() {
 	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(FreezeRole, args...)
 	suite.Require().Nil(err)
-	role, err := suite.getRoleById(address.String())
+	role, err := suite.GetRoleInfoById(address.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceFrozen, role.Status)
-
 	//repeat
 	err = suite.InvokeRoleContract(FreezeRole, args...)
 	suite.Require().NotNil(err)
-
 	//recover
 	err = suite.InvokeRoleContract(ActivateRole, args...)
 	suite.Require().Nil(err)
 }
 
 //tc：激活冻结的普通治理管理员，激活成功
-func (suite Model11) Test009_ActivateFrozenAdminIsSuccess() {
+func (suite Model11) Test1109_ActivateFrozenAdminIsSuccess() {
 	node3, err := repo.Node3Path()
 	suite.Require().Nil(err)
 	pk, err := asym.RestorePrivateKey(node3, repo.KeyPassword)
@@ -251,538 +245,575 @@ func (suite Model11) Test009_ActivateFrozenAdminIsSuccess() {
 	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(FreezeRole, args...)
 	suite.Require().Nil(err)
-	role, err := suite.getRoleById(address.String())
+	role, err := suite.GetRoleInfoById(address.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceFrozen, role.Status)
-
 	err = suite.InvokeRoleContract(ActivateRole, args...)
 	suite.Require().Nil(err)
-	role, err = suite.getRoleById(address.String())
+	role, err = suite.GetRoleInfoById(address.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceAvailable, role.Status)
 }
 
 //tc：激活未冻结的普通治理管理员，激活失败
-func (suite Model11) Test010_ActivateAvailableAdminIsFail() {
+func (suite Model11) Test1110_ActivateAvailableAdminIsFail() {
 	node3, err := repo.Node3Path()
 	suite.Require().Nil(err)
 	pk, err := asym.RestorePrivateKey(node3, repo.KeyPassword)
 	suite.Require().Nil(err)
 	address, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	role, err := suite.getRoleById(address.String())
+	role, err := suite.GetRoleInfoById(address.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceAvailable, role.Status)
-
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(ActivateRole, args...)
 	suite.Require().NotNil(err)
-	role, err = suite.getRoleById(address.String())
+	role, err = suite.GetRoleInfoById(address.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceAvailable, role.Status)
 }
 
 //tc：注销普通治理管理员，注销成功
-func (suite Model11) Test011_LogoutAdminIsSuccess() {
+func (suite Model11) Test1111_LogoutAdminIsSuccess() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	address, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	pid, err := suite.createPid()
-	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
 		rpcx.String("governanceAdmin"),
-		rpcx.String(pid),
+		rpcx.String(""),
+		rpcx.String(""),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(RegisterRole, args...)
 	suite.Require().Nil(err)
-	role, err := suite.getRoleById(address.String())
+	role, err := suite.GetRoleInfoById(address.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceAvailable, role.Status)
-
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(LogoutRole, args...)
 	suite.Require().Nil(err)
 }
 
 //tc：注销冻结的普通治理管理员，注销成功
-func (suite Model11) Test012_LogoutFrozenAdminIsSuccess() {
+func (suite Model11) Test1112_LogoutFrozenAdminIsSuccess() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	address, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	pid, err := suite.createPid()
-	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
 		rpcx.String("governanceAdmin"),
-		rpcx.String(pid),
+		rpcx.String(""),
+		rpcx.String(""),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(RegisterRole, args...)
 	suite.Require().Nil(err)
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(FreezeRole, args...)
 	suite.Require().Nil(err)
-	role, err := suite.getRoleById(address.String())
+	role, err := suite.GetRoleInfoById(address.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceFrozen, role.Status)
-
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(LogoutRole, args...)
 	suite.Require().Nil(err)
 }
 
 //tc：注册审计管理员，注册成功
-func (suite Model11) Test013_RegisterAuditAdminIsSuccess() {
+func (suite Model11) Test1113_RegisterAuditAdminIsSuccess() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	address, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	pid, err := suite.createPid()
+	pid, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.registerNode(pid, address.String(), "nvpNode")
+	err = suite.RegisterNode(pid, 0, address.String(), "nvpNode")
 	suite.Require().Nil(err)
-
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
 		rpcx.String("auditAdmin"),
 		rpcx.String(pid),
+		rpcx.String(""),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(RegisterRole, args...)
 	suite.Require().Nil(err)
-	role, err := suite.getRoleById(address.String())
+	role, err := suite.GetRoleInfoById(address.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceAvailable, role.Status)
 
 	//recover
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(LogoutRole, args...)
 	suite.Require().Nil(err)
-	err = suite.logoutNode(pid)
+	err = suite.LogoutNode(pid)
 	suite.Require().Nil(err)
 }
 
 //tc：更新审计管理员，更新的id和原先一样，更新失败
-func (suite Model11) Test013_UpdateAuditAdminWithSamePidIsFail() {
+func (suite Model11) Test1114_UpdateAuditAdminWithSamePidIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	address, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	pid, err := suite.createPid()
+	pid, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.registerNode(pid, address.String(), "nvpNode")
+	err = suite.RegisterNode(pid, 0, address.String(), "nvpNode")
 	suite.Require().Nil(err)
-
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
 		rpcx.String("auditAdmin"),
 		rpcx.String(pid),
+		rpcx.String(""),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(RegisterRole, args...)
 	suite.Require().Nil(err)
-	role, err := suite.getRoleById(address.String())
+	role, err := suite.GetRoleInfoById(address.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceAvailable, role.Status)
-
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
 		rpcx.String(pid),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(UpdateAuditAdminNode, args...)
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "the node ID is the same as before")
-
 	//recover
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(LogoutRole, args...)
 	suite.Require().Nil(err)
-	err = suite.logoutNode(pid)
+	err = suite.LogoutNode(pid)
 	suite.Require().Nil(err)
 }
 
 //tc：更新审计管理员，更新的id不存在，更新失败
-func (suite Model11) Test013_UpdateAuditAdminWithNoExistPidIsFail() {
+func (suite Model11) Test1115_UpdateAuditAdminWithNoExistPidIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	address, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	pid, err := suite.createPid()
+	pid, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.registerNode(pid, address.String(), "nvpNode")
+	err = suite.RegisterNode(pid, 0, address.String(), "nvpNode")
 	suite.Require().Nil(err)
-
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
 		rpcx.String("auditAdmin"),
 		rpcx.String(pid),
+		rpcx.String(""),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(RegisterRole, args...)
 	suite.Require().Nil(err)
-	role, err := suite.getRoleById(address.String())
+	role, err := suite.GetRoleInfoById(address.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceAvailable, role.Status)
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
 		rpcx.String(pid[0:len(pid)-1] + "1"),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(UpdateAuditAdminNode, args...)
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), " this node does not exist")
-
 	//recover
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(LogoutRole, args...)
 	suite.Require().Nil(err)
-	err = suite.logoutNode(pid)
+	err = suite.LogoutNode(pid)
 	suite.Require().Nil(err)
 }
 
 //tc：更新审计管理员，更新id正确，更新成功
-func (suite Model11) Test014_UpdateAuditAdminIsSuccess() {
+func (suite Model11) Test1116_UpdateAuditAdminIsSuccess() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	address, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	pid, err := suite.createPid()
+	pid, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.registerNode(pid, address.String(), "nvpNode")
+	err = suite.RegisterNode(pid, 0, address.String(), "nvpNode")
 	suite.Require().Nil(err)
-
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
 		rpcx.String("auditAdmin"),
 		rpcx.String(pid),
+		rpcx.String(""),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(RegisterRole, args...)
 	suite.Require().Nil(err)
-	role, err := suite.getRoleById(address.String())
+	role, err := suite.GetRoleInfoById(address.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceAvailable, role.Status)
-	newPid, err := suite.createPid()
+	newPid, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.registerNode(newPid, address.String(), "nvpNode")
+	err = suite.RegisterNode(newPid, 0, address.String(), "nvpNode")
 	suite.Require().Nil(err)
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
 		rpcx.String(newPid),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(UpdateAuditAdminNode, args...)
 	suite.Require().Nil(err)
-
 	//recover
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(LogoutRole, args...)
 	suite.Require().Nil(err)
-	err = suite.logoutNode(pid)
+	err = suite.LogoutNode(pid)
 	suite.Require().Nil(err)
 }
 
 //tc：冻结审计管理员，冻结成功（审计节点尚未实现）
-func (suite Model11) Test015_FreezeAuditAdminIsSuccess() {
+func (suite Model11) Test1117_FreezeAuditAdminIsSuccess() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	address, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	pid, err := suite.createPid()
+	pid, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.registerNode(pid, address.String(), "nvpNode")
+	err = suite.RegisterNode(pid, 0, address.String(), "nvpNode")
 	suite.Require().Nil(err)
-
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
 		rpcx.String("auditAdmin"),
 		rpcx.String(pid),
+		rpcx.String(""),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(RegisterRole, args...)
 	suite.Require().Nil(err)
-
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(FreezeRole, args...)
 	suite.Require().Nil(err)
-	role, err := suite.getRoleById(address.String())
+	role, err := suite.GetRoleInfoById(address.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceFrozen, role.Status)
-
 	//recover
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(LogoutRole, args...)
 	suite.Require().Nil(err)
-	err = suite.logoutNode(pid)
+	err = suite.LogoutNode(pid)
 	suite.Require().Nil(err)
 }
 
 //tc：冻结已冻结的审计管理员，冻结失败
-func (suite Model11) Test016_FreezeFrozenAuditAdminIsFail() {
+func (suite Model11) Test1118_FreezeFrozenAuditAdminIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	address, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	pid, err := suite.createPid()
+	pid, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.registerNode(pid, address.String(), "nvpNode")
+	err = suite.RegisterNode(pid, 0, address.String(), "nvpNode")
 	suite.Require().Nil(err)
-
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
 		rpcx.String("auditAdmin"),
 		rpcx.String(pid),
+		rpcx.String(""),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(RegisterRole, args...)
 	suite.Require().Nil(err)
-
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(FreezeRole, args...)
 	suite.Require().Nil(err)
-	role, err := suite.getRoleById(address.String())
+	role, err := suite.GetRoleInfoById(address.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceFrozen, role.Status)
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(FreezeRole, args...)
 	suite.Require().NotNil(err)
-
 	//recover
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(LogoutRole, args...)
 	suite.Require().Nil(err)
-	err = suite.logoutNode(pid)
+	err = suite.LogoutNode(pid)
 	suite.Require().Nil(err)
 }
 
 //tc：激活冻结的审计管理员，激活成功
-func (suite Model11) Test017_ActivateFrozenAuditAdminIsSuccess() {
+func (suite Model11) Test1119_ActivateFrozenAuditAdminIsSuccess() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	address, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	pid, err := suite.createPid()
+	pid, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.registerNode(pid, address.String(), "nvpNode")
+	err = suite.RegisterNode(pid, 0, address.String(), "nvpNode")
 	suite.Require().Nil(err)
-
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
 		rpcx.String("auditAdmin"),
 		rpcx.String(pid),
+		rpcx.String(""),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(RegisterRole, args...)
 	suite.Require().Nil(err)
-
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(FreezeRole, args...)
 	suite.Require().Nil(err)
-	role, err := suite.getRoleById(address.String())
+	role, err := suite.GetRoleInfoById(address.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceFrozen, role.Status)
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(ActivateRole, args...)
 	suite.Require().Nil(err)
-
 	//recover
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(LogoutRole, args...)
 	suite.Require().Nil(err)
-	err = suite.logoutNode(pid)
+	err = suite.LogoutNode(pid)
 	suite.Require().Nil(err)
 }
 
 //tc：激活未冻结的审计管理员，激活失败
-func (suite Model11) Test018_ActivateNoFrozenAuditAdminIsFail() {
+func (suite Model11) Test1120_ActivateNoFrozenAuditAdminIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	address, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	pid, err := suite.createPid()
+	pid, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.registerNode(pid, address.String(), "nvpNode")
+	err = suite.RegisterNode(pid, 0, address.String(), "nvpNode")
 	suite.Require().Nil(err)
-
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
 		rpcx.String("auditAdmin"),
 		rpcx.String(pid),
+		rpcx.String(""),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(RegisterRole, args...)
 	suite.Require().Nil(err)
-
-	role, err := suite.getRoleById(address.String())
+	role, err := suite.GetRoleInfoById(address.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceAvailable, role.Status)
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(ActivateRole, args...)
 	suite.Require().NotNil(err)
-
 	//recover
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(LogoutRole, args...)
 	suite.Require().Nil(err)
-	err = suite.logoutNode(pid)
+	err = suite.LogoutNode(pid)
 	suite.Require().Nil(err)
 }
 
 //tc：注销审计管理员，注销成功
-func (suite Model11) Test019_LogoutAuditAdminIsSuccess() {
+func (suite Model11) Test1121_LogoutAuditAdminIsSuccess() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	address, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	pid, err := suite.createPid()
+	pid, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.registerNode(pid, address.String(), "nvpNode")
+	err = suite.RegisterNode(pid, 0, address.String(), "nvpNode")
 	suite.Require().Nil(err)
-
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
 		rpcx.String("auditAdmin"),
 		rpcx.String(pid),
+		rpcx.String(""),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(RegisterRole, args...)
 	suite.Require().Nil(err)
-
-	role, err := suite.getRoleById(address.String())
+	role, err := suite.GetRoleInfoById(address.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceAvailable, role.Status)
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(LogoutRole, args...)
 	suite.Require().Nil(err)
-	err = suite.logoutNode(pid)
+	err = suite.LogoutNode(pid)
 	suite.Require().Nil(err)
 }
 
 //tc：注销已冻结的审计管理员，冻结成功
-func (suite Model11) Test020_LogoutFrozenAuditAdminIsSuccess() {
+func (suite Model11) Test1122_LogoutFrozenAuditAdminIsSuccess() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	address, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	pid, err := suite.createPid()
+	pid, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.registerNode(pid, address.String(), "nvpNode")
+	err = suite.RegisterNode(pid, 0, address.String(), "nvpNode")
 	suite.Require().Nil(err)
-
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
 		rpcx.String("auditAdmin"),
 		rpcx.String(pid),
+		rpcx.String(""),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(RegisterRole, args...)
 	suite.Require().Nil(err)
-
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(FreezeRole, args...)
 	suite.Require().Nil(err)
-	role, err := suite.getRoleById(address.String())
+	role, err := suite.GetRoleInfoById(address.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceFrozen, role.Status)
-
 	args = []*pb.Arg{
 		rpcx.String(address.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(LogoutRole, args...)
 	suite.Require().Nil(err)
-	err = suite.logoutNode(pid)
+	err = suite.LogoutNode(pid)
 	suite.Require().Nil(err)
 }
 
 //tc：审计管理员参与治理投票，投票失败
-func (suite Model11) Test021_AuditAdminVoteIsFail() {
-	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+func (suite Model11) Test1123_AuditAdminVoteIsFail() {
+	pk1, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
-	address, err := pk.PublicKey().Address()
+	address1, err := pk1.PublicKey().Address()
 	suite.Require().Nil(err)
-	pid, err := suite.createPid()
+	pid1, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.registerNode(pid, address.String(), "nvpNode")
+	err = suite.RegisterNode(pid1, 0, address1.String(), "nvpNode")
 	suite.Require().Nil(err)
-
 	args := []*pb.Arg{
-		rpcx.String(address.String()),
+		rpcx.String(address1.String()),
 		rpcx.String("auditAdmin"),
-		rpcx.String(pid),
+		rpcx.String(pid1),
+		rpcx.String(""),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(RegisterRole, args...)
 	suite.Require().Nil(err)
-
-	role, err := suite.getRoleById(address.String())
+	role, err := suite.GetRoleInfoById(address1.String())
 	suite.Require().Nil(err)
 	suite.Require().Equal(governance.GovernanceAvailable, role.Status)
-
+	pk2, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	address2, err := pk2.PublicKey().Address()
+	suite.Require().Nil(err)
+	pid2, err := suite.CreatePid()
+	suite.Require().Nil(err)
+	err = suite.RegisterNode(pid2, 0, address2.String(), "nvpNode")
+	suite.Require().Nil(err)
 	args = []*pb.Arg{
-		rpcx.String(address.String()),
+		rpcx.String(address2.String()),
+		rpcx.String("auditAdmin"),
+		rpcx.String(pid2),
+		rpcx.String(""),
+		rpcx.String("reason"),
 	}
 	node2, err := repo.Node2Path()
 	suite.Require().Nil(err)
 	privateKey, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
 	suite.Require().Nil(err)
 	client := suite.NewClient(privateKey)
-	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), FreezeRole, &rpcx.TransactOpts{
+	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), RegisterRole, &rpcx.TransactOpts{
 		Nonce: atomic.AddUint64(&nonce2, 1),
 	}, args...)
 	suite.Require().Nil(err)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
+	client1 := suite.NewClient(pk1)
+	nonce, err := client1.GetPendingNonceByAccount(address1.String())
 	suite.Require().Nil(err)
-	nonce, err := suite.client.GetPendingNonceByAccount(address.String())
-	suite.Require().Nil(err)
-	res, err = suite.vote(pk, nonce, pb.String(result.ProposalID), pb.String("approve"), pb.String("Appchain Pass"))
+	_, err = suite.vote(pk1, nonce, rpcx.String(result.ProposalID), rpcx.String("approve"), rpcx.String("reason"))
 	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "the administrator can not vote to the proposal")
-
+	err = suite.VotePass(result.ProposalID)
+	suite.Require().Nil(err)
 	//recover
 	args = []*pb.Arg{
-		rpcx.String(address.String()),
+		rpcx.String(address1.String()),
+		rpcx.String("reason"),
 	}
 	err = suite.InvokeRoleContract(LogoutRole, args...)
 	suite.Require().Nil(err)
-	err = suite.logoutNode(pid)
+	err = suite.LogoutNode(pid1)
+	suite.Require().Nil(err)
+	args = []*pb.Arg{
+		rpcx.String(address2.String()),
+		rpcx.String("reason"),
+	}
+	err = suite.InvokeRoleContract(LogoutRole, args...)
+	suite.Require().Nil(err)
+	err = suite.LogoutNode(pid2)
 	suite.Require().Nil(err)
 }
 
 //tc：调用GetRole接口，成功查询用户角色结构
-func (suite Model11) Test022_GetRole() {
+func (suite Model11) Test1124_GetRole() {
 	node1, err := repo.Node1Path()
 	suite.Require().Nil(err)
 	privateKey, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
@@ -792,11 +823,11 @@ func (suite Model11) Test022_GetRole() {
 		Nonce: atomic.AddUint64(&nonce1, 1),
 	})
 	suite.Require().Nil(err)
-	suite.Require().Equal("governanceAdmin(super)", string(res.Ret))
+	suite.Require().Equal("superGovernanceAdmin", string(res.Ret))
 }
 
 //tc：调用GetRoleById接口，成功根据正确的iD查询用户角色结构
-func (suite Model11) Test023_GetRoleById() {
+func (suite Model11) Test1125_GetRoleByAddr() {
 	node1, err := repo.Node1Path()
 	suite.Require().Nil(err)
 	privateKey, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
@@ -807,252 +838,11 @@ func (suite Model11) Test023_GetRoleById() {
 	args := []*pb.Arg{
 		rpcx.String(address.String()),
 	}
-	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), "GetRoleById", &rpcx.TransactOpts{
+	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), "GetRoleByAddr", &rpcx.TransactOpts{
 		Nonce: atomic.AddUint64(&nonce1, 1),
 	}, args...)
 	suite.Require().Nil(err)
-	role := &Role{}
-	err = json.Unmarshal(res.Ret, role)
-	suite.Require().Nil(err)
-	suite.Require().Equal("governanceAdmin", role.RoleType)
-}
-
-//tc：调用GetAdminRoles接口，成功获取所有治理管理员列表
-func (suite Model11) Test024_GetAdminRoles() {
-	node1, err := repo.Node1Path()
-	suite.Require().Nil(err)
-	privateKey, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
-	suite.Require().Nil(err)
-	client := suite.NewClient(privateKey)
-	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), "GetAdminRoles", &rpcx.TransactOpts{
-		Nonce: atomic.AddUint64(&nonce1, 1),
-	})
-	suite.Require().Nil(err)
-	var roles []Role
-	err = json.Unmarshal(res.Ret, &roles)
-	suite.Require().Nil(err)
-	suite.Require().Greater(len(roles), 0)
-}
-
-//tc：调用GetAuditAdminRoles接口，成功获取所有审计管理员列表
-func (suite Model11) Test025_GetAuditAdminRoles() {
-	node1, err := repo.Node1Path()
-	suite.Require().Nil(err)
-	privateKey, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
-	suite.Require().Nil(err)
-	client := suite.NewClient(privateKey)
-	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), "GetAuditAdminRoles", &rpcx.TransactOpts{
-		Nonce: atomic.AddUint64(&nonce1, 1),
-	})
-	suite.Require().Nil(err)
-	var roles []Role
-	err = json.Unmarshal(res.Ret, &roles)
-	suite.Require().Nil(err)
-	suite.Require().Greater(len(roles), 0)
-}
-
-//tc：调用IsAvailable接口，可用管理员返回true
-func (suite Model11) Test026_IsAvailableWithTrue() {
-	node1, err := repo.Node1Path()
-	suite.Require().Nil(err)
-	privateKey, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
-	suite.Require().Nil(err)
-	address, err := privateKey.PublicKey().Address()
-	suite.Require().Nil(err)
-	client := suite.NewClient(privateKey)
-	args := []*pb.Arg{
-		rpcx.String(address.String()),
-	}
-	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), "IsAvailable", &rpcx.TransactOpts{
-		Nonce: atomic.AddUint64(&nonce1, 1),
-	}, args...)
-	suite.Require().Nil(err)
-	suite.Require().Equal("true", string(res.Ret))
-}
-
-//tc：调用IsAvailable接口，不可用管理员返回false
-func (suite Model11) Test026_IsAvailableWithFalse() {
-	node1, err := repo.Node1Path()
-	suite.Require().Nil(err)
-	privateKey, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
-	suite.Require().Nil(err)
-
-	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	suite.Require().Nil(err)
-	address, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	pid, err := suite.createPid()
-	suite.Require().Nil(err)
-	args := []*pb.Arg{
-		rpcx.String(address.String()),
-		rpcx.String("governanceAdmin"),
-		rpcx.String(pid),
-	}
-	err = suite.InvokeRoleContract(RegisterRole, args...)
-	suite.Require().Nil(err)
-	role, err := suite.getRoleById(address.String())
-	suite.Require().Nil(err)
-	suite.Require().Equal(governance.GovernanceAvailable, role.Status)
-
-	args = []*pb.Arg{
-		rpcx.String(address.String()),
-	}
-	err = suite.InvokeRoleContract(LogoutRole, args...)
-	suite.Require().Nil(err)
-
-	client := suite.NewClient(privateKey)
-	args = []*pb.Arg{
-		rpcx.String(address.String()),
-	}
-	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), "IsAvailable", &rpcx.TransactOpts{
-		Nonce: atomic.AddUint64(&nonce1, 1),
-	}, args...)
-	suite.Require().Nil(err)
-	suite.Require().Equal("false", string(res.Ret))
-}
-
-//tc：调用IsSuperAdmin接口，超级治理管理员返回true
-func (suite Model11) Test027_IsSuperAdminWithTrue() {
-	node1, err := repo.Node1Path()
-	suite.Require().Nil(err)
-	privateKey, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
-	suite.Require().Nil(err)
-	address, err := privateKey.PublicKey().Address()
-	suite.Require().Nil(err)
-	client := suite.NewClient(privateKey)
-	args := []*pb.Arg{
-		rpcx.String(address.String()),
-	}
-	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), "IsSuperAdmin", &rpcx.TransactOpts{
-		Nonce: atomic.AddUint64(&nonce1, 1),
-	}, args...)
-	suite.Require().Nil(err)
-	suite.Require().Equal("true", string(res.Ret))
-}
-
-//tc：调用IsSuperAdmin接口，非超级治理管理员返回false
-func (suite Model11) Test028_IsSuperAdminWithFalse() {
-	node2, err := repo.Node2Path()
-	suite.Require().Nil(err)
-	privateKey, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
-	suite.Require().Nil(err)
-	address, err := privateKey.PublicKey().Address()
-	suite.Require().Nil(err)
-	client := suite.NewClient(privateKey)
-	args := []*pb.Arg{
-		rpcx.String(address.String()),
-	}
-	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), "IsSuperAdmin", &rpcx.TransactOpts{
-		Nonce: atomic.AddUint64(&nonce2, 1),
-	}, args...)
-	suite.Require().Nil(err)
-	suite.Require().Equal("false", string(res.Ret))
-}
-
-//tc：调用IsAdmin接口，治理管理员返回true
-func (suite Model11) Test029_IsAdminWithTrue() {
-	node2, err := repo.Node2Path()
-	suite.Require().Nil(err)
-	privateKey, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
-	suite.Require().Nil(err)
-	address, err := privateKey.PublicKey().Address()
-	suite.Require().Nil(err)
-	client := suite.NewClient(privateKey)
-	args := []*pb.Arg{
-		rpcx.String(address.String()),
-	}
-	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), "IsAdmin", &rpcx.TransactOpts{
-		Nonce: atomic.AddUint64(&nonce2, 1),
-	}, args...)
-	suite.Require().Nil(err)
-	suite.Require().Equal("true", string(res.Ret))
-}
-
-//tc：调用IsAdmin接口，非治理管理员返回false
-func (suite Model11) Test030_IsAdminWithFalse() {
-	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	suite.Require().Nil(err)
-	address, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	pid, err := suite.createPid()
-	suite.Require().Nil(err)
-	err = suite.registerNode(pid, address.String(), "nvpNode")
-	suite.Require().Nil(err)
-
-	args := []*pb.Arg{
-		rpcx.String(address.String()),
-		rpcx.String("auditAdmin"),
-		rpcx.String(pid),
-	}
-	err = suite.InvokeRoleContract(RegisterRole, args...)
-	suite.Require().Nil(err)
-
-	node2, err := repo.Node2Path()
-	suite.Require().Nil(err)
-	privateKey, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
-	suite.Require().Nil(err)
-	client := suite.NewClient(privateKey)
-	args = []*pb.Arg{
-		rpcx.String(address.String()),
-	}
-	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), "IsAdmin", &rpcx.TransactOpts{
-		Nonce: atomic.AddUint64(&nonce2, 1),
-	}, args...)
-	suite.Require().Nil(err)
-	suite.Require().Equal("false", string(res.Ret))
-}
-
-//tc：调用IsAuditAdmin接口，审计管理员返回true
-func (suite Model11) Test031_IsAuditAdminWithTrue() {
-	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	suite.Require().Nil(err)
-	address, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	pid, err := suite.createPid()
-	suite.Require().Nil(err)
-	err = suite.registerNode(pid, address.String(), "nvpNode")
-	suite.Require().Nil(err)
-
-	args := []*pb.Arg{
-		rpcx.String(address.String()),
-		rpcx.String("auditAdmin"),
-		rpcx.String(pid),
-	}
-	err = suite.InvokeRoleContract(RegisterRole, args...)
-	suite.Require().Nil(err)
-
-	node2, err := repo.Node2Path()
-	suite.Require().Nil(err)
-	privateKey, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
-	suite.Require().Nil(err)
-	client := suite.NewClient(privateKey)
-	args = []*pb.Arg{
-		rpcx.String(address.String()),
-	}
-	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), "IsAuditAdmin", &rpcx.TransactOpts{
-		Nonce: atomic.AddUint64(&nonce2, 1),
-	}, args...)
-	suite.Require().Nil(err)
-	suite.Require().Equal("true", string(res.Ret))
-}
-
-//tc：调用IsAuditAdmin接口，非审计管理员返回false
-func (suite Model11) Test032_IsAuditAdminWithFalse() {
-	node1, err := repo.Node1Path()
-	suite.Require().Nil(err)
-	privateKey, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
-	suite.Require().Nil(err)
-	address, err := privateKey.PublicKey().Address()
-	suite.Require().Nil(err)
-	client := suite.NewClient(privateKey)
-	args := []*pb.Arg{
-		rpcx.String(address.String()),
-	}
-	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), "IsAuditAdmin", &rpcx.TransactOpts{
-		Nonce: atomic.AddUint64(&nonce1, 1),
-	}, args...)
-	suite.Require().Nil(err)
-	suite.Require().Equal("false", string(res.Ret))
+	suite.Require().Equal("superGovernanceAdmin", string(res.Ret))
 }
 
 func (suite Model11) InvokeRoleContract(method string, args ...*pb.Arg) error {
@@ -1117,7 +907,7 @@ func (suite Model11) InvokeNodeContract(method string, args ...*pb.Arg) error {
 	return nil
 }
 
-func (suite Model11) getRoleById(roleId string) (*Role, error) {
+func (suite Model11) GetRoleInfoById(roleId string) (*Role, error) {
 	args := []*pb.Arg{
 		rpcx.String(roleId),
 	}
@@ -1130,7 +920,7 @@ func (suite Model11) getRoleById(roleId string) (*Role, error) {
 		return nil, err
 	}
 	client := suite.NewClient(privateKey)
-	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), "GetRoleById", &rpcx.TransactOpts{
+	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), "GetRoleInfoById", &rpcx.TransactOpts{
 		Nonce: atomic.AddUint64(&nonce2, 1),
 	}, args...)
 	if err != nil {
@@ -1142,7 +932,7 @@ func (suite Model11) getRoleById(roleId string) (*Role, error) {
 	return role, nil
 }
 
-func (suite Model11) createPid() (string, error) {
+func (suite Snake) CreatePid() (string, error) {
 	pk, err := asym.GenerateKeyPair(crypto.ECDSA_P256)
 	if err != nil {
 		return "", err
@@ -1164,23 +954,4 @@ func (suite Model11) createPid() (string, error) {
 		return "", err
 	}
 	return pid.String(), nil
-}
-
-func (suite Model11) registerNode(pid, address, nodeType string) error {
-	args := []*pb.Arg{
-		rpcx.String(pid),
-		rpcx.Uint64(0),
-		rpcx.String(address),
-		rpcx.String(nodeType),
-	}
-	err := suite.InvokeNodeContract("RegisterNode", args...)
-	return err
-}
-
-func (suite Model11) logoutNode(pid string) error {
-	args := []*pb.Arg{
-		rpcx.String(pid),
-	}
-	err := suite.InvokeNodeContract("LogoutNode", args...)
-	return err
 }
