@@ -22,10 +22,10 @@ require (
 	github.com/libp2p/go-libp2p-core v0.6.1
 	github.com/looplab/fsm v0.2.0
 	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/meshplus/bitxhub-core v1.3.1-0.20210820055613-b809875e5b15
-	github.com/meshplus/bitxhub-kit v1.2.1-0.20210813111404-c50fb6384374
-	github.com/meshplus/bitxhub-model v1.2.1-0.20210811024313-728f913a1397
-	github.com/meshplus/go-bitxhub-client v1.3.1-0.20210701063659-a0836fbc1c78
+	github.com/meshplus/bitxhub-core v1.3.1-0.20210914064243-5668ab83d9ba
+	github.com/meshplus/bitxhub-kit v1.2.1-0.20210830031953-cf5f83f2e1dd
+	github.com/meshplus/bitxhub-model v1.2.1-0.20210909055322-3025ed2ba82f
+	github.com/meshplus/go-bitxhub-client v1.3.1-0.20210915055628-af6ac94d35ed
 	github.com/meshplus/go-libp2p-cert v0.0.0-20210125114242-7d9ed2eaaccd
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
