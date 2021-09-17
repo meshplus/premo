@@ -40,7 +40,7 @@ func TestTester(t *testing.T) {
 		require.Nil(t, err)
 		clients = append(clients, client)
 	}
-	if len(clients) == 11 {
+	if len(clients) == 12 {
 		suite.Run(t, &Model1{&Snake{client: clients[0], from: from, pk: pk, to: to}})
 		suite.Run(t, &Model2{&Snake{client: clients[1], from: from, pk: pk, to: to}})
 		suite.Run(t, &Model3{&Snake{client: clients[2], from: from, pk: pk, to: to}})
