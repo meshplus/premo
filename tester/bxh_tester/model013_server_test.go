@@ -139,7 +139,7 @@ func (suite Model13) Test1309_RegisterServerWithActivatingServerIsFail() {
 }
 
 //tc：服务处于freezing状态注册服务，服务注册失败
-func (suite Model13) Test1309_RegisterServerWithFreezingServerIsFail() {
+func (suite Model13) Test1310_RegisterServerWithFreezingServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToFreezing(pk, chainID, address)
@@ -149,7 +149,7 @@ func (suite Model13) Test1309_RegisterServerWithFreezingServerIsFail() {
 }
 
 //tc：服务处于frozen状态注册服务，服务注册失败
-func (suite Model13) Test1310_RegisterServerWithFrozenServerIsFail() {
+func (suite Model13) Test1311_RegisterServerWithFrozenServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToFrozen(pk, chainID, address)
@@ -159,7 +159,7 @@ func (suite Model13) Test1310_RegisterServerWithFrozenServerIsFail() {
 }
 
 //tc：服务处于logouting状态注册服务，服务注册失败
-func (suite Model13) Test1311_RegisterServerWithLogoutingServerIsFail() {
+func (suite Model13) Test1312_RegisterServerWithLogoutingServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToLogouting(pk, chainID, address)
@@ -169,7 +169,7 @@ func (suite Model13) Test1311_RegisterServerWithLogoutingServerIsFail() {
 }
 
 //tc：服务处于forbidden状态注册服务，服务注册失败
-func (suite Model13) Test1312_RegisterServerWithForbiddenServerIsFail() {
+func (suite Model13) Test1313_RegisterServerWithForbiddenServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToForbidden(pk, chainID, address)
@@ -179,7 +179,7 @@ func (suite Model13) Test1312_RegisterServerWithForbiddenServerIsFail() {
 }
 
 //tc：应用链处于unavailable状态注册服务，服务注册失败
-func (suite Model13) Test1313_RegisterServerWithUnavailableChainIsFail() {
+func (suite Model13) Test1314_RegisterServerWithUnavailableChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToUnavailable(pk, chainID, address)
@@ -189,7 +189,7 @@ func (suite Model13) Test1313_RegisterServerWithUnavailableChainIsFail() {
 }
 
 //tc：应用链处于activating状态注册服务，服务注册失败
-func (suite Model13) Test1314_RegisterServerWithActivatingChainIsFail() {
+func (suite Model13) Test1315_RegisterServerWithActivatingChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToActivating(pk, chainID, address)
@@ -199,7 +199,7 @@ func (suite Model13) Test1314_RegisterServerWithActivatingChainIsFail() {
 }
 
 //tc：应用链处于freezing状态注册服务，服务注册成功
-func (suite Model13) Test1314_RegisterServerWithFreezingChainIsFail() {
+func (suite Model13) Test1316_RegisterServerWithFreezingChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFreezing(pk, chainID, address)
@@ -209,7 +209,7 @@ func (suite Model13) Test1314_RegisterServerWithFreezingChainIsFail() {
 }
 
 //tc：应用链处于frozen状态注册服务，服务注册失败
-func (suite Model13) Test1315_RegisterServerWithFrozenChainIsFail() {
+func (suite Model13) Test1317_RegisterServerWithFrozenChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFrozen(pk, chainID, address)
@@ -219,7 +219,7 @@ func (suite Model13) Test1315_RegisterServerWithFrozenChainIsFail() {
 }
 
 //tc：应用链处于logouting状态注册服务，服务注册失败
-func (suite Model13) Test1316_RegisterServerWithLogoutingChainIsFail() {
+func (suite Model13) Test1318_RegisterServerWithLogoutingChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToLogouting(pk, chainID, address)
@@ -229,7 +229,7 @@ func (suite Model13) Test1316_RegisterServerWithLogoutingChainIsFail() {
 }
 
 //tc：应用链处于forbidden状态注册服务，服务注册失败
-func (suite Model13) Test1317_RegisterServerWithForbiddenChainsFail() {
+func (suite Model13) Test1319_RegisterServerWithForbiddenChainsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToForbidden(pk, chainID, address)
@@ -239,7 +239,7 @@ func (suite Model13) Test1317_RegisterServerWithForbiddenChainsFail() {
 }
 
 //tc：服务类型异常注册服务，服务注册失败
-func (suite Model13) Test1318_RegisterServerWithErrorTypeIsFail() {
+func (suite Model13) Test1320_RegisterServerWithErrorTypeIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -249,7 +249,7 @@ func (suite Model13) Test1318_RegisterServerWithErrorTypeIsFail() {
 }
 
 //tc：中继链管理员更新服务，服务更新失败
-func (suite Model13) Test1319_UpdateServerWithRelayAdminIsFail() {
+func (suite Model13) Test1321_UpdateServerWithRelayAdminIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -281,7 +281,7 @@ func (suite Model13) Test1319_UpdateServerWithRelayAdminIsFail() {
 }
 
 //tc：应用链管理员更新服务，服务更新成功
-func (suite Model13) Test1320_UpdateServerIsSuccess() {
+func (suite Model13) Test1322_UpdateServerIsSuccess() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -293,7 +293,7 @@ func (suite Model13) Test1320_UpdateServerIsSuccess() {
 }
 
 //tc：非应用链管理员更新服务，服务更新失败
-func (suite Model13) Test1321_UpdateServerWithNoAdminIsFail() {
+func (suite Model13) Test1323_UpdateServerWithNoAdminIsFail() {
 	pk1, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk1, chainID, address)
@@ -307,7 +307,7 @@ func (suite Model13) Test1321_UpdateServerWithNoAdminIsFail() {
 }
 
 //tc：服务处于registing状态更新服务，服务更新失败
-func (suite Model13) Test1322_UpdateServerWithRegistingServerIsFail() {
+func (suite Model13) Test1324_UpdateServerWithRegistingServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToRegisting(pk, chainID, address)
@@ -317,7 +317,7 @@ func (suite Model13) Test1322_UpdateServerWithRegistingServerIsFail() {
 }
 
 //tc：服务处于unavailable状态更新服务，服务更新成功
-func (suite Model13) Test1323_UpdateServerWithUnavailableServerIsFail() {
+func (suite Model13) Test1325_UpdateServerWithUnavailableServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToUnavailable(pk, chainID, address)
@@ -327,7 +327,7 @@ func (suite Model13) Test1323_UpdateServerWithUnavailableServerIsFail() {
 }
 
 //tc：服务处于updating状态更新服务，服务更新失败
-func (suite Model13) Test1324_UpdateServerWithUpdatingServerIsFail() {
+func (suite Model13) Test1326_UpdateServerWithUpdatingServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToUpdating(pk, chainID, address)
@@ -337,7 +337,7 @@ func (suite Model13) Test1324_UpdateServerWithUpdatingServerIsFail() {
 }
 
 //tc：服务处于activating状态更新服务，服务更新失败
-func (suite Model13) Test1325_UpdateServerWithActivatingServerIsFail() {
+func (suite Model13) Test1327_UpdateServerWithActivatingServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToActivating(pk, chainID, address)
@@ -347,7 +347,7 @@ func (suite Model13) Test1325_UpdateServerWithActivatingServerIsFail() {
 }
 
 //tc：服务处于freezing状态更新服务，服务更新失败
-func (suite Model13) Test1325_UpdateServerWithFreezingServerIsFail() {
+func (suite Model13) Test1328_UpdateServerWithFreezingServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToFreezing(pk, chainID, address)
@@ -357,7 +357,7 @@ func (suite Model13) Test1325_UpdateServerWithFreezingServerIsFail() {
 }
 
 //tc：服务处于frozen状态更新服务，服务更新成功
-func (suite Model13) Test1326_UpdateServerWithFrozenServerIsSuccess() {
+func (suite Model13) Test1329_UpdateServerWithFrozenServerIsSuccess() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToFrozen(pk, chainID, address)
@@ -369,7 +369,7 @@ func (suite Model13) Test1326_UpdateServerWithFrozenServerIsSuccess() {
 }
 
 //tc：服务处于logouting状态更新服务，服务更新失败
-func (suite Model13) Test1327_UpdateServerWithLogoutingServerIsFail() {
+func (suite Model13) Test1330_UpdateServerWithLogoutingServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToLogouting(pk, chainID, address)
@@ -379,7 +379,7 @@ func (suite Model13) Test1327_UpdateServerWithLogoutingServerIsFail() {
 }
 
 //tc：服务处于forbidden状态更新服务，服务更新失败
-func (suite Model13) Test1328_UpdateServerWithForbiddenServerIsFail() {
+func (suite Model13) Test1331_UpdateServerWithForbiddenServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToForbidden(pk, chainID, address)
@@ -389,7 +389,7 @@ func (suite Model13) Test1328_UpdateServerWithForbiddenServerIsFail() {
 }
 
 //tc：应用链处于activating状态更新服务，服务更新失败
-func (suite Model13) Test1329_UpdateServerWithActivatingChainIsFail() {
+func (suite Model13) Test1332_UpdateServerWithActivatingChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -409,7 +409,7 @@ func (suite Model13) Test1329_UpdateServerWithActivatingChainIsFail() {
 }
 
 //tc：应用链处于freezing状态更新服务，服务更新成功
-func (suite Model13) Test1329_UpdateServerWithFreezingChainIsSuccess() {
+func (suite Model13) Test1333_UpdateServerWithFreezingChainIsSuccess() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -439,7 +439,7 @@ func (suite Model13) Test1329_UpdateServerWithFreezingChainIsSuccess() {
 }
 
 //tc：应用链处于frozen状态更新服务，服务更新失败
-func (suite Model13) Test1330_UpdateServerWithFrozenChainIsFail() {
+func (suite Model13) Test1334_UpdateServerWithFrozenChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -455,7 +455,7 @@ func (suite Model13) Test1330_UpdateServerWithFrozenChainIsFail() {
 }
 
 //tc：应用链处于logouting状态更新服务，服务更新失败
-func (suite Model13) Test1331_UpdateServerWithLogoutingChainIsFail() {
+func (suite Model13) Test1335_UpdateServerWithLogoutingChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -473,7 +473,7 @@ func (suite Model13) Test1331_UpdateServerWithLogoutingChainIsFail() {
 }
 
 //tc：应用链处于forbidden状态更新服务，服务更新失败
-func (suite Model13) Test1332_UpdateServerWithForbiddenChainIsFail() {
+func (suite Model13) Test1336_UpdateServerWithForbiddenChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -489,7 +489,7 @@ func (suite Model13) Test1332_UpdateServerWithForbiddenChainIsFail() {
 }
 
 //tc：中继链管理员冻结服务，服务冻结成功
-func (suite Model13) Test1333_FreezeServerWithRelayAdminIsSuccess() {
+func (suite Model13) Test1337_FreezeServerWithRelayAdminIsSuccess() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -503,7 +503,7 @@ func (suite Model13) Test1333_FreezeServerWithRelayAdminIsSuccess() {
 }
 
 //tc：应用链管理员冻结服务，服务冻结失败
-func (suite Model13) Test1334_FreezeServerWithAdminIsFail() {
+func (suite Model13) Test1338_FreezeServerWithAdminIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -517,7 +517,7 @@ func (suite Model13) Test1334_FreezeServerWithAdminIsFail() {
 }
 
 //tc：服务处于registing状态冻结服务，服务冻结失败
-func (suite Model13) Test1335_FreezeServerWithRegistingServerIsFail() {
+func (suite Model13) Test1339_FreezeServerWithRegistingServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToRegisting(pk, chainID, address)
@@ -527,7 +527,7 @@ func (suite Model13) Test1335_FreezeServerWithRegistingServerIsFail() {
 }
 
 //tc：服务处于unavailable状态冻结服务，服务冻结失败
-func (suite Model13) Test1336_FreezeServerWithUnavailableServerIsFail() {
+func (suite Model13) Test1340_FreezeServerWithUnavailableServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToUnavailable(pk, chainID, address)
@@ -537,7 +537,7 @@ func (suite Model13) Test1336_FreezeServerWithUnavailableServerIsFail() {
 }
 
 //tc：服务处于updating状态冻结服务，服务冻结成功
-func (suite Model13) Test1337_FreezeServerWithUpdatingServerIsSuccess() {
+func (suite Model13) Test1341_FreezeServerWithUpdatingServerIsSuccess() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToUpdating(pk, chainID, address)
@@ -549,7 +549,7 @@ func (suite Model13) Test1337_FreezeServerWithUpdatingServerIsSuccess() {
 }
 
 //tc：服务处于activating状态冻结服务，服务冻结成功
-func (suite Model13) Test1338_FreezeServerWithActivatingServerIsSuccess() {
+func (suite Model13) Test1342_FreezeServerWithActivatingServerIsSuccess() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToActivating(pk, chainID, address)
@@ -561,7 +561,7 @@ func (suite Model13) Test1338_FreezeServerWithActivatingServerIsSuccess() {
 }
 
 //tc：服务处于freezing状态冻结服务，服务冻结失败
-func (suite Model13) Test1339_FreezeServerWithFreezingServerIsFail() {
+func (suite Model13) Test1343_FreezeServerWithFreezingServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToFreezing(pk, chainID, address)
@@ -571,7 +571,7 @@ func (suite Model13) Test1339_FreezeServerWithFreezingServerIsFail() {
 }
 
 //tc：服务处于frozen状态冻结服务，服务冻结失败
-func (suite Model13) Test1340_FreezeServerWithFrozenServerIsFail() {
+func (suite Model13) Test1344_FreezeServerWithFrozenServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToFrozen(pk, chainID, address)
@@ -581,7 +581,7 @@ func (suite Model13) Test1340_FreezeServerWithFrozenServerIsFail() {
 }
 
 //tc：服务处于logouting状态冻结服务，服务冻结失败
-func (suite Model13) Test1341_FreezeServerWithLogoutingServerIsFail() {
+func (suite Model13) Test1345_FreezeServerWithLogoutingServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToLogouting(pk, chainID, address)
@@ -591,7 +591,7 @@ func (suite Model13) Test1341_FreezeServerWithLogoutingServerIsFail() {
 }
 
 //tc：服务处于forbidden状态冻结服务，服务冻结失败
-func (suite Model13) Test1342_FreezeServerWithForbiddenServerIsFail() {
+func (suite Model13) Test1346_FreezeServerWithForbiddenServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToForbidden(pk, chainID, address)
@@ -601,7 +601,7 @@ func (suite Model13) Test1342_FreezeServerWithForbiddenServerIsFail() {
 }
 
 //tc：应用链处于activating状态冻结服务，服务冻结失败
-func (suite Model13) Test1343_FreezeServerWithActivatingChainIsFail() {
+func (suite Model13) Test1347_FreezeServerWithActivatingChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -621,7 +621,7 @@ func (suite Model13) Test1343_FreezeServerWithActivatingChainIsFail() {
 }
 
 //tc：应用链处于freezing状态冻结服务，服务冻结成功
-func (suite Model13) Test1344_FreezeServerWithFreezingChainIsFail() {
+func (suite Model13) Test1348_FreezeServerWithFreezingChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -652,7 +652,7 @@ func (suite Model13) Test1344_FreezeServerWithFreezingChainIsFail() {
 }
 
 //tc：应用链处于frozen状态更新服务，服务更新失败
-func (suite Model13) Test1345_FreezeServerWithFrozenChainIsFail() {
+func (suite Model13) Test1349_FreezeServerWithFrozenChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -668,7 +668,7 @@ func (suite Model13) Test1345_FreezeServerWithFrozenChainIsFail() {
 }
 
 //tc：应用链处于logouting状态更新服务，服务更新失败
-func (suite Model13) Test1346_FreezeServerWithLogoutingChainIsFail() {
+func (suite Model13) Test1350_FreezeServerWithLogoutingChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -686,7 +686,7 @@ func (suite Model13) Test1346_FreezeServerWithLogoutingChainIsFail() {
 }
 
 //tc：应用链处于forbidden状态更新服务，服务更新失败
-func (suite Model13) Test1347_FreezeServerWithForbiddenChainIsFail() {
+func (suite Model13) Test1351_FreezeServerWithForbiddenChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -702,7 +702,7 @@ func (suite Model13) Test1347_FreezeServerWithForbiddenChainIsFail() {
 }
 
 //tc：中继链管理员激活服务，服务激活成功
-func (suite Model13) Test1348_ActivateServerWithRelayAdminIsSuccess() {
+func (suite Model13) Test1352_ActivateServerWithRelayAdminIsSuccess() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToFrozen(pk, chainID, address)
@@ -730,7 +730,7 @@ func (suite Model13) Test1348_ActivateServerWithRelayAdminIsSuccess() {
 }
 
 //tc：应用链管理员激活服务，服务激活成功
-func (suite Model13) Test1349_ActivateServerIsSuccess() {
+func (suite Model13) Test1353_ActivateServerIsSuccess() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -746,7 +746,7 @@ func (suite Model13) Test1349_ActivateServerIsSuccess() {
 }
 
 //tc：服务处于registing状态激活服务，服务激活失败
-func (suite Model13) Test1350_ActivateServerWithRegistingServerIsFail() {
+func (suite Model13) Test1354_ActivateServerWithRegistingServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToRegisting(pk, chainID, address)
@@ -756,7 +756,7 @@ func (suite Model13) Test1350_ActivateServerWithRegistingServerIsFail() {
 }
 
 //tc：服务处于unavailable状态激活服务，服务激活失败
-func (suite Model13) Test1351_ActivateServerWithUnavailableServerIsFail() {
+func (suite Model13) Test1355_ActivateServerWithUnavailableServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToUnavailable(pk, chainID, address)
@@ -766,7 +766,7 @@ func (suite Model13) Test1351_ActivateServerWithUnavailableServerIsFail() {
 }
 
 //tc：服务处于updating状态激活服务，服务激活失败
-func (suite Model13) Test1352_ActivateServerWithUpdatingServerIsFail() {
+func (suite Model13) Test1356_ActivateServerWithUpdatingServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToUpdating(pk, chainID, address)
@@ -776,7 +776,7 @@ func (suite Model13) Test1352_ActivateServerWithUpdatingServerIsFail() {
 }
 
 //tc：服务处于activating状态激活服务，服务激活失败
-func (suite Model13) Test1353_ActivateServerWithActivatingServerIsFail() {
+func (suite Model13) Test1357_ActivateServerWithActivatingServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToActivating(pk, chainID, address)
@@ -786,7 +786,7 @@ func (suite Model13) Test1353_ActivateServerWithActivatingServerIsFail() {
 }
 
 //tc：服务处于freezing状态激活服务，服务激活失败
-func (suite Model13) Test1353_ActivateServerWithFreezingServerIsFail() {
+func (suite Model13) Test1358_ActivateServerWithFreezingServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToFreezing(pk, chainID, address)
@@ -796,7 +796,7 @@ func (suite Model13) Test1353_ActivateServerWithFreezingServerIsFail() {
 }
 
 //tc：服务处于logouting状态激活服务，服务激活失败
-func (suite Model13) Test1354_ActivateServerWithLogoutingServerIsFail() {
+func (suite Model13) Test1359_ActivateServerWithLogoutingServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToLogouting(pk, chainID, address)
@@ -806,7 +806,7 @@ func (suite Model13) Test1354_ActivateServerWithLogoutingServerIsFail() {
 }
 
 //tc：服务处于forbidden状态激活服务，服务激活失败
-func (suite Model13) Test1355_ActivateServerWithForbiddenServerIsFail() {
+func (suite Model13) Test1360_ActivateServerWithForbiddenServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToForbidden(pk, chainID, address)
@@ -816,7 +816,7 @@ func (suite Model13) Test1355_ActivateServerWithForbiddenServerIsFail() {
 }
 
 //tc：应用链处于activating状态激活服务，服务激活失败
-func (suite Model13) Test1356_ActivateServerWithActivatingChainIsFail() {
+func (suite Model13) Test1361_ActivateServerWithActivatingChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -836,7 +836,7 @@ func (suite Model13) Test1356_ActivateServerWithActivatingChainIsFail() {
 }
 
 //tc：应用链处于freezing状态激活服务，服务激活成功
-func (suite Model13) Test1357_ActivateServerWithFreezingChainIsFail() {
+func (suite Model13) Test1362_ActivateServerWithFreezingChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -871,7 +871,7 @@ func (suite Model13) Test1357_ActivateServerWithFreezingChainIsFail() {
 }
 
 //tc：应用链处于frozen状态激活服务，服务激活失败
-func (suite Model13) Test1358_ActivateServerWithFrozenChainIsFail() {
+func (suite Model13) Test1363_ActivateServerWithFrozenChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -887,7 +887,7 @@ func (suite Model13) Test1358_ActivateServerWithFrozenChainIsFail() {
 }
 
 //tc：应用链处于logouting状态激活服务，服务激活失败
-func (suite Model13) Test1359_ActivateServerWithLogoutingChainIsFail() {
+func (suite Model13) Test1364_ActivateServerWithLogoutingChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -905,7 +905,7 @@ func (suite Model13) Test1359_ActivateServerWithLogoutingChainIsFail() {
 }
 
 //tc：应用链处于forbidden状态激活服务，服务激活失败
-func (suite Model13) Test1360_ActivateServerWithForbiddenChainIsFail() {
+func (suite Model13) Test1365_ActivateServerWithForbiddenChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -921,7 +921,7 @@ func (suite Model13) Test1360_ActivateServerWithForbiddenChainIsFail() {
 }
 
 //tc：中继链管理员注销服务，服务注销失败
-func (suite Model13) Test1361_LogoutServerWithRelayAdminIsFail() {
+func (suite Model13) Test1366_LogoutServerWithRelayAdminIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -944,7 +944,7 @@ func (suite Model13) Test1361_LogoutServerWithRelayAdminIsFail() {
 }
 
 //tc：应用链管理员注销服务，服务注销成功
-func (suite Model13) Test1362_LogoutServerWithRelayAdminIsFail() {
+func (suite Model13) Test1367_LogoutServerWithRelayAdminIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -956,7 +956,7 @@ func (suite Model13) Test1362_LogoutServerWithRelayAdminIsFail() {
 }
 
 //tc：服务处于registing状态注销服务，服务注销失败
-func (suite Model13) Test1363_LogoutServerWithRegistingServerIsFail() {
+func (suite Model13) Test1368_LogoutServerWithRegistingServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToRegisting(pk, chainID, address)
@@ -966,7 +966,7 @@ func (suite Model13) Test1363_LogoutServerWithRegistingServerIsFail() {
 }
 
 //tc：服务处于unavailable状态注销服务，服务注销失败
-func (suite Model13) Test1364_LogoutServerWithUnavailableServerIsFail() {
+func (suite Model13) Test1369_LogoutServerWithUnavailableServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToUnavailable(pk, chainID, address)
@@ -976,7 +976,7 @@ func (suite Model13) Test1364_LogoutServerWithUnavailableServerIsFail() {
 }
 
 //tc：服务处于updating状态注销服务，服务注销成功
-func (suite Model13) Test1365_LogoutServerWithUpdatingServerIsSuccess() {
+func (suite Model13) Test1370_LogoutServerWithUpdatingServerIsSuccess() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToUpdating(pk, chainID, address)
@@ -986,7 +986,7 @@ func (suite Model13) Test1365_LogoutServerWithUpdatingServerIsSuccess() {
 }
 
 //tc：服务处于activating状态注销服务，服务注销成功
-func (suite Model13) Test1366_LogoutServerWithActivatingServerIsSuccess() {
+func (suite Model13) Test1371_LogoutServerWithActivatingServerIsSuccess() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToActivating(pk, chainID, address)
@@ -996,7 +996,7 @@ func (suite Model13) Test1366_LogoutServerWithActivatingServerIsSuccess() {
 }
 
 //tc：服务处于freezing状态注销服务，服务注销成功
-func (suite Model13) Test1367_LogoutServerWithFreezingServerIsSuccess() {
+func (suite Model13) Test1372_LogoutServerWithFreezingServerIsSuccess() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToFreezing(pk, chainID, address)
@@ -1006,7 +1006,7 @@ func (suite Model13) Test1367_LogoutServerWithFreezingServerIsSuccess() {
 }
 
 //tc：服务处于frozen状态注销服务，服务注销失败
-func (suite Model13) Test1368_LogoutServerWithFrozenServerIsFail() {
+func (suite Model13) Test1373_LogoutServerWithFrozenServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToFrozen(pk, chainID, address)
@@ -1016,7 +1016,7 @@ func (suite Model13) Test1368_LogoutServerWithFrozenServerIsFail() {
 }
 
 //tc：服务处于logouting状态注销服务，服务注销失败
-func (suite Model13) Test1369_LogoutServerWithLogoutingServerIsFail() {
+func (suite Model13) Test1374_LogoutServerWithLogoutingServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToLogouting(pk, chainID, address)
@@ -1026,7 +1026,7 @@ func (suite Model13) Test1369_LogoutServerWithLogoutingServerIsFail() {
 }
 
 //tc：服务处于forbidden状态注销服务，服务注销失败
-func (suite Model13) Test1370_LogoutServerWithForbiddenServerIsFail() {
+func (suite Model13) Test1375_LogoutServerWithForbiddenServerIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToForbidden(pk, chainID, address)
@@ -1036,7 +1036,7 @@ func (suite Model13) Test1370_LogoutServerWithForbiddenServerIsFail() {
 }
 
 //tc：应用链处于activating状态注销服务，服务注销失败
-func (suite Model13) Test1371_LogoutServerWithActivatingChainIsFail() {
+func (suite Model13) Test1376_LogoutServerWithActivatingChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -1056,7 +1056,7 @@ func (suite Model13) Test1371_LogoutServerWithActivatingChainIsFail() {
 }
 
 //tc：应用链处于freezing状态注销服务，服务注销成功
-func (suite Model13) Test1372_LogoutServerWithFreezingChainIsSuccess() {
+func (suite Model13) Test1377_LogoutServerWithFreezingChainIsSuccess() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -1087,7 +1087,7 @@ func (suite Model13) Test1372_LogoutServerWithFreezingChainIsSuccess() {
 }
 
 //tc：应用链处于frozen状态注销服务，服务注销失败
-func (suite Model13) Test1373_LogoutServerWithFrozenChainIsFail() {
+func (suite Model13) Test1378_LogoutServerWithFrozenChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -1103,7 +1103,7 @@ func (suite Model13) Test1373_LogoutServerWithFrozenChainIsFail() {
 }
 
 //tc：应用链处于logouting状态注销服务，服务注销失败
-func (suite Model13) Test1374_LogoutServerWithLogoutingChainIsFail() {
+func (suite Model13) Test1379_LogoutServerWithLogoutingChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
@@ -1121,7 +1121,7 @@ func (suite Model13) Test1374_LogoutServerWithLogoutingChainIsFail() {
 }
 
 //tc：应用链处于forbidden状态注销服务，服务注销失败
-func (suite Model13) Test1375_LogoutServerWithForbiddenChainIsFail() {
+func (suite Model13) Test1380_LogoutServerWithForbiddenChainIsFail() {
 	pk, chainID, address, err := suite.RegisterRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)

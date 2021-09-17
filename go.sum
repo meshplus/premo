@@ -681,13 +681,10 @@ github.com/meshplus/bitxhub-kit v1.2.1-0.20210901014031-ee93dd4f4ced h1:BHqhjSkx
 github.com/meshplus/bitxhub-kit v1.2.1-0.20210901014031-ee93dd4f4ced/go.mod h1:wrEdhHp1tktzdwcWb4bOxYsVc+KkcrYL18IYWYeumPQ=
 github.com/meshplus/bitxhub-model v1.1.1/go.mod h1:lUl9vPZXM9tP+B0ABRW/2eOW/6KCmjFTdoiTj5Vut/A=
 github.com/meshplus/bitxhub-model v1.2.1-0.20210811072725-7664c5307c05/go.mod h1:IjgoQrsn1wthW7XcKRqgaZqCSlqNy0SBwF/7lmGSqXc=
-github.com/meshplus/bitxhub-model v1.2.1-0.20210830032101-d663f51ed8a3/go.mod h1:p1rgmd8p3O9FmuvQ2oS4wgrel1dV4K4MlFOtx6Vwod8=
 github.com/meshplus/bitxhub-model v1.2.1-0.20210901095920-582847b32cba/go.mod h1:p1rgmd8p3O9FmuvQ2oS4wgrel1dV4K4MlFOtx6Vwod8=
 github.com/meshplus/bitxhub-model v1.2.1-0.20210902030154-b203e4a4b3de h1:GI0WKjsk72d2vykoj61BjM6EH1D3LirqMklSgI4S2Zo=
 github.com/meshplus/bitxhub-model v1.2.1-0.20210902030154-b203e4a4b3de/go.mod h1:p1rgmd8p3O9FmuvQ2oS4wgrel1dV4K4MlFOtx6Vwod8=
 github.com/meshplus/bitxid v0.0.0-20210412025850-e0eaf0f9063a/go.mod h1:vAldSRfDe2Qo7exsSTbchVmZWXPY7fhWQrRw18QJHho=
-github.com/meshplus/go-bitxhub-client v1.4.1-0.20210830094058-523cb481af76 h1:C3vYy9+j5PyA41NI8ydgEibYqIxLCQoBFc9bKdOS5KI=
-github.com/meshplus/go-bitxhub-client v1.4.1-0.20210830094058-523cb481af76/go.mod h1:wCbYgjCM+X2epUVx5accHn7Fi1OtkHNPWta2JcvryKY=
 github.com/meshplus/go-bitxhub-client v1.4.1-0.20210914012807-0d1bb6f4241e h1:e2odZkDIUWSqbgTAVjrJvjI3B0FAbBqK0ULqxkkcFhs=
 github.com/meshplus/go-bitxhub-client v1.4.1-0.20210914012807-0d1bb6f4241e/go.mod h1:KglKCyj1sV1CUvGJqhZNf575HFhJSrDTMjd5jKppDVQ=
 github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b/go.mod h1:01TrycV0kFyexm33Z7vhZRXopbI8J3TDReVlkTgMUxE=

@@ -162,7 +162,7 @@ func (suite *Snake) NewClient(pk crypto.PrivateKey) *rpcx.ChainClient {
 	from, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
 	err = suite.TransferFromAdmin(from.String(), "1")
-	suite.Require().Nil(err)
+	fmt.Println(err)
 	return client
 }
 
@@ -435,6 +435,7 @@ func (suite Snake) TransferFromAdmin(address string, amount string) error {
 	}
 
 	ret, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From:  from.String(),
 		Nonce: atomic.AddUint64(&nonce4, 1),
 	})
 	if err != nil {

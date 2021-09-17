@@ -77,13 +77,18 @@ func (suite Model14) Test1403_RegisterDappWithUsedAddrIsFail() {
 
 //tc：根据存在的合约地址更新dapp，dapp更新成功
 func (suite Model14) Test1404_UpdateDappIsSuccess() {
-	address := suite.deployLedgerContract()
+	address1 := suite.deployLedgerContract()
+	address2 := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
-	err = suite.RegisterDapp(pk, address.String())
+	err = suite.RegisterDapp(pk, address1.String())
 	suite.Require().Nil(err)
-	err = suite.UpdateDapp(pk, address.String())
+	err = suite.UpdateDapp(pk, address2.String())
 	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
+	res, err := client.InvokeBVMContract(constant.DappMgrContractAddr.Address(), "GetDapp", nil, rpcx.String(suite.GetDappID(pk)))
+	suite.Require().Nil(err)
+	suite.Require().Contains(string(res.Ret), address2.String())
 }
 
 //tc：根据不存在的合约地址更新dapp，dapp更新失败
@@ -97,8 +102,28 @@ func (suite Model14) Test1405_UpdateDappWithNoExistAddrIsFail() {
 	suite.Require().NotNil(err)
 }
 
+//tc:根据已绑定的合约地址更新dapp，dapp更新失败
+func (suite Model14) Test1406_UpdateDappWithUsedAddrIsFail() {
+	address1 := suite.deployLedgerContract()
+	pk1, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	err = suite.RegisterDapp(pk1, address1.String())
+	suite.Require().Nil(err)
+	address2 := suite.deployLedgerContract()
+	pk2, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	err = suite.RegisterDapp(pk2, address2.String())
+	suite.Require().Nil(err)
+	err = suite.UpdateDapp(pk2, address1.String())
+	suite.Require().NotNil(err)
+	client := suite.NewClient(pk1)
+	res, err := client.InvokeBVMContract(constant.DappMgrContractAddr.Address(), "GetDapp", nil, rpcx.String(suite.GetDappID(pk2)))
+	suite.Require().Nil(err)
+	suite.Require().Contains(string(res.Ret), address2.String())
+}
+
 //tc：dapp处于unavailable状态更新dapp，dapp更新失败
-func (suite Model14) Test1406_UpdateDappWithUnavailableDappIsFail() {
+func (suite Model14) Test1407_UpdateDappWithUnavailableDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -109,7 +134,7 @@ func (suite Model14) Test1406_UpdateDappWithUnavailableDappIsFail() {
 }
 
 //tc：dapp处于activating状态更新dapp，dapp更新失败
-func (suite Model14) Test1407_UpdateDappWithActivatingDappIsFail() {
+func (suite Model14) Test1408_UpdateDappWithActivatingDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -120,7 +145,7 @@ func (suite Model14) Test1407_UpdateDappWithActivatingDappIsFail() {
 }
 
 //tc：dapp处于updating状态更新dapp，dapp更新失败
-func (suite Model14) Test1408_UpdateDappWithUpdatingDappIsFail() {
+func (suite Model14) Test1409_UpdateDappWithUpdatingDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -131,7 +156,7 @@ func (suite Model14) Test1408_UpdateDappWithUpdatingDappIsFail() {
 }
 
 //tc：dapp处于freezing状态更新dapp，dapp更新失败
-func (suite Model14) Test1409_UpdateDappWithFreezingDappIsFail() {
+func (suite Model14) Test1410_UpdateDappWithFreezingDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -142,7 +167,7 @@ func (suite Model14) Test1409_UpdateDappWithFreezingDappIsFail() {
 }
 
 //tc：dapp处于frozen状态更新dapp，dapp更新失败
-func (suite Model14) Test14010_UpdateDappWithFrozenDappIsFail() {
+func (suite Model14) Test14011_UpdateDappWithFrozenDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -153,7 +178,7 @@ func (suite Model14) Test14010_UpdateDappWithFrozenDappIsFail() {
 }
 
 //tc：根据存在的合约地址冻结dapp，dapp冻结成功
-func (suite Model14) Test1411_FreezeDappIsSuccess() {
+func (suite Model14) Test1412_FreezeDappIsSuccess() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -164,7 +189,7 @@ func (suite Model14) Test1411_FreezeDappIsSuccess() {
 }
 
 //tc：根据不存在的合约地址冻结dapp，dapp冻结失败
-func (suite Model14) Test1412_FreezeDappWithNoExistAddrIsFail() {
+func (suite Model14) Test1413_FreezeDappWithNoExistAddrIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	err = suite.FreezeDapp(pk)
@@ -172,7 +197,7 @@ func (suite Model14) Test1412_FreezeDappWithNoExistAddrIsFail() {
 }
 
 //tc：dapp处于Unavailable状态冻结dapp，dapp冻结成功
-func (suite Model14) Test1413_FreezeDappWithUnavailableDappIsFail() {
+func (suite Model14) Test1414_FreezeDappWithUnavailableDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -183,7 +208,7 @@ func (suite Model14) Test1413_FreezeDappWithUnavailableDappIsFail() {
 }
 
 //tc：dapp处于activating状态冻结dapp，dapp冻结成功
-func (suite Model14) Test1414_FreezeDappWithActivatingDappIsSuccess() {
+func (suite Model14) Test1415_FreezeDappWithActivatingDappIsSuccess() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -194,7 +219,7 @@ func (suite Model14) Test1414_FreezeDappWithActivatingDappIsSuccess() {
 }
 
 //tc：dapp处于updating状态冻结dapp，dapp冻结成功
-func (suite Model14) Test1415_FreezeDappWithUpdatingDappIsSuccess() {
+func (suite Model14) Test1416_FreezeDappWithUpdatingDappIsSuccess() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -205,7 +230,7 @@ func (suite Model14) Test1415_FreezeDappWithUpdatingDappIsSuccess() {
 }
 
 //tc：dapp处于freezing状态冻结dapp，dapp冻结失败
-func (suite Model14) Test1416_FreezeDappWithFreezingDappIsFail() {
+func (suite Model14) Test1417_FreezeDappWithFreezingDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -216,7 +241,7 @@ func (suite Model14) Test1416_FreezeDappWithFreezingDappIsFail() {
 }
 
 //tc：dapp处于frozen状态冻结dapp，dapp冻结失败
-func (suite Model14) Test1417_FreezeDappWithFrozenDappIsFail() {
+func (suite Model14) Test1418_FreezeDappWithFrozenDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -227,7 +252,7 @@ func (suite Model14) Test1417_FreezeDappWithFrozenDappIsFail() {
 }
 
 //tc：根据存在的合约地址激活dapp，dapp激活成功
-func (suite Model14) Test1418_ActivateDappIsSuccess() {
+func (suite Model14) Test1419_ActivateDappIsSuccess() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -242,7 +267,7 @@ func (suite Model14) Test1418_ActivateDappIsSuccess() {
 }
 
 //tc：根据不存在的合约地址激活dapp，dapp激活成功
-func (suite Model14) Test1419_ActivateDappWithNoExistAddrIsFail() {
+func (suite Model14) Test1420_ActivateDappWithNoExistAddrIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	err = suite.ActivateDapp(pk)
@@ -250,7 +275,7 @@ func (suite Model14) Test1419_ActivateDappWithNoExistAddrIsFail() {
 }
 
 //tc：dapp处于available状态激活dapp，dapp激活失败
-func (suite Model14) Test1420_ActivateDappWithAvailableDappIsFail() {
+func (suite Model14) Test1421_ActivateDappWithAvailableDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -261,7 +286,7 @@ func (suite Model14) Test1420_ActivateDappWithAvailableDappIsFail() {
 }
 
 //tc：dapp处于unavailable状态激活dapp，dapp激活失败
-func (suite Model14) Test1421_ActivateDappWithUnavailableDappIsFail() {
+func (suite Model14) Test1422_ActivateDappWithUnavailableDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -272,7 +297,7 @@ func (suite Model14) Test1421_ActivateDappWithUnavailableDappIsFail() {
 }
 
 //tc：dapp处于activating状态激活dapp，dapp激活失败
-func (suite Model14) Test1422_ActivateDappWithActivatingDappIsFail() {
+func (suite Model14) Test1423_ActivateDappWithActivatingDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -283,7 +308,7 @@ func (suite Model14) Test1422_ActivateDappWithActivatingDappIsFail() {
 }
 
 //tc：dapp处于updating状态激活dapp，dapp激活失败
-func (suite Model14) Test1423_ActivateDappWithUpdatingDappIsFail() {
+func (suite Model14) Test1424_ActivateDappWithUpdatingDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -294,7 +319,7 @@ func (suite Model14) Test1423_ActivateDappWithUpdatingDappIsFail() {
 }
 
 //tc：dapp处于freezing状态激活dapp，dapp激活失败
-func (suite Model14) Test1424_ActivateDappWithFreezingDappIsFail() {
+func (suite Model14) Test1425_ActivateDappWithFreezingDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -305,7 +330,7 @@ func (suite Model14) Test1424_ActivateDappWithFreezingDappIsFail() {
 }
 
 //tc：根据存在的合约地址转让dapp，dapp转让成功
-func (suite Model14) Test1425_TransferDappIsSuccess() {
+func (suite Model14) Test1426_TransferDappIsSuccess() {
 	address := suite.deployLedgerContract()
 	pk1, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -320,7 +345,7 @@ func (suite Model14) Test1425_TransferDappIsSuccess() {
 }
 
 //tc：根据不存在的合约地址转让dapp，dapp转让失败
-func (suite Model14) Test1426_TransferDappWithNoExistDappIsFail() {
+func (suite Model14) Test1427_TransferDappWithNoExistDappIsFail() {
 	pk1, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	pk2, err := asym.GenerateKeyPair(crypto.Secp256k1)
@@ -330,7 +355,7 @@ func (suite Model14) Test1426_TransferDappWithNoExistDappIsFail() {
 }
 
 //tc：dapp处于unavailable状态转让dapp，dapp转让失败
-func (suite Model14) Test1427_TransferDappWithUnavailableDappIsFail() {
+func (suite Model14) Test1428_TransferDappWithUnavailableDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk1, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -343,7 +368,7 @@ func (suite Model14) Test1427_TransferDappWithUnavailableDappIsFail() {
 }
 
 //tc：dapp处于activating状态转让dapp，dapp转让失败
-func (suite Model14) Test1428_TransferDappWithActivatingDappIsFail() {
+func (suite Model14) Test1429_TransferDappWithActivatingDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk1, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -356,7 +381,7 @@ func (suite Model14) Test1428_TransferDappWithActivatingDappIsFail() {
 }
 
 //tc：dapp处于updating状态转让dapp，dapp转让失败
-func (suite Model14) Test1429_TransferDappWithUpdatingDappIsFail() {
+func (suite Model14) Test1430_TransferDappWithUpdatingDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk1, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -369,7 +394,7 @@ func (suite Model14) Test1429_TransferDappWithUpdatingDappIsFail() {
 }
 
 //tc：dapp处于freezing状态转让dapp，dapp转让失败
-func (suite Model14) Test1430_TransferDappWithFreezingDappIsFail() {
+func (suite Model14) Test1431_TransferDappWithFreezingDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk1, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -382,7 +407,7 @@ func (suite Model14) Test1430_TransferDappWithFreezingDappIsFail() {
 }
 
 //tc：dapp处于frozen状态转让dapp，dapp转让失败
-func (suite Model14) Test1431_TransferDappWithFrozenDappIsFail() {
+func (suite Model14) Test1432_TransferDappWithFrozenDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk1, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -395,7 +420,7 @@ func (suite Model14) Test1431_TransferDappWithFrozenDappIsFail() {
 }
 
 //tc：dapp接收确认不存在的dapp转移，确认失败
-func (suite Model14) Test1432_ConfirmTransferWithNoExistTransferIsFail() {
+func (suite Model14) Test1433_ConfirmTransferWithNoExistTransferIsFail() {
 	address := suite.deployLedgerContract()
 	pk1, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -408,7 +433,7 @@ func (suite Model14) Test1432_ConfirmTransferWithNoExistTransferIsFail() {
 }
 
 //tc：评价存在dapp，dapp评价成功
-func (suite Model14) Test1433_EvaluateDappIsSuccess() {
+func (suite Model14) Test1434_EvaluateDappIsSuccess() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -419,7 +444,7 @@ func (suite Model14) Test1433_EvaluateDappIsSuccess() {
 }
 
 //tc：评价不存在dapp，dapp评价失败
-func (suite Model14) Test1434_EvaluateDappWithNoExistDappIsFail() {
+func (suite Model14) Test1435_EvaluateDappWithNoExistDappIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	err = suite.EvaluateDapp(pk, suite.GetDappID(pk), "good", 5.0)
@@ -427,7 +452,7 @@ func (suite Model14) Test1434_EvaluateDappWithNoExistDappIsFail() {
 }
 
 //tc：评价评分不在[0-5]，dapp评价失败
-func (suite Model14) Test1435_EvaluateDappWithErrorScoreIsFail() {
+func (suite Model14) Test1436_EvaluateDappWithErrorScoreIsFail() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -438,7 +463,7 @@ func (suite Model14) Test1435_EvaluateDappWithErrorScoreIsFail() {
 }
 
 //tc：重复评价dapp，dapp评价失败
-func (suite Model14) Test1436_EvaluateDappWithRepeatEvaluateIsFail() {
+func (suite Model14) Test1437_EvaluateDappWithRepeatEvaluateIsFail() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -787,4 +812,15 @@ func (suite Model14) DappToFrozen(pk crypto.PrivateKey, address string) error {
 		return err
 	}
 	return nil
+}
+
+func (suite Model14) Test() {
+	//for i := 0; i < 140; i++ {
+	//	go func() {
+	//		pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	//		suite.Require().Nil(err)
+	//		_ = suite.NewClient(pk)
+	//	}()
+	//}
+	//time.Sleep(time.Second * 1000)
 }

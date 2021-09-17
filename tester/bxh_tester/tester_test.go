@@ -46,8 +46,8 @@ func TestTester(t *testing.T) {
 		//suite.Run(t, &Model3{&Snake{client: clients[2], from: from, pk: pk, to: to}})
 		//suite.Run(t, &Model4{&Snake{client: clients[3], from: from, pk: pk, to: to}})
 		//suite.Run(t, &Model5{&Snake{client: clients[4], from: from, pk: pk, to: to}})
-		suite.Run(t, &Model6{&Snake{client: clients[5], from: from, pk: pk, to: to}})
-		suite.Run(t, &Model7{&Snake{client: clients[6], from: from, pk: pk, to: to}})
+		//suite.Run(t, &Model6{&Snake{client: clients[5], from: from, pk: pk, to: to}})
+		//suite.Run(t, &Model7{&Snake{client: clients[6], from: from, pk: pk, to: to}})
 		//suite.Run(t, &Model8{&Snake{client: clients[7], from: from, pk: pk, to: to}})
 		//suite.Run(t, &Model9{&Snake{client: clients[8], from: from, pk: pk, to: to}})
 		//suite.Run(t, &Model10{&Snake{client: clients[9], from: from, pk: pk, to: to}})
@@ -55,7 +55,7 @@ func TestTester(t *testing.T) {
 		suite.Run(t, &Model14{&Snake{client: clients[13], from: from, pk: pk, to: to}})
 		//this testcases can't parallel because its will affect others
 		//make sure node1 is superAdmin and node2,node3,node4 is Admin
-		suite.Run(t, &Model11{&Snake{client: clients[10], from: from, pk: pk, to: to}})
-		suite.Run(t, &Model12{&Snake{client: clients[11], from: from, pk: pk, to: to}})
+		//suite.Run(t, &Model11{&Snake{client: clients[10], from: from, pk: pk, to: to}})
+		//suite.Run(t, &Model12{&Snake{client: clients[11], from: from, pk: pk, to: to}})
 	}
 }
