@@ -1,12 +1,15 @@
 package bxh_tester
 
 import (
-	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"sync/atomic"
 	"time"
 
+	"github.com/looplab/fsm"
+	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
+	"github.com/meshplus/bitxhub-core/governance"
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-kit/types"
@@ -46,6 +49,13 @@ type Snake struct {
 type RegisterResult struct {
 	Extra      []byte `json:"extra"`
 	ProposalID string `json:"proposal_id"`
+}
+
+type Rule struct {
+	Address string                      `json:"address"`
+	ChainId string                      `json:"chain_id"`
+	Status  governance.GovernanceStatus `json:"status"`
+	FSM     *fsm.FSM                    `json:"fsm"`
 }
 
 var nonce1 uint64
@@ -112,66 +122,33 @@ func (suite *Snake) SetupSuite() {
 	nonce4 = nonce - 1
 }
 
-func (suite *Snake) RegisterAppchain() (crypto.PrivateKey, string, error) {
-	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	if err != nil {
-		return nil, "", err
-	}
-	pubAddress, err := pk.PublicKey().Address()
-	if err != nil {
-		return nil, "", err
-	}
+func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, chainID, address string) error {
 	client := suite.NewClient(pk)
-	bytes, err := pk.PublicKey().Bytes()
-	suite.Require().Nil(err)
-	var pubKeyStr = base64.StdEncoding.EncodeToString(bytes)
-
 	args := []*pb.Arg{
-		rpcx.String("appchain" + pubAddress.String()),                       //method
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(""),                 //validators
-		rpcx.String("raft"),             //consensus_type
-		rpcx.String("hyperchain"),       //chain_type
-		rpcx.String("AppChain"),         //name
-		rpcx.String("Appchain for tax"), //desc
-		rpcx.String("1.8"),              //version
-		rpcx.String(pubKeyStr),          //public key
+		rpcx.String(chainID),   //ID
+		rpcx.Bytes([]byte("")), //trustRoot
+		rpcx.String("0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"), //broker
+		rpcx.String("desc"),   //desc
+		rpcx.String(address),  //masterRule
+		rpcx.String("reason"), //reason
 	}
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "Register", nil, args...)
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "RegisterAppchain", nil, args...)
 	if err != nil {
-		return nil, "", err
+		return err
+	}
+	if res.Status != pb.Receipt_SUCCESS {
+		return errors.New(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
 	if err != nil {
-		return nil, "", err
+		return err
 	}
 	err = suite.VotePass(result.ProposalID)
 	if err != nil {
-		return nil, "", err
+		return err
 	}
-	return pk, string(result.Extra), nil
-}
-
-func (suite *Snake) RegisterRule(pk crypto.PrivateKey, ruleFile string, ChainID string) {
-	client := suite.NewClient(pk)
-
-	// deploy rule
-	bytes, err := ioutil.ReadFile(ruleFile)
-	suite.Require().Nil(err)
-	addr, err := client.DeployContract(bytes, nil)
-	suite.Require().Nil(err)
-
-	// register rule
-	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "RegisterRule", nil, pb.String(ChainID), pb.String(addr.String()))
-	suite.Require().Nil(err)
-	suite.Require().True(res.IsSuccess())
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
-	err = suite.VotePass(result.ProposalID)
-	suite.Require().Nil(err)
+	return nil
 }
 
 func (suite *Snake) NewClient(pk crypto.PrivateKey) *rpcx.ChainClient {
@@ -200,7 +177,7 @@ func (suite *Snake) VotePass(id string) error {
 		return err
 	}
 
-	_, err = suite.vote(key, atomic.AddUint64(&nonce1, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
+	_, err = suite.vote(key, atomic.AddUint64(&nonce1, 1), rpcx.String(id), rpcx.String("approve"), rpcx.String("Appchain Pass"))
 
 	node2, err := repo.Node2Path()
 	if err != nil {
@@ -212,7 +189,7 @@ func (suite *Snake) VotePass(id string) error {
 		return err
 	}
 
-	_, err = suite.vote(key, atomic.AddUint64(&nonce2, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
+	_, err = suite.vote(key, atomic.AddUint64(&nonce2, 1), rpcx.String(id), rpcx.String("approve"), rpcx.String("Appchain Pass"))
 
 	node3, err := repo.Node3Path()
 	if err != nil {
@@ -224,7 +201,7 @@ func (suite *Snake) VotePass(id string) error {
 		return err
 	}
 
-	_, err = suite.vote(key, atomic.AddUint64(&nonce3, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
+	_, err = suite.vote(key, atomic.AddUint64(&nonce3, 1), rpcx.String(id), rpcx.String("approve"), rpcx.String("Appchain Pass"))
 
 	node4, err := repo.Node4Path()
 	if err != nil {
@@ -236,7 +213,7 @@ func (suite *Snake) VotePass(id string) error {
 		return err
 	}
 
-	_, err = suite.vote(key, atomic.AddUint64(&nonce4, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
+	_, err = suite.vote(key, atomic.AddUint64(&nonce4, 1), rpcx.String(id), rpcx.String("approve"), rpcx.String("Appchain Pass"))
 	return nil
 }
 
@@ -251,7 +228,7 @@ func (suite *Snake) VoteReject(id string) error {
 		return err
 	}
 
-	_, err = suite.vote(key, atomic.AddUint64(&nonce2, 1), pb.String(id), pb.String("reject"), pb.String("Appchain Pass"))
+	_, err = suite.vote(key, atomic.AddUint64(&nonce2, 1), rpcx.String(id), rpcx.String("reject"), rpcx.String("Appchain Pass"))
 	if err != nil {
 		return err
 	}
@@ -266,7 +243,7 @@ func (suite *Snake) VoteReject(id string) error {
 		return err
 	}
 
-	_, err = suite.vote(key, atomic.AddUint64(&nonce3, 1), pb.String(id), pb.String("reject"), pb.String("Appchain Pass"))
+	_, err = suite.vote(key, atomic.AddUint64(&nonce3, 1), rpcx.String(id), rpcx.String("reject"), rpcx.String("Appchain Pass"))
 
 	if err != nil {
 		return err
@@ -282,7 +259,7 @@ func (suite *Snake) VoteReject(id string) error {
 		return err
 	}
 
-	_, err = suite.vote(key, atomic.AddUint64(&nonce4, 1), pb.String(id), pb.String("reject"), pb.String("Appchain Pass"))
+	_, err = suite.vote(key, atomic.AddUint64(&nonce4, 1), rpcx.String(id), rpcx.String("reject"), rpcx.String("Appchain Pass"))
 	if err != nil {
 		return err
 	}
@@ -366,15 +343,15 @@ func (suite *Snake) sendTransaction(pk crypto.PrivateKey) {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 }
 
-func (suite *Snake) GetChainStatusById(id string) (*pb.Receipt, error) {
+func (suite *Snake) GetChainStatusById(id string) (governance.GovernanceStatus, error) {
 	key, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	client := suite.NewClient(key)
 	address, err := key.PublicKey().Address()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	args := []*pb.Arg{
 		rpcx.String(id),
@@ -386,7 +363,7 @@ func (suite *Snake) GetChainStatusById(id string) (*pb.Receipt, error) {
 
 	payload, err := invokePayload.Marshal()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	data := &pb.TransactionData{
@@ -403,16 +380,21 @@ func (suite *Snake) GetChainStatusById(id string) (*pb.Receipt, error) {
 		Payload:   payload,
 	}
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	res, err := client.SendTransactionWithReceipt(tx, nil)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	if res.Status == pb.Receipt_FAILED {
-		return nil, errors.New(string(res.Ret))
+		return "", errors.New(string(res.Ret))
 	}
-	return res, nil
+	appchain := appchain_mgr.Appchain{}
+	err = json.Unmarshal(res.Ret, &appchain)
+	if err != nil {
+		return "", err
+	}
+	return appchain.Status, nil
 }
 
 func (suite Snake) TransferFromAdmin(address string, amount string) error {
@@ -462,4 +444,92 @@ func (suite Snake) TransferFromAdmin(address string, amount string) error {
 		return errors.New(string(ret.Ret))
 	}
 	return nil
+}
+
+func (suite Snake) GetChainID(pk crypto.PrivateKey) string {
+	address, err := pk.PublicKey().Address()
+	suite.Require().Nil(err)
+	return "1356:Chain" + address.String()
+}
+
+func (suite Snake) GetServerID(pk crypto.PrivateKey) string {
+	address, err := pk.PublicKey().Address()
+	suite.Require().Nil(err)
+	return "Server" + address.String()
+}
+
+func (suite Snake) DeploySimpleRule() (string, error) {
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	if err != nil {
+		return "", err
+	}
+	client := suite.NewClient(pk)
+	contract, err := ioutil.ReadFile("testdata/simple_rule.wasm")
+	if err != nil {
+		return "", err
+	}
+	address, err := client.DeployContract(contract, nil)
+	if err != nil {
+		return "", err
+	}
+	return address.String(), nil
+}
+
+func (suite *Snake) GetRuleStatus(pk crypto.PrivateKey, ChainID string, contractAddr string) (status governance.GovernanceStatus, err error) {
+	client := suite.NewClient(pk)
+	args := []*pb.Arg{
+		rpcx.String(ChainID),
+		rpcx.String(contractAddr),
+	}
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "GetRuleByAddr", nil, args...)
+	if err != nil {
+		return "", err
+	}
+	if res.Status == pb.Receipt_FAILED {
+		return "", errors.New(string(res.Ret))
+	}
+	rule := &Rule{}
+	err = json.Unmarshal(res.Ret, rule)
+	if err != nil {
+		return "", err
+	}
+	return rule.Status, nil
+}
+
+func (suite *Snake) CheckChainStatus(chainID string, expectStatus governance.GovernanceStatus) error {
+	status, err := suite.GetChainStatusById(chainID)
+	if err != nil {
+		return err
+	}
+	if expectStatus != status {
+		return errors.New(fmt.Sprintf("expect status is %s ,but get status %s", expectStatus, status))
+	}
+	return nil
+}
+
+func (suite *Snake) CheckRuleStatus(pk crypto.PrivateKey, chainID, address string, expectStatus governance.GovernanceStatus) error {
+	status, err := suite.GetRuleStatus(pk, chainID, address)
+	if err != nil {
+		return err
+	}
+	if expectStatus != status {
+		return errors.New(fmt.Sprintf("expect status is %s ,but get status %s", expectStatus, status))
+	}
+	return nil
+}
+
+func (suite Snake) CountAppchains() (string, error) {
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	if err != nil {
+		return "", err
+	}
+	client := suite.NewClient(pk)
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "CountAppchains", nil)
+	if err != nil {
+		return "", err
+	}
+	if res.Status == pb.Receipt_FAILED {
+		return "", errors.New(string(res.Ret))
+	}
+	return string(res.Ret), nil
 }
