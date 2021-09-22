@@ -121,11 +121,11 @@ func (suite Model12) Test1406_UpdateDappWithUsedAddrIsFail() {
 	err = suite.RegisterDapp(pk2, address2.String())
 	suite.Require().Nil(err)
 	err = suite.UpdateDapp(pk2, address1.String())
-	suite.Require().Nil(err)
+	suite.Require().NotNil(err)
 	client := suite.NewClient(pk1)
 	res, err := client.InvokeBVMContract(constant.DappMgrContractAddr.Address(), "GetDapp", nil, rpcx.String(suite.GetDappID(pk2)))
 	suite.Require().Nil(err)
-	suite.Require().Contains(string(res.Ret), address1.String())
+	suite.Require().Contains(string(res.Ret), address2.String())
 }
 
 //tc：dapp处于unavailable状态更新dapp，dapp更新失败
