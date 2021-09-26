@@ -3,7 +3,6 @@ package bitxhub
 import (
 	"context"
 	"crypto/sha256"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -200,13 +199,32 @@ func (bee *bee) sendBVMTx(normalNo uint64) error {
 func (bee *bee) prepareChain(chainType, name, validators, version, desc string, contract []byte) error {
 	bee.client.SetPrivateKey(bee.normalPrivKey)
 	// register chain
-	pubKey, _ := bee.normalPrivKey.PublicKey().Bytes()
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubKey)
 	var ct = ""
 	if chainType == "fabric:simple" || chainType == "fabric:complex" {
 		ct = "fabric"
 	} else {
 		ct = chainType
+	}
+	ruleAddr := "0x00000000000000000000000000000000000000a0"
+	// deploy rule
+	if chainType == "hyperchain" {
+		contractAddr, err := bee.client.DeployContract(contract, nil)
+		if err != nil {
+			return fmt.Errorf("deploy contract error:%w", err)
+		}
+		atomic.AddUint64(&bee.nonce, 1)
+		ruleAddr = contractAddr.String()
+		res, err := bee.invokeContract(bee.normalFrom, constant.RuleManagerContractAddr.Address(), atomic.LoadUint64(&bee.nonce),
+			"RegisterRuleV2", rpcx.String("did:bitxhub:appchain"+bee.normalFrom.String()+":."), rpcx.String(ruleAddr), rpcx.String("RegisterRuleV2"))
+		if err != nil {
+			return fmt.Errorf("register rule error:%w", err)
+		}
+		if res.Status != pb.Receipt_SUCCESS {
+			return fmt.Errorf("register rule error:%w", err)
+		}
+		atomic.AddUint64(&bee.nonce, 1)
+	} else if chainType == "fabric:simple" {
+		ruleAddr = "0x00000000000000000000000000000000000000a1"
 	}
 	args := []*pb.Arg{
 		rpcx.String("appchain" + bee.normalFrom.String()),                   //ownerDID
@@ -218,10 +236,13 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 		rpcx.String(name),       //name
 		rpcx.String(desc),       //desc
 		rpcx.String(version),    //version
-		rpcx.String(pubKeyStr),  //public key
+		rpcx.String(""),         //public key
+		rpcx.String("reason"),   //reason
+		rpcx.String(ruleAddr),   //rule
+		rpcx.String("https://github.com/meshplus/bitxhub"), //ruleUrl
 	}
 	receipt, err := bee.invokeContract(bee.normalFrom, constant.AppchainMgrContractAddr.Address(), atomic.LoadUint64(&bee.nonce),
-		"Register", args...)
+		"RegisterV2", args...)
 	if err != nil {
 		return fmt.Errorf("register appchain error: %w", err)
 	}
@@ -246,53 +267,7 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 	if err != nil || appchain.Status != governance.GovernanceAvailable {
 		return fmt.Errorf("chain error: %w", err)
 	}
-	ID := string(result.Extra)
-
-	ruleAddr := "0x00000000000000000000000000000000000000a0"
-	// deploy rule
-	if chainType == "hyperchain" {
-		contractAddr, err := bee.client.DeployContract(contract, nil)
-		if err != nil {
-			return fmt.Errorf("deploy contract error:%w", err)
-		}
-		atomic.AddUint64(&bee.nonce, 1)
-		ruleAddr = contractAddr.String()
-		res, err = bee.invokeContract(bee.normalFrom, constant.RuleManagerContractAddr.Address(), atomic.LoadUint64(&bee.nonce),
-			"RegisterRule", rpcx.String(ID), rpcx.String(ruleAddr))
-		if err != nil {
-			return fmt.Errorf("register rule error:%w", err)
-		}
-		result := &RegisterResult{}
-		err = json.Unmarshal(res.Ret, result)
-		if err != nil {
-			return err
-		}
-		err = bee.VotePass(result.ProposalID)
-		if err != nil {
-			return fmt.Errorf("contract vote error:%w", err)
-		}
-		atomic.AddUint64(&bee.nonce, 1)
-	} else if chainType == "fabric:simple" {
-		ruleAddr = "0x00000000000000000000000000000000000000a1"
-		res, err = bee.invokeContract(bee.normalFrom, constant.RuleManagerContractAddr.Address(), atomic.LoadUint64(&bee.nonce),
-			"UpdateMasterRule", rpcx.String(ID), rpcx.String(ruleAddr))
-		if err != nil {
-			return fmt.Errorf("update rule error:%w", err)
-		}
-		result = &RegisterResult{}
-		err = json.Unmarshal(res.Ret, result)
-		if res.Status != pb.Receipt_SUCCESS {
-			fmt.Printf("ChainID:%s,Res:%s\n", ID, string(res.Ret))
-		}
-		if err != nil {
-			return fmt.Errorf("unmarshal error:%w", err)
-		}
-		err = bee.VotePass(result.ProposalID)
-		if err != nil {
-			return fmt.Errorf("contract vote error:%w", err)
-		}
-		atomic.AddUint64(&bee.nonce, 1)
-	}
+	fmt.Println("did:bitxhub:appchain" + bee.normalFrom.String() + ":.")
 	prepareInterchainTx()
 	return nil
 }
@@ -393,7 +368,7 @@ func prepareInterchainTx() {
 
 	content := &pb.Content{
 		SrcContractId: "mychannel&transfer",
-		DstContractId: "0x30c5D3aeb4681af4D13384DBc2a717C51cb1cc11",
+		DstContractId: "mychannel&transfer",
 		Func:          "interchainCharge",
 		Args:          [][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
 		Callback:      "",
