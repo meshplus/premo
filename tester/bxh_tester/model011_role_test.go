@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"sync/atomic"
 
 	crypto2 "github.com/libp2p/go-libp2p-core/crypto"
@@ -812,11 +811,9 @@ func (suite Model11) Test023_GetRoleById() {
 		Nonce: atomic.AddUint64(&nonce1, 1),
 	}, args...)
 	suite.Require().Nil(err)
-	fmt.Println(string(res.Ret))
 	role := &Role{}
 	err = json.Unmarshal(res.Ret, role)
 	suite.Require().Nil(err)
-	fmt.Println(role)
 }
 
 //tc：调用GetAdminRoles接口，成功获取所有治理管理员列表

@@ -5,9 +5,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/meshplus/bitxhub-kit/crypto/asym"
-
 	"github.com/meshplus/bitxhub-kit/crypto"
+	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-kit/types"
 	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"

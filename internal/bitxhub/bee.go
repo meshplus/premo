@@ -267,7 +267,6 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 	if err != nil || appchain.Status != governance.GovernanceAvailable {
 		return fmt.Errorf("chain error: %w", err)
 	}
-	fmt.Println("did:bitxhub:appchain" + bee.normalFrom.String() + ":.")
 	prepareInterchainTx()
 	return nil
 }

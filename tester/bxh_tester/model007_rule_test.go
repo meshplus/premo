@@ -2,9 +2,7 @@ package bxh_tester
 
 import (
 	"encoding/json"
-	"io/ioutil"
 
-	"github.com/looplab/fsm"
 	"github.com/meshplus/bitxhub-core/governance"
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
@@ -16,17 +14,16 @@ import (
 )
 
 const (
-	RegisterRule     = "RegisterRule"
+	RegisterRule     = "RegisterRuleV2"
 	UpdateMasterRule = "UpdateMasterRule"
 	LogoutRule       = "LogoutRule"
 )
 
-type Rule struct {
-	Address string                      `json:"address"`
-	ChainId string                      `json:"chain_id"`
-	Status  governance.GovernanceStatus `json:"status"`
-	FSM     *fsm.FSM                    `json:"fsm"`
-}
+const (
+	FabricRuleAddr    = "0x00000000000000000000000000000000000000a0"
+	SimFabricRuleAddr = "0x00000000000000000000000000000000000000a1"
+	HappyRuleAddr     = "0x00000000000000000000000000000000000000a2"
+)
 
 type Model7 struct {
 	*Snake
@@ -37,590 +34,547 @@ func (suite *Model7) SetupTest() {
 }
 
 //tc：正确部署验证规则,并返回地址
-func (suite *Model7) Test0701_DeployRule() {
+func (suite Model7) Test0701_DeployRuleIsSuccess() {
+	address, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	suite.Require().NotNil(address)
+}
+
+//tc：部署验证规则字段为空，并提示错误信息
+func (suite Model7) Test0702_DeployRuleIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-	contract, err := ioutil.ReadFile("./testdata/simple_rule.wasm")
-	suite.Require().Nil(err)
-
-	contractAddr, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-	suite.Require().NotNil(contractAddr)
+	address, err := client.DeployContract([]byte(""), nil)
+	suite.Require().NotNil(err)
+	suite.Require().Nil(address)
 }
 
-//tc：部署验证规则为空，并提示错误信息
-func (suite *Model7) Test0702_DeployRuleIsEmpty() {
+//tc：非应用链管理员调用注册验证规则，验证规则注册失败
+func (suite Model7) Test0703_RegisterRuleWithNoAdminIsFail() {
+	_, chainID, _, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	address, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	pk2, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk2, chainID, address, RegisterRule)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链管理员未注册调用注册验证规则，验证规则注册成功
+func (suite Model7) Test0704_RegisterRuleIsSuccess() {
+	_, _, _, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+}
+
+//tc：应用链管理员已注册调用注册验证规则，验证规则注册成功
+func (suite Model7) Test0705_RegisterRuleWithRegisteredAdminIsSuccess() {
+	pk, chainID, _, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	address, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address, RegisterRule)
+	suite.Require().Nil(err)
+}
+
+//tc：应用链管理员注册未部署的验证规则，验证规则部署失败
+func (suite Model7) Test0706_RegisterRuleWithNoRegisterRuleIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	_, err = client.DeployContract(nil, nil)
+	err = suite.InvokeRuleContract(pk, suite.GetChainID(pk), "0x000000000000000000000000000000000000001", RegisterRule)
 	suite.Require().NotNil(err)
 }
 
-//tc：验证规则不存在，注册验证规则
-func (suite *Model7) Test0703_BindRuleWithNoRule() {
-	pk, ChainID, err := suite.RegisterAppchain()
+//tc：应用链管理员注册available的验证规则，验证规则部署失败
+func (suite Model7) Test0708_RegisterRuleWithAvailableRuleIsFail() {
+	address, err := suite.DeploySimpleRule()
 	suite.Require().Nil(err)
-
-	address := types.NewAddressByStr("0x64C5334AadE6c623ae829422C34B6f310b031aa0")
-
-	err = suite.InvokeRuleContract(pk, ChainID, address, RegisterRule)
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	chainID := suite.GetChainID(pk)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address, governance.GovernanceAvailable)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address, RegisterRule)
 	suite.Require().NotNil(err)
 }
 
-//tc:发起正确绑定规则的请求，中继链管理员投票通过，验证规则状态为available
-func (suite *Model7) Test0704_BindRule() {
-	pk, ChainID, err := suite.RegisterAppchain()
+//tc：应用链管理员注册binding的验证规则，验证规则部署失败
+//tc：应用链管理员注册unbinding的验证规则，验证规则部署失败
+func (suite Model7) Test0709_RegisterRuleWithBindingRuleIsFail() {
+	address1, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	chainID := suite.GetChainID(pk)
+	err = suite.InvokeRuleContract(pk, chainID, address1, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address1)
+	suite.Require().Nil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address1, governance.GovernanceAvailable)
+	suite.Require().Nil(err)
+	address2, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address2, governance.GovernanceBindable)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-
-	contract, err := ioutil.ReadFile("../../config/rule.wasm")
-	suite.Require().Nil(err)
-
-	contractAddr, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
-	suite.Require().Nil(err)
-
-	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
-	suite.Require().Equal(governance.GovernanceAvailable, status)
-}
-
-//tc:发起正确绑定规则的请求，中继链管理员投票不通过，验证规则状态为bindable
-func (suite *Model7) Test0705_BindRuleWithReject() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-
-	contract, err := ioutil.ReadFile("../../config/rule.wasm")
-	suite.Require().Nil(err)
-
-	contractAddr, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContractWithReject(pk, ChainID, contractAddr, RegisterRule)
-	suite.Require().Nil(err)
-
-	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
-	suite.Require().Equal(governance.GovernanceBindable, status)
-}
-
-//tc:发起正确绑定规则的请求，中继链管理员投票过程中，验证规则状态为binding
-func (suite *Model7) Test0706_BindRuleWithDoing() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-
-	contract, err := ioutil.ReadFile("../../config/rule.wasm")
-	suite.Require().Nil(err)
-
-	contractAddr, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
 	args := []*pb.Arg{
-		rpcx.String(ChainID),
-		rpcx.String(contractAddr.String()),
-		rpcx.String("reason"),
-	}
-	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), RegisterRule, nil, args...)
-	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
-
-	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
-	suite.Require().Equal(governance.GovernanceBinding, status)
-}
-
-//tc:验证规则状态为binding，发起绑定请求，提示对应错误信息
-func (suite *Model7) Test0707_BindRuleWithBinding() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-
-	contract, err := ioutil.ReadFile("../../config/rule.wasm")
-	suite.Require().Nil(err)
-
-	contractAddr, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	args := []*pb.Arg{
-		rpcx.String(ChainID),
-		rpcx.String(contractAddr.String()),
-		rpcx.String("reason"),
-	}
-	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), RegisterRule, nil, args...)
-	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
-	suite.Require().NotNil(err)
-
-	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
-	suite.Require().Equal(governance.GovernanceBinding, status)
-}
-
-//tc:验证规则状态为bindable，发起绑定请求，提示对应错误信息
-func (suite *Model7) Test0708_BindRuleWithBindable() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-
-	contract, err := ioutil.ReadFile("../../config/rule.wasm")
-	suite.Require().Nil(err)
-
-	contractAddr1, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	contractAddr2, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContractWithReject(pk, ChainID, contractAddr1, RegisterRule)
-	suite.Require().Nil(err)
-
-	status, err := suite.getRuleStatus(pk, ChainID, contractAddr1)
-	suite.Require().Equal(governance.GovernanceBindable, status)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr1, RegisterRule)
-	suite.Require().NotNil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, RegisterRule)
-	suite.Require().Nil(err)
-}
-
-//tc:验证规则状态为available，发起绑定请求，提示对应错误信息
-func (suite *Model7) Test0709_BindRuleWithAvailable() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-
-	contract, err := ioutil.ReadFile("../../config/rule.wasm")
-	suite.Require().Nil(err)
-
-	contractAddr, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
-	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
-	suite.Require().NotNil(err)
-
-	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
-	suite.Require().Equal(governance.GovernanceAvailable, status)
-}
-
-//tc:验证规则状态为forbidden，发起绑定请求，提示对应错误信息
-func (suite *Model7) Test0710_BindRuleWithForbidden() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-
-	contract, err := ioutil.ReadFile("../../config/rule.wasm")
-	suite.Require().Nil(err)
-
-	contractAddr1, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	contractAddr2, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr1, RegisterRule)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, RegisterRule)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, LogoutRule)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, RegisterRule)
-	suite.Require().NotNil(err)
-
-	status, err := suite.getRuleStatus(pk, ChainID, contractAddr1)
-	suite.Require().Equal(governance.GovernanceAvailable, status)
-	status, err = suite.getRuleStatus(pk, ChainID, contractAddr2)
-	suite.Require().Equal(governance.GovernanceForbidden, status)
-}
-
-//tc：验证规则不存在，更新验证规则
-func (suite *Model7) Test0711_UpdateRuleWithNoRule() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-
-	contract, err := ioutil.ReadFile("../../config/rule.wasm")
-	suite.Require().Nil(err)
-
-	contractAddr1, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	contractAddr2, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr1, RegisterRule)
-	suite.Require().Nil(err)
-
-	args := []*pb.Arg{
-		rpcx.String(ChainID),
-		rpcx.String(contractAddr2.String()),
+		rpcx.String(chainID),
+		rpcx.String(address2),
 		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), UpdateMasterRule, nil, args...)
 	suite.Require().Nil(err)
-	suite.Require().Contains(string(res.Ret), "the rule does not exist")
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+	err = suite.CheckRuleStatus(pk, chainID, address2, governance.GovernanceBinding)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, RegisterRule)
+	suite.Require().NotNil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address1, governance.GovernanceUnbinding)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address1, RegisterRule)
+	suite.Require().NotNil(err)
 }
 
-//tc:发起正确更新规则的请求，中继链管理员投票通过，验证规则状态为available
-func (suite *Model7) Test0712_UpdateRule() {
-	pk, ChainID, err := suite.RegisterAppchain()
+//tc：应用链管理员注册bindable的验证规则，验证规则部署失败
+func (suite Model7) Test0710_RegisterRuleWithBindableRuleIsFail() {
+	address1, err := suite.DeploySimpleRule()
 	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-
-	contract, err := ioutil.ReadFile("../../config/rule.wasm")
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
-
-	contractAddr1, err := client.DeployContract(contract, nil)
+	chainID := suite.GetChainID(pk)
+	err = suite.InvokeRuleContract(pk, chainID, address1, RegisterRule)
 	suite.Require().Nil(err)
-	contractAddr2, err := client.DeployContract(contract, nil)
+	err = suite.RegisterAppchain(pk, chainID, address1)
 	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr1, RegisterRule)
+	err = suite.CheckRuleStatus(pk, chainID, address1, governance.GovernanceAvailable)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, RegisterRule)
+	address2, err := suite.DeploySimpleRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, UpdateMasterRule)
+	err = suite.InvokeRuleContract(pk, chainID, address2, RegisterRule)
 	suite.Require().Nil(err)
-
-	status, err := suite.getRuleStatus(pk, ChainID, contractAddr1)
-	suite.Require().Equal(governance.GovernanceBindable, status)
-	status, err = suite.getRuleStatus(pk, ChainID, contractAddr2)
-	suite.Require().Equal(governance.GovernanceAvailable, status)
+	err = suite.CheckRuleStatus(pk, chainID, address2, governance.GovernanceBindable)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, RegisterRule)
+	suite.Require().NotNil(err)
 }
 
-//tc：正确更新验证规则后，再次更新验证规则，中间链投票通过，验证规则状态为available
-func (suite *Model7) Test0713_UpdateRuleRepeat() {
-	pk, ChainID, err := suite.RegisterAppchain()
+//tc：应用链管理员注册forbidden的验证规则，验证规则部署失败
+func (suite Model7) Test0711_RegisterRuleWithForbiddenRuleIsFail() {
+	address1, err := suite.DeploySimpleRule()
 	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-
-	contract, err := ioutil.ReadFile("../../config/rule.wasm")
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
-
-	contractAddr1, err := client.DeployContract(contract, nil)
+	chainID := suite.GetChainID(pk)
+	err = suite.InvokeRuleContract(pk, chainID, address1, RegisterRule)
 	suite.Require().Nil(err)
-	contractAddr2, err := client.DeployContract(contract, nil)
+	err = suite.RegisterAppchain(pk, chainID, address1)
 	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr1, RegisterRule)
+	err = suite.CheckRuleStatus(pk, chainID, address1, governance.GovernanceAvailable)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, RegisterRule)
+	address2, err := suite.DeploySimpleRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, UpdateMasterRule)
+	err = suite.InvokeRuleContract(pk, chainID, address2, RegisterRule)
 	suite.Require().Nil(err)
-
-	status, err := suite.getRuleStatus(pk, ChainID, contractAddr1)
-	suite.Require().Equal(governance.GovernanceBindable, status)
-	status, err = suite.getRuleStatus(pk, ChainID, contractAddr2)
-	suite.Require().Equal(governance.GovernanceAvailable, status)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr1, UpdateMasterRule)
+	err = suite.CheckRuleStatus(pk, chainID, address2, governance.GovernanceBindable)
 	suite.Require().Nil(err)
-
-	status, err = suite.getRuleStatus(pk, ChainID, contractAddr1)
-	suite.Require().Equal(governance.GovernanceAvailable, status)
-	status, err = suite.getRuleStatus(pk, ChainID, contractAddr2)
-	suite.Require().Equal(governance.GovernanceBindable, status)
+	err = suite.InvokeRuleContract(pk, chainID, address2, LogoutRule)
+	suite.Require().Nil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address2, governance.GovernanceForbidden)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, RegisterRule)
+	suite.Require().NotNil(err)
 }
 
-//tc:发起正确更新规则的请求，中继链管理员投票不通过，验证规则状态为bindable
-func (suite *Model7) Test0714_UpdateRuleWithReject() {
-	pk, ChainID, err := suite.RegisterAppchain()
+//tc：非应用链管理员更新主验证规则，验证规则更新失败
+//tc：非应用链管理员更新主验证规则，验证规则注销失败
+func (suite Model7) Test0712_UpdateAndLogoutRuleWithNoAdminIsSuccess() {
+	address1, err := suite.DeploySimpleRule()
 	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-
-	contract, err := ioutil.ReadFile("../../config/rule.wasm")
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
-
-	contractAddr1, err := client.DeployContract(contract, nil)
+	chainID := suite.GetChainID(pk)
+	err = suite.InvokeRuleContract(pk, chainID, address1, RegisterRule)
 	suite.Require().Nil(err)
-	contractAddr2, err := client.DeployContract(contract, nil)
+	err = suite.RegisterAppchain(pk, chainID, address1)
 	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr1, RegisterRule)
+	err = suite.CheckRuleStatus(pk, chainID, address1, governance.GovernanceAvailable)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, RegisterRule)
+	address2, err := suite.DeploySimpleRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContractWithReject(pk, ChainID, contractAddr2, UpdateMasterRule)
+	err = suite.InvokeRuleContract(pk, chainID, address2, RegisterRule)
 	suite.Require().Nil(err)
-
-	status, err := suite.getRuleStatus(pk, ChainID, contractAddr1)
-	suite.Require().Equal(governance.GovernanceAvailable, status)
-	status, err = suite.getRuleStatus(pk, ChainID, contractAddr2)
-	suite.Require().Equal(governance.GovernanceBindable, status)
+	err = suite.CheckRuleStatus(pk, chainID, address2, governance.GovernanceBindable)
+	suite.Require().Nil(err)
+	pk2, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk2, chainID, address2, UpdateMasterRule)
+	suite.Require().NotNil(err)
+	err = suite.InvokeRuleContract(pk2, chainID, address2, LogoutRule)
+	suite.Require().NotNil(err)
 }
 
-//tc:发起正确绑定规则的请求，中继链管理员投票过程中，验证规则状态为binding
-func (suite *Model7) Test0715_UpdateRuleWithDoing() {
-	pk, ChainID, err := suite.RegisterAppchain()
+//tc：应用链管理员更新主验证规则，验证规则更新成功
+//tc：应用链管理员更新主验证规则，验证规则注销成功
+func (suite Model7) Test0713_UpdateAndLogoutRuleIsSuccess() {
+	address1, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	chainID := suite.GetChainID(pk)
+	err = suite.InvokeRuleContract(pk, chainID, address1, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address1)
+	suite.Require().Nil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address1, governance.GovernanceAvailable)
+	suite.Require().Nil(err)
+	address2, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address2, governance.GovernanceBindable)
+	suite.Require().Nil(err)
+	err = suite.CheckChainStatus(chainID, governance.GovernanceAvailable)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, UpdateMasterRule)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address1, LogoutRule)
+	suite.Require().Nil(err)
+	err = suite.CheckChainStatus(chainID, governance.GovernanceAvailable)
+	suite.Require().Nil(err)
+}
+
+//tc:应用链处于未注册状态更新主验证规则，验证规则更新失败
+//tc:应用链处于未注册状态注销主注销规则，验证规则注销成功
+func (suite Model7) Test0714_UpdateAndLogoutRuleWithNoRegisterAdmin() {
+	address1, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	chainID := suite.GetChainID(pk)
+	err = suite.InvokeRuleContract(pk, chainID, address1, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address1, governance.GovernanceBindable)
+	suite.Require().Nil(err)
+	address2, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address2, governance.GovernanceBindable)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, UpdateMasterRule)
+	suite.Require().NotNil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, LogoutRule)
+	suite.Require().NotNil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address2, governance.GovernanceBindable)
+	suite.Require().Nil(err)
+}
+
+//tc：应用链处于registering状态更新主验证规则，验证规则更新失败
+//tc：应用链处于registering状态注销验证规则，验证规则注销成功
+func (suite Model7) Test0715_UpdateAndLogoutRuleWithRegistingChain() {
+	pk, chainID, address1, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	address2, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, suite.GetChainID(pk), address2, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.ChainToRegisting(pk, chainID, address1)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, UpdateMasterRule)
+	suite.Require().NotNil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, LogoutRule)
+	suite.Require().Nil(err)
+	err = suite.CheckChainStatus(chainID, governance.GovernanceRegisting)
+	suite.Require().Nil(err)
+}
+
+//tc：应用链处于unavailable状态更新主验证规则，验证规则更新失败
+//tc：应用链处于unavailable状态注销验证规则，验证规则注销成功
+func (suite Model7) Test0716_UpdateAndLogoutRuleWithUnavailableChain() {
+	pk, chainID, address1, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	address2, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, suite.GetChainID(pk), address2, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.ChainToUnavailable(pk, chainID, address1)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, UpdateMasterRule)
+	suite.Require().NotNil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, LogoutRule)
+	suite.Require().Nil(err)
+	err = suite.CheckChainStatus(chainID, governance.GovernanceUnavailable)
+	suite.Require().Nil(err)
+}
+
+//tc：应用链处于activating状态更新主验证规则，验证规则更新失败
+//tc：应用链处于activating状态注销验证规则，验证规则注销成功
+func (suite Model7) Test0717_UpdateAndLogoutRuleWithActivatingChain() {
+	pk, chainID, address1, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	address2, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, suite.GetChainID(pk), address2, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.ChainToActivating(pk, chainID, address1)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, UpdateMasterRule)
+	suite.Require().NotNil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, LogoutRule)
+	suite.Require().Nil(err)
+	err = suite.CheckChainStatus(chainID, governance.GovernanceActivating)
+	suite.Require().Nil(err)
+}
+
+//tc：应用链处于freezing状态更新主验证规则，验证规则更新失败
+//tc：应用链处于freezing状态注销验证规则，验证规则注销成功
+func (suite Model7) Test0717_UpdateAndLogoutRuleWithFreezingChain() {
+	pk, chainID, address1, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	address2, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, suite.GetChainID(pk), address2, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.ChainToFreezing(pk, chainID, address1)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, UpdateMasterRule)
+	suite.Require().NotNil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, LogoutRule)
+	suite.Require().Nil(err)
+	err = suite.CheckChainStatus(chainID, governance.GovernanceFreezing)
+	suite.Require().Nil(err)
+}
+
+//tc：应用链处于frozen状态更新主验证规则，验证规则更新成功
+//tc：应用链处于frozen状态注销验证规则，验证规则注销成功
+func (suite Model7) Test0718_UpdateAndLogoutRuleWithFrozenChain() {
+	pk, chainID, address1, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	address2, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, suite.GetChainID(pk), address2, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.ChainToFrozen(pk, chainID, address1)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, UpdateMasterRule)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, LogoutRule)
+	suite.Require().NotNil(err)
+	err = suite.CheckChainStatus(chainID, governance.GovernanceFrozen)
+	suite.Require().Nil(err)
+}
+
+//tc：应用链处于logouting状态更新主验证规则，验证规则更新失败
+//tc：应用链处于logouting状态注销验证规则，验证规则注销成功
+func (suite Model7) Test0719_UpdateAndLogoutRuleWithLogoutingChainIsFail() {
+	pk, chainID, address1, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	address2, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, suite.GetChainID(pk), address2, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.ChainToLogouting(pk, chainID, address1)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, UpdateMasterRule)
+	suite.Require().NotNil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, LogoutRule)
+	suite.Require().Nil(err)
+	err = suite.CheckChainStatus(chainID, governance.GovernanceLogouting)
+	suite.Require().Nil(err)
+}
+
+//tc：应用链处于forbidden状态更新主验证规则，验证规则更新失败
+//tc：应用链处于forbidden状态注销验证规则，验证规则注销成功
+func (suite Model7) Test0720_UpdateAndLogoutRuleWithForbiddenChainIsFail() {
+	pk, chainID, address1, err := suite.RegisterRule()
+	suite.Require().Nil(err)
+	address2, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, suite.GetChainID(pk), address2, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.ChainToForbidden(pk, chainID, address1)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, UpdateMasterRule)
+	suite.Require().NotNil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, LogoutRule)
+	suite.Require().Nil(err)
+	err = suite.CheckChainStatus(chainID, governance.GovernanceForbidden)
+	suite.Require().Nil(err)
+}
+
+//tc：应用链更新未注册的主验证规则，验证规则更新失败
+//tc：应用链更新未注册的主验证规则，验证规则注销失败
+func (suite Model7) Test0721_UpdateAndLogoutRuleWithNoRegisterRuleIsFail() {
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	chainID := suite.GetChainID(pk)
+	address, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, "0x000000000000000000000000000000000000001", UpdateMasterRule)
+	suite.Require().NotNil(err)
+	err = suite.InvokeRuleContract(pk, chainID, "0x000000000000000000000000000000000000001", LogoutRule)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链管理员更新available状态的主验证规则，验证规则更新失败
+//tc：应用链管理员更新available状态的主验证规则，验证规则注销失败
+func (suite Model7) Test0722_UpdateAndLogoutRuleWithAvailableRuleIsFail() {
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	chainID := suite.GetChainID(pk)
+	address, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address)
+	suite.Require().Nil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address, governance.GovernanceAvailable)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address, UpdateMasterRule)
+	suite.Require().NotNil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address, LogoutRule)
+	suite.Require().NotNil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address, governance.GovernanceAvailable)
+	suite.Require().Nil(err)
+}
+
+//tc：应用链管理员更新binding状态的主验证规则，验证规则更新失败
+//tc：应用链管理员更新binding状态的主验证规则，验证规则注销失败
+func (suite Model7) Test0723_UpdateAndLogoutRuleWithBindingRuleIsSuccess() {
+	address1, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	chainID := suite.GetChainID(pk)
+	err = suite.InvokeRuleContract(pk, chainID, address1, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address1)
+	suite.Require().Nil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address1, governance.GovernanceAvailable)
+	suite.Require().Nil(err)
+	address2, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address2, governance.GovernanceBindable)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-
-	contract, err := ioutil.ReadFile("../../config/rule.wasm")
-	suite.Require().Nil(err)
-
-	contractAddr1, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-	contractAddr2, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr1, RegisterRule)
-	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, RegisterRule)
-	suite.Require().Nil(err)
 	args := []*pb.Arg{
-		rpcx.String(ChainID),
-		rpcx.String(contractAddr2.String()),
-		rpcx.String("reason"),
-	}
-	_, err = client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), UpdateMasterRule, nil, args...)
-	suite.Require().Nil(err)
-
-	status, err := suite.getRuleStatus(pk, ChainID, contractAddr1)
-	suite.Require().Equal(governance.GovernanceUnbinding, status)
-	status, err = suite.getRuleStatus(pk, ChainID, contractAddr2)
-	suite.Require().Equal(governance.GovernanceBinding, status)
-}
-
-//tc:验证规则状态为binding，发起更新请求，提示对应错误信息
-func (suite *Model7) Test0716_UpdateRuleWithBinding() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-
-	contract, err := ioutil.ReadFile("../../config/rule.wasm")
-	suite.Require().Nil(err)
-
-	contractAddr1, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-	contractAddr2, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr1, RegisterRule)
-	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, RegisterRule)
-	suite.Require().Nil(err)
-	args := []*pb.Arg{
-		rpcx.String(ChainID),
-		rpcx.String(contractAddr2.String()),
-		rpcx.String("reason"),
-	}
-	_, err = client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), UpdateMasterRule, nil, args...)
-	suite.Require().Nil(err)
-
-	status, err := suite.getRuleStatus(pk, ChainID, contractAddr1)
-	suite.Require().Equal(governance.GovernanceUnbinding, status)
-	status, err = suite.getRuleStatus(pk, ChainID, contractAddr2)
-	suite.Require().Equal(governance.GovernanceBinding, status)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, UpdateMasterRule)
-	suite.Require().NotNil(err)
-}
-
-//tc:验证规则状态为available，发起更新请求，提示对应错误信息
-func (suite *Model7) Test0717_UpdateRuleWithAvailable() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-
-	contract, err := ioutil.ReadFile("../../config/rule.wasm")
-	suite.Require().Nil(err)
-
-	contractAddr, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, RegisterRule)
-	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr, UpdateMasterRule)
-	suite.Require().NotNil(err)
-
-	status, err := suite.getRuleStatus(pk, ChainID, contractAddr)
-	suite.Require().Equal(governance.GovernanceAvailable, status)
-}
-
-//tc:验证规则状态为forbidden，发起更新请求，提示对应错误信息
-func (suite *Model7) Test0718_UpdateRuleWithForbidden() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-
-	contract, err := ioutil.ReadFile("../../config/rule.wasm")
-	suite.Require().Nil(err)
-
-	contractAddr1, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	contractAddr2, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr1, RegisterRule)
-	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, RegisterRule)
-	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, LogoutRule)
-	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, UpdateMasterRule)
-	suite.Require().NotNil(err)
-
-	status, err := suite.getRuleStatus(pk, ChainID, contractAddr1)
-	suite.Require().Equal(governance.GovernanceAvailable, status)
-	status, err = suite.getRuleStatus(pk, ChainID, contractAddr2)
-	suite.Require().Equal(governance.GovernanceForbidden, status)
-}
-
-//tc：验证规则不存在，注销验证规则
-func (suite *Model7) Test0719_LogoutRuleWithNoRule() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-
-	address := types.NewAddressByStr("0x64C5334AadE6c623ae829422C34B6f310b031aa0")
-	err = suite.InvokeRuleContract(pk, ChainID, address, LogoutRule)
-	suite.Require().NotNil(err)
-}
-
-//tc:验证规则从available状态发起注销的请求，中继链管理员投票不通过，注销失败，验证规则状态不变
-func (suite *Model7) Test0720_LogoutRuleWithBinding() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-
-	contract, err := ioutil.ReadFile("../../config/rule.wasm")
-	suite.Require().Nil(err)
-
-	contractAddr1, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	contractAddr2, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr1, RegisterRule)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, RegisterRule)
-	suite.Require().Nil(err)
-
-	args := []*pb.Arg{
-		rpcx.String(ChainID),
-		rpcx.String(contractAddr2.String()),
+		rpcx.String(chainID),
+		rpcx.String(address2),
 		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), UpdateMasterRule, nil, args...)
 	suite.Require().Nil(err)
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
-
-	status, err := suite.getRuleStatus(pk, ChainID, contractAddr2)
-	suite.Require().Equal(governance.GovernanceBinding, status)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, LogoutRule)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+	err = suite.CheckRuleStatus(pk, chainID, address2, governance.GovernanceBinding)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, RegisterRule)
 	suite.Require().NotNil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address1, governance.GovernanceUnbinding)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, UpdateMasterRule)
+	suite.Require().NotNil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, LogoutRule)
+	suite.Require().NotNil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address1, governance.GovernanceUnbinding)
+	suite.Require().Nil(err)
 }
 
-//tc:验证规则状态为bindable，发起注销请求，提示对应错误信息
-func (suite *Model7) Test0721_LogoutRule() {
-	pk, ChainID, err := suite.RegisterAppchain()
+//tc：应用链管理员更新unbinding状态的主验证规则，验证规则更新失败
+//tc：应用链管理员更新unbinding状态的主验证规则，验证规则注销失败
+func (suite Model7) Test0724_UpdateAndLogoutRuleWithUnbindingRuleIsSuccess() {
+	address1, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	chainID := suite.GetChainID(pk)
+	err = suite.InvokeRuleContract(pk, chainID, address1, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address1)
+	suite.Require().Nil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address1, governance.GovernanceAvailable)
+	suite.Require().Nil(err)
+	address2, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address2, governance.GovernanceBindable)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-
-	contract, err := ioutil.ReadFile("../../config/rule.wasm")
+	args := []*pb.Arg{
+		rpcx.String(chainID),
+		rpcx.String(address2),
+		rpcx.String("reason"),
+	}
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), UpdateMasterRule, nil, args...)
 	suite.Require().Nil(err)
-
-	contractAddr1, err := client.DeployContract(contract, nil)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+	err = suite.CheckRuleStatus(pk, chainID, address2, governance.GovernanceBinding)
 	suite.Require().Nil(err)
-
-	contractAddr2, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr1, RegisterRule)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, RegisterRule)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, LogoutRule)
-	suite.Require().Nil(err)
-
-	status, err := suite.getRuleStatus(pk, ChainID, contractAddr2)
-	suite.Require().Equal(governance.GovernanceForbidden, status)
-}
-
-//tc:验证规则状态为available，发起绑定请求，提示对应错误信息
-func (suite *Model7) Test0722_LogoutRuleWithAvailable() {
-	pk, ChainID, err := suite.RegisterAppchain()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-
-	contract, err := ioutil.ReadFile("../../config/rule.wasm")
-	suite.Require().Nil(err)
-
-	contractAddr1, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	contractAddr2, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr1, RegisterRule)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, RegisterRule)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr1, LogoutRule)
+	err = suite.InvokeRuleContract(pk, chainID, address2, RegisterRule)
 	suite.Require().NotNil(err)
-}
-
-//tc:验证规则状态为forbidden，发起注销请求，提示对应错误信息
-func (suite *Model7) Test0723_LogoutRuleWithForbidden() {
-	pk, ChainID, err := suite.RegisterAppchain()
+	err = suite.CheckRuleStatus(pk, chainID, address1, governance.GovernanceUnbinding)
 	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-
-	contract, err := ioutil.ReadFile("../../config/rule.wasm")
-	suite.Require().Nil(err)
-
-	contractAddr1, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	contractAddr2, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr1, RegisterRule)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, RegisterRule)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, LogoutRule)
-	suite.Require().Nil(err)
-
-	err = suite.InvokeRuleContract(pk, ChainID, contractAddr2, LogoutRule)
+	err = suite.InvokeRuleContract(pk, chainID, address1, UpdateMasterRule)
 	suite.Require().NotNil(err)
-
-	status, err := suite.getRuleStatus(pk, ChainID, contractAddr2)
-	suite.Require().Equal(governance.GovernanceForbidden, status)
+	err = suite.InvokeRuleContract(pk, chainID, address1, LogoutRule)
+	suite.Require().NotNil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address1, governance.GovernanceUnbinding)
+	suite.Require().Nil(err)
 }
 
-func (suite *Snake) InvokeRuleContract(pk crypto.PrivateKey, ChainID string, contractAddr *types.Address, method string) error {
+//tc：应用链管理员更新forbidden状态的主验证规则，验证规则更新失败
+//tc：应用链管理员更新forbidden状态的主验证规则，验证规则注销失败
+func (suite Model7) Test0725_UpdateAndLogoutRuleWithForbiddenRuleIsFail() {
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	chainID := suite.GetChainID(pk)
+	address1, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address1, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, chainID, address1)
+	suite.Require().Nil(err)
+	address2, err := suite.DeploySimpleRule()
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, LogoutRule)
+	suite.Require().Nil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address2, governance.GovernanceForbidden)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, UpdateMasterRule)
+	suite.Require().NotNil(err)
+	err = suite.InvokeRuleContract(pk, chainID, address2, LogoutRule)
+	suite.Require().NotNil(err)
+	err = suite.CheckRuleStatus(pk, chainID, address2, governance.GovernanceForbidden)
+	suite.Require().Nil(err)
+}
+
+func (suite *Snake) InvokeRuleContract(pk crypto.PrivateKey, ChainID string, contractAddr string, method string) error {
 	client := suite.NewClient(pk)
 	var args []*pb.Arg
 	if method == LogoutRule {
 		args = []*pb.Arg{
 			rpcx.String(ChainID),
-			rpcx.String(contractAddr.String()),
+			rpcx.String(contractAddr),
 		}
 	} else {
 		args = []*pb.Arg{
 			rpcx.String(ChainID),
-			rpcx.String(contractAddr.String()),
+			rpcx.String(contractAddr),
 			rpcx.String("reason"),
 		}
 	}
@@ -629,11 +583,11 @@ func (suite *Snake) InvokeRuleContract(pk crypto.PrivateKey, ChainID string, con
 	if err != nil {
 		return err
 	}
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
 	if res.Status == pb.Receipt_FAILED {
 		return errors.New(string(res.Ret))
 	}
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
 	if result.ProposalID == "" {
 		return nil
 	}
@@ -646,18 +600,10 @@ func (suite *Snake) InvokeRuleContract(pk crypto.PrivateKey, ChainID string, con
 
 func (suite *Snake) InvokeRuleContractWithReject(pk crypto.PrivateKey, ChainID string, contractAddr *types.Address, method string) error {
 	client := suite.NewClient(pk)
-	var args []*pb.Arg
-	if method == LogoutRule {
-		args = []*pb.Arg{
-			rpcx.String(ChainID),
-			rpcx.String(contractAddr.String()),
-		}
-	} else {
-		args = []*pb.Arg{
-			rpcx.String(ChainID),
-			rpcx.String(contractAddr.String()),
-			rpcx.String("reason"),
-		}
+	args := []*pb.Arg{
+		rpcx.String(ChainID),
+		rpcx.String(contractAddr.String()),
+		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), method, nil, args...)
 	if err != nil {
@@ -678,23 +624,19 @@ func (suite *Snake) InvokeRuleContractWithReject(pk crypto.PrivateKey, ChainID s
 	return nil
 }
 
-func (suite *Snake) getRuleStatus(pk crypto.PrivateKey, ChainID string, contractAddr *types.Address) (status governance.GovernanceStatus, err error) {
-	client := suite.NewClient(pk)
-	args := []*pb.Arg{
-		rpcx.String(ChainID),
-		rpcx.String(contractAddr.String()),
-	}
-	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "GetRuleByAddr", nil, args...)
+func (suite Snake) RegisterRule() (crypto.PrivateKey, string, string, error) {
+	address, err := suite.DeploySimpleRule()
 	if err != nil {
-		return "", err
+		return nil, "", "", err
 	}
-	if res.Status == pb.Receipt_FAILED {
-		return "", errors.New(string(res.Ret))
-	}
-	rule := &Rule{}
-	err = json.Unmarshal(res.Ret, rule)
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	if err != nil {
-		return "", err
+		return nil, "", "", err
 	}
-	return rule.Status, nil
+	chainID := suite.GetChainID(pk)
+	err = suite.InvokeRuleContract(pk, chainID, address, RegisterRule)
+	if err != nil {
+		return nil, "", "", err
+	}
+	return pk, chainID, address, nil
 }
