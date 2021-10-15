@@ -16,10 +16,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Model12 struct {
-	*Snake
-}
-
 type NodeType string
 type Node struct {
 	Pid      string   `toml:"pid" json:"pid"`
@@ -30,6 +26,10 @@ type Node struct {
 	Primary  bool                        `toml:"primary" json:"primary"`
 	Status   governance.GovernanceStatus `toml:"status" json:"status"`
 	FSM      *fsm.FSM                    `json:"fsm"`
+}
+
+type Model12 struct {
+	*Snake
 }
 
 //tc：非中继链管理员，注册节点，节点注销失败
@@ -60,7 +60,7 @@ func (suite Model12) Test1202_RegisterNodeWithRelayNodeIsSuccess() {
 	//recover
 	err = suite.LogoutNode(pid)
 	suite.Require().Nil(err)
-	err = suite.CheckNodeStatus(pid, governance.GovernanceUnavailable)
+	err = suite.CheckNodeStatus(pid, governance.GovernanceForbidden)
 	suite.Require().Nil(err)
 }
 
@@ -68,9 +68,29 @@ func (suite Model12) Test1202_RegisterNodeWithRelayNodeIsSuccess() {
 func (suite Model12) Test1202_RegisterNodeWithUnavailableNodeIsSuccess() {
 	pid, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.RegisterNode(pid, 5, "", "vpNode")
+	path, err := repo.Node1Path()
 	suite.Require().Nil(err)
-	err = suite.LogoutNode(pid)
+	pk, err := asym.RestorePrivateKey(path, repo.KeyPassword)
+	suite.Require().Nil(err)
+	from, err := pk.PublicKey().Address()
+	suite.Require().Nil(err)
+	args := []*pb.Arg{
+		rpcx.String(pid),
+		rpcx.Uint64(5),
+		rpcx.String(""),
+		rpcx.String("vpNode"),
+		rpcx.String("reason"),
+	}
+	client := suite.NewClient(pk)
+	res, err := client.InvokeBVMContract(constant.NodeManagerContractAddr.Address(), "RegisterNode", &rpcx.TransactOpts{
+		From:  from.String(),
+		Nonce: atomic.AddUint64(&nonce1, 1),
+	}, args...)
+	suite.Require().Nil(err)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	err = suite.VoteReject(result.ProposalID)
 	suite.Require().Nil(err)
 	err = suite.CheckNodeStatus(pid, governance.GovernanceUnavailable)
 	suite.Require().Nil(err)

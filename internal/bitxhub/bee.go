@@ -392,11 +392,8 @@ func prepareInterchainTx() {
 	}
 
 	content := &pb.Content{
-		Func:     "interchainCharge",
-		Args:     [][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
-		Callback: "",
-		Rollback: "interchainRollback",
-		ArgsRb:   [][]byte{[]byte("Alice"), []byte("1")},
+		Func: "interchainCharge",
+		Args: [][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
 	}
 
 	bytes, _ := content.Marshal()
