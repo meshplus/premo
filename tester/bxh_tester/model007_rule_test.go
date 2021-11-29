@@ -236,15 +236,19 @@ func (suite Model7) Test0719_RegisterRuleWithBindableRuleIsFail() {
 
 //tc：应用链管理员注册forbidden的验证规则，验证规则部署失败
 func (suite Model7) Test0720_RegisterRuleWithForbiddenRuleIsFail() {
-	pk, from, address, err := suite.DeployRule()
+	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
+	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address1, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, HappyRuleAddr, LogoutRule)
+	_, _, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.CheckRuleStatus(pk, from, HappyRuleAddr, governance.GovernanceForbidden)
+	err = suite.InvokeRuleContract(pk, from, address2, RegisterRule)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, HappyRuleAddr, RegisterRule)
+	err = suite.InvokeRuleContract(pk, from, address2, LogoutRule)
+	suite.Require().Nil(err)
+	err = suite.CheckRuleStatus(pk, from, address2, governance.GovernanceForbidden)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, from, address2, RegisterRule)
 	suite.Require().NotNil(err)
 }
 
@@ -444,20 +448,16 @@ func (suite Model7) Test0719_UpdateAndLogoutRuleWithLogoutingChainIsFail() {
 }
 
 //tc：应用链处于forbidden状态更新主验证规则，验证规则更新失败
-//tc：应用链处于forbidden状态注销验证规则，验证规则注销成功
+//tc：应用链处于forbidden状态注销验证规则，验证规则注销失败
 func (suite Model7) Test0720_UpdateAndLogoutRuleWithForbiddenChainIsFail() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToForbidden(pk, from, address1)
 	suite.Require().Nil(err)
-	_, _, address2, err := suite.DeployRule()
-	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, RegisterRule)
-	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, UpdateMasterRule)
+	err = suite.InvokeRuleContract(pk, from, HappyRuleAddr, UpdateMasterRule)
 	suite.Require().NotNil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, LogoutRule)
-	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, from, HappyRuleAddr, LogoutRule)
+	suite.Require().NotNil(err)
 }
 
 //tc：应用链更新未注册的主验证规则，验证规则更新失败
@@ -538,15 +538,19 @@ func (suite Model7) Test0724_UpdateAndLogoutRuleWithUnbindingRuleIsSuccess() {
 //tc：应用链管理员更新forbidden状态的主验证规则，验证规则更新失败
 //tc：应用链管理员更新forbidden状态的主验证规则，验证规则注销失败
 func (suite Model7) Test0725_UpdateAndLogoutRuleWithForbiddenRuleIsFail() {
-	pk, from, address, err := suite.DeployRule()
+	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
+	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address1, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, HappyRuleAddr, LogoutRule)
+	_, _, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, HappyRuleAddr, UpdateMasterRule)
+	err = suite.InvokeRuleContract(pk, from, address2, RegisterRule)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, from, address2, LogoutRule)
+	suite.Require().Nil(err)
+	err = suite.InvokeRuleContract(pk, from, address2, UpdateMasterRule)
 	suite.Require().NotNil(err)
-	err = suite.InvokeRuleContract(pk, from, HappyRuleAddr, LogoutRule)
+	err = suite.InvokeRuleContract(pk, from, address2, LogoutRule)
 	suite.Require().NotNil(err)
 }
 

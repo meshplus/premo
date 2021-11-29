@@ -36,13 +36,15 @@ type Model12 struct {
 func (suite Model12) Test1201_RegisterNodeWithNoRelayAdminIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
+	from, err := pk.PublicKey().Address()
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	pid, err := suite.CreatePid()
 	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(pid),
 		rpcx.Uint64(5),
-		rpcx.String(""),
+		rpcx.String(from.String()),
 		rpcx.String("vpNode"),
 		rpcx.String("reason"),
 	}
@@ -53,14 +55,18 @@ func (suite Model12) Test1201_RegisterNodeWithNoRelayAdminIsFail() {
 
 //tc：中继链管理员，注册节点，节点注册失败
 func (suite Model12) Test1202_RegisterNodeWithRelayNodeIsSuccess() {
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	from, err := pk.PublicKey().Address()
+	suite.Require().Nil(err)
 	pid, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.RegisterNode(pid, 5, "", "vpNode")
+	err = suite.RegisterNode(pid, 5, from.String(), "vpNode", "")
 	suite.Require().Nil(err)
 	//recover
-	err = suite.LogoutNode(pid)
+	err = suite.LogoutNode(from.String())
 	suite.Require().Nil(err)
-	err = suite.CheckNodeStatus(pid, governance.GovernanceForbidden)
+	err = suite.CheckNodeStatus(from.String(), governance.GovernanceForbidden)
 	suite.Require().Nil(err)
 }
 
@@ -74,12 +80,18 @@ func (suite Model12) Test1202_RegisterNodeWithUnavailableNodeIsSuccess() {
 	suite.Require().Nil(err)
 	from, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
+	pk2, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	from2, err := pk2.PublicKey().Address()
+	suite.Require().Nil(err)
 	args := []*pb.Arg{
-		rpcx.String(pid),
-		rpcx.Uint64(5),
-		rpcx.String(""),
-		rpcx.String("vpNode"),
-		rpcx.String("reason"),
+		rpcx.String(from2.String()), //nodeAccount
+		rpcx.String("vpNode"),       //nodeType
+		rpcx.String(pid),            //nodePid
+		rpcx.Uint64(5),              //nodeVpId
+		rpcx.String(from2.String()), //nodeName
+		rpcx.String(""),             //permitStr
+		rpcx.String("reason"),       //reason
 	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.NodeManagerContractAddr.Address(), "RegisterNode", &rpcx.TransactOpts{
@@ -92,55 +104,71 @@ func (suite Model12) Test1202_RegisterNodeWithUnavailableNodeIsSuccess() {
 	err = json.Unmarshal(res.Ret, result)
 	err = suite.VoteReject(result.ProposalID)
 	suite.Require().Nil(err)
-	err = suite.CheckNodeStatus(pid, governance.GovernanceUnavailable)
+	err = suite.CheckNodeStatus(from2.String(), governance.GovernanceUnavailable)
 	suite.Require().Nil(err)
-	err = suite.RegisterNode(pid, 5, "", "vpNode")
+	err = suite.RegisterNode(pid, 5, from2.String(), "vpNode", "")
 	suite.Require().Nil(err)
 	//recover
-	err = suite.LogoutNode(pid)
+	err = suite.LogoutNode(from2.String())
 	suite.Require().Nil(err)
 }
 
 //tc：节点处于available状态注册节点，节点注册失败
 func (suite Model12) Test1203_RegisterNodeWithAvailableNodeIsFail() {
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	from, err := pk.PublicKey().Address()
+	suite.Require().Nil(err)
 	pid, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.RegisterNode(pid, 5, "", "vpNode")
+	err = suite.RegisterNode(pid, 5, from.String(), "vpNode", "")
 	suite.Require().Nil(err)
-	err = suite.CheckNodeStatus(pid, governance.GovernanceAvailable)
+	err = suite.CheckNodeStatus(from.String(), governance.GovernanceAvailable)
 	suite.Require().Nil(err)
-	err = suite.RegisterNode(pid, 5, "", "vpNode")
+	err = suite.RegisterNode(pid, 5, from.String(), "vpNode", "")
 	suite.Require().NotNil(err)
 	//recover
-	err = suite.LogoutNode(pid)
+	err = suite.LogoutNode(from.String())
 	suite.Require().Nil(err)
 }
 
 //tc：节点用已存在的pid注册节点，节点注册失败
 func (suite Model12) Test1204_RegisterNodeWithSamePidIsFail() {
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	from, err := pk.PublicKey().Address()
+	suite.Require().Nil(err)
 	pid, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.RegisterNode(pid, 5, "", "vpNode")
+	err = suite.RegisterNode(pid, 5, from.String(), "vpNode", "")
 	suite.Require().Nil(err)
-	err = suite.RegisterNode(pid, 6, "", "vpNode")
+	err = suite.RegisterNode(pid, 6, from.String(), "vpNode", "")
 	suite.Require().NotNil(err)
 	//recover
-	err = suite.LogoutNode(pid)
+	err = suite.LogoutNode(from.String())
 	suite.Require().Nil(err)
 }
 
 //tc：节点用已存在的vpid注册节点，节点注册失败
 func (suite Model12) Test1205_RegisterNodeWithSameVPIDIsFail() {
+	pk1, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	from1, err := pk1.PublicKey().Address()
+	suite.Require().Nil(err)
+	pk2, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	from2, err := pk2.PublicKey().Address()
+	suite.Require().Nil(err)
 	pid1, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.RegisterNode(pid1, 5, "", "vpNode")
+	err = suite.RegisterNode(pid1, 5, from1.String(), "vpNode", "")
 	suite.Require().Nil(err)
 	pid2, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.RegisterNode(pid2, 5, "", "vpNode")
+	err = suite.RegisterNode(pid2, 5, from2.String(), "vpNode", "")
 	suite.Require().NotNil(err)
 	//recover
-	err = suite.LogoutNode(pid1)
+	err = suite.LogoutNode(from1.String())
 	suite.Require().Nil(err)
 }
 
@@ -151,44 +179,48 @@ func (suite Model12) Test1205_RegisterNodeWithSameVPIDIsFail() {
 func (suite Model12) Test1206_LogoutNodeWithNoRelayAdminIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
+	from, err := pk.PublicKey().Address()
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	pid, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.RegisterNode(pid, 5, "", "vpNode")
+	err = suite.RegisterNode(pid, 5, from.String(), "vpNode", "")
 	suite.Require().Nil(err)
 	args := []*pb.Arg{
-		rpcx.String(pid),
+		rpcx.String(from.String()),
 		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.NodeManagerContractAddr.Address(), "LogoutNode", nil, args...)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 	//recover
-	err = suite.LogoutNode(pid)
+	err = suite.LogoutNode(from.String())
 	suite.Require().Nil(err)
 }
 
 //tc：中继链管理员，注销节点，节点注销成功
 func (suite Model12) Test1207_LogoutNodeIsSuccess() {
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	from, err := pk.PublicKey().Address()
+	suite.Require().Nil(err)
 	pid, err := suite.CreatePid()
 	suite.Require().Nil(err)
-	err = suite.RegisterNode(pid, 5, "", "vpNode")
+	err = suite.RegisterNode(pid, 5, from.String(), "vpNode", "")
 	suite.Require().Nil(err)
-	err = suite.LogoutNode(pid)
+	err = suite.LogoutNode(from.String())
 	suite.Require().Nil(err)
 }
 
-//tc：中继链管理员，注销不存在pid的节点，节点注销失败
-func (suite Model12) Test1208_LogoutNodeWithNoPidIsFail() {
-	pid, err := suite.CreatePid()
-	suite.Require().Nil(err)
-	err = suite.LogoutNode(pid)
+//tc：中继链管理员，注销不存在account的节点，节点注销失败
+func (suite Model12) Test1208_LogoutNodeWithNoAccountIsFail() {
+	err := suite.LogoutNode("0x79a1215469FaB6f9c63c1816b45183AD3624bE33")
 	suite.Require().NotNil(err)
 }
 
 //tc：中继链管理员，节点数量4个注销节点，节点注销失败
 func (suite Model12) Test1209_LogoutNodeWithFourNodeIsFail() {
-	err := suite.LogoutNode("QmbmD1kzdsxRiawxu7bRrteDgW1ituXupR8GH6E2EUAHY4")
+	err := suite.LogoutNode("0x79a1215469FaB6f9c63c1816b45183AD3624bE34")
 	suite.Require().NotNil(err)
 }
 
@@ -225,19 +257,19 @@ func (suite Model12) Test1212_NodesIsSuccess() {
 	suite.Require().NotNil(string(res.Ret))
 }
 
-//tc：根据pid判断是否是可用节点，正确返回节点状态
+//tc：根据account判断是否是可用节点，正确返回节点状态
 func (suite Model12) Test1213_IsAvailableIsSuccess() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.NodeManagerContractAddr.Address(), "IsAvailable", nil, rpcx.String("QmbmD1kzdsxRiawxu7bRrteDgW1ituXupR8GH6E2EUAHY4"))
+	res, err := client.InvokeBVMContract(constant.NodeManagerContractAddr.Address(), "IsAvailable", nil, rpcx.String("0x79a1215469FaB6f9c63c1816b45183AD3624bE34"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().Equal("true", string(res.Ret))
 }
 
-//tc：根据错误的pid判断是否是可用节点，正确返回节点状态
-func (suite Model12) Test1214_IsAvailableWithNoPidIsFail() {
+//tc：根据错误的account判断是否是可用节点，正确返回节点状态
+func (suite Model12) Test1214_IsAvailableWithNoAccountIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -247,7 +279,7 @@ func (suite Model12) Test1214_IsAvailableWithNoPidIsFail() {
 	suite.Require().Equal("false", string(res.Ret))
 }
 
-func (suite Snake) RegisterNode(nodePid string, nodeVpId uint64, nodeAccount, nodeType string) error {
+func (suite Snake) RegisterNode(nodePid string, nodeVpId uint64, nodeAccount, nodeType, permit string) error {
 	path, err := repo.Node1Path()
 	if err != nil {
 		return err
@@ -261,11 +293,13 @@ func (suite Snake) RegisterNode(nodePid string, nodeVpId uint64, nodeAccount, no
 		return err
 	}
 	args := []*pb.Arg{
-		rpcx.String(nodePid),
-		rpcx.Uint64(nodeVpId),
-		rpcx.String(nodeAccount),
-		rpcx.String(nodeType),
-		rpcx.String("reason"),
+		rpcx.String(nodeAccount), //nodeAccount
+		rpcx.String(nodeType),    //nodeType
+		rpcx.String(nodePid),     //nodePid
+		rpcx.Uint64(nodeVpId),    //nodeVpId
+		rpcx.String(nodeAccount), //nodeName
+		rpcx.String(permit),      //permitStr
+		rpcx.String("reason"),    //reason
 	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.NodeManagerContractAddr.Address(), "RegisterNode", &rpcx.TransactOpts{
@@ -290,7 +324,7 @@ func (suite Snake) RegisterNode(nodePid string, nodeVpId uint64, nodeAccount, no
 	return nil
 }
 
-func (suite Snake) LogoutNode(nodePid string) error {
+func (suite Snake) LogoutNode(account string) error {
 	path, err := repo.Node1Path()
 	if err != nil {
 		return err
@@ -304,7 +338,7 @@ func (suite Snake) LogoutNode(nodePid string) error {
 		return err
 	}
 	args := []*pb.Arg{
-		rpcx.String(nodePid),
+		rpcx.String(account),
 		rpcx.String("reason"),
 	}
 	client := suite.NewClient(pk)
@@ -330,13 +364,13 @@ func (suite Snake) LogoutNode(nodePid string) error {
 	return nil
 }
 
-func (suite Snake) CheckNodeStatus(pid string, status governance.GovernanceStatus) error {
+func (suite Snake) CheckNodeStatus(account string, status governance.GovernanceStatus) error {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	if err != nil {
 		return err
 	}
 	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.NodeManagerContractAddr.Address(), "GetNode", nil, rpcx.String(pid))
+	res, err := client.InvokeBVMContract(constant.NodeManagerContractAddr.Address(), "GetNode", nil, rpcx.String(account))
 	if err != nil {
 		return err
 	}

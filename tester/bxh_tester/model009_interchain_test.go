@@ -481,7 +481,7 @@ func (suite Model9) Test0912_GetAllReceiptTimeOutWithStatusTransactionStatus_ROL
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.TransactionStatus_ROLLBACK, status)
 }
-func (suite Model9) PrepareServer() (crypto.PrivateKey, error) {
+func (suite Snake) PrepareServer() (crypto.PrivateKey, error) {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	if err != nil {
 		return nil, err
@@ -494,7 +494,7 @@ func (suite Model9) PrepareServer() (crypto.PrivateKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = suite.RegisterServer(pk, from.String(), "mychannel&transfer", "CallContract")
+	err = suite.RegisterServer(pk, from.String(), "mychannel&transfer", from.String(), "CallContract")
 	if err != nil {
 		return nil, err
 	}

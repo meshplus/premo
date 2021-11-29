@@ -652,8 +652,8 @@ func (suite Model6) Test0640_FreezeAppchainWithActivatingChainIsSuccess() {
 	err = suite.ChainToActivating(pk, from, address)
 	suite.Require().Nil(err)
 	err = suite.FreezeAppchain(from)
-	suite.Require().Nil(err)
-	err = suite.CheckChainStatus(from, governance.GovernanceFrozen)
+	suite.Require().NotNil(err)
+	err = suite.CheckChainStatus(from, governance.GovernanceActivating)
 	suite.Require().Nil(err)
 }
 

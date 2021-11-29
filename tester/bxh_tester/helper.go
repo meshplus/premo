@@ -557,7 +557,7 @@ func (suite Snake) GetChainID(pk crypto.PrivateKey) string {
 func (suite Snake) GetServerID(pk crypto.PrivateKey) string {
 	address, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	return "Server" + address.String()
+	return address.String()
 }
 
 func (suite Snake) DeploySimpleRule() (string, error) {
