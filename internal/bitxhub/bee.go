@@ -3,10 +3,12 @@ package bitxhub
 import (
 	"context"
 	"crypto/sha256"
-	"encoding/base64"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -36,7 +38,6 @@ type bee struct {
 	client        rpcx.Client
 	tps           int
 	count         uint64
-	adminNonce    uint64
 	nonce         uint64
 	ctx           context.Context
 	config        *Config
@@ -47,7 +48,7 @@ type RegisterResult struct {
 	ProposalID string `json:"proposal_id"`
 }
 
-func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expectedNonce uint64, config *Config, ctx context.Context) (*bee, error) {
+func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, config *Config, ctx context.Context) (*bee, error) {
 	normalPk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	if err != nil {
 		return nil, err
@@ -66,11 +67,14 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expect
 	if err != nil {
 		return nil, err
 	}
-	err = TransferFromAdmin(config, adminPk, adminFrom, normalFrom, "100", expectedNonce)
+	nonce, err := client.GetPendingNonceByAccount(normalFrom.String())
 	if err != nil {
 		return nil, err
 	}
-
+	err = TransferFromAdmin(config, adminPk, adminFrom, normalFrom, "100")
+	if err != nil {
+		return nil, err
+	}
 	return &bee{
 		client:        client,
 		adminPrivKey:  adminPk,
@@ -80,8 +84,7 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expect
 		tps:           tps,
 		ctx:           ctx,
 		config:        config,
-		adminNonce:    expectedNonce,
-		nonce:         0,
+		nonce:         nonce,
 	}, nil
 }
 
@@ -197,47 +200,57 @@ func (bee *bee) sendBVMTx(normalNo uint64) error {
 	return nil
 }
 
-func (bee *bee) prepareChain(chainType, name, validators, version, desc string, contract []byte) error {
+func (bee *bee) prepareChain(typ, desc string) error {
 	bee.client.SetPrivateKey(bee.normalPrivKey)
 	// register chain
-	pubKey, _ := bee.normalPrivKey.PublicKey().Bytes()
-	var pubKeyStr = base64.StdEncoding.EncodeToString(pubKey)
-	var ct = ""
-	if chainType == "fabric:simple" || chainType == "fabric:complex" {
-		ct = "fabric"
-	} else {
-		ct = chainType
+	from, _ := bee.normalPrivKey.PublicKey().Address()
+	broker := "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"
+	address := "0x00000000000000000000000000000000000000a2"
+	if typ == "Fabric V1.4.3" {
+		address = "0x00000000000000000000000000000000000000a0"
+		broker = "{\"channel_id\":\"mychannel\",\"chaincode_id\":\"broker\",\"broker_version\":\"1\"}"
+	} else if typ == "Flato V1.0.3" {
+		repoRoot, err := repo.PathRoot()
+		contract, err := ioutil.ReadFile(filepath.Join(repoRoot, "rule.wasm"))
+		if err != nil {
+			return fmt.Errorf("read rule file err %w", err)
+		}
+		addr, err := bee.client.DeployContract(contract, nil)
+		if err != nil {
+			return fmt.Errorf("deploy rule err %w", err)
+		}
+		atomic.AddUint64(&bee.nonce, 1)
+		address = addr.String()
 	}
 	args := []*pb.Arg{
-		rpcx.String("appchain" + bee.normalFrom.String()),                   //ownerDID
-		rpcx.String("/ipfs/QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"), //docAddr
-		rpcx.String("QmQVxzUqN2Yv2UHUQXYwH8dSNkM8ReJ9qPqwJsf8zzoNUi"),       //docHash
-		rpcx.String(validators), //validators
-		rpcx.String("raft"),     //consensus_type
-		rpcx.String(ct),         //chain_type
-		rpcx.String(name),       //name
-		rpcx.String(desc),       //desc
-		rpcx.String(version),    //version
-		rpcx.String(pubKeyStr),  //public key
+		rpcx.String(from.String()),               //chainID
+		rpcx.String(from.String()),               //chainName
+		rpcx.String(typ),                         //chainType
+		rpcx.Bytes([]byte(bee.config.Validator)), //trustRoot
+		rpcx.String(broker),                      //broker
+		rpcx.String(desc),                        //desc
+		rpcx.String(address),                     //masterRuleAddr
+		rpcx.String("https://github.com"),        //masterRuleUrl
+		rpcx.String(from.String()),               //adminAddrs
+		rpcx.String("reason"),                    //reason
 	}
-	receipt, err := bee.invokeContract(bee.normalFrom, constant.AppchainMgrContractAddr.Address(), atomic.LoadUint64(&bee.nonce),
-		"Register", args...)
+	res, err := bee.invokeContract(bee.normalFrom, constant.AppchainMgrContractAddr.Address(), atomic.LoadUint64(&bee.nonce),
+		"RegisterAppchain", args...)
 	if err != nil {
 		return fmt.Errorf("register appchain error: %w", err)
 	}
-
 	atomic.AddUint64(&bee.nonce, 1)
 	// vote chain
 	result := &RegisterResult{}
-	err = json.Unmarshal(receipt.Ret, result)
+	err = json.Unmarshal(res.Ret, result)
 	if err != nil || result.ProposalID == "" {
-		return fmt.Errorf("vote unmarshal error: %w", err)
+		return fmt.Errorf("vote chain unmarshal error: %w", err)
 	}
 	err = bee.VotePass(result.ProposalID)
 	if err != nil {
 		return fmt.Errorf("vote chain error: %w", err)
 	}
-	res, err := bee.GetChainStatusById(string(result.Extra))
+	res, err = bee.GetChainStatusById(from.String())
 	if err != nil {
 		return fmt.Errorf("getChainStatus error: %w", err)
 	}
@@ -246,52 +259,32 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 	if err != nil || appchain.Status != governance.GovernanceAvailable {
 		return fmt.Errorf("chain error: %w", err)
 	}
-	ID := string(result.Extra)
-
-	ruleAddr := "0x00000000000000000000000000000000000000a0"
-	// deploy rule
-	if chainType == "hyperchain" {
-		contractAddr, err := bee.client.DeployContract(contract, nil)
-		if err != nil {
-			return fmt.Errorf("deploy contract error:%w", err)
-		}
-		atomic.AddUint64(&bee.nonce, 1)
-		ruleAddr = contractAddr.String()
-		res, err = bee.invokeContract(bee.normalFrom, constant.RuleManagerContractAddr.Address(), atomic.LoadUint64(&bee.nonce),
-			"RegisterRule", rpcx.String(ID), rpcx.String(ruleAddr))
-		if err != nil {
-			return fmt.Errorf("register rule error:%w", err)
-		}
-		result := &RegisterResult{}
-		err = json.Unmarshal(res.Ret, result)
-		if err != nil {
-			return err
-		}
-		err = bee.VotePass(result.ProposalID)
-		if err != nil {
-			return fmt.Errorf("contract vote error:%w", err)
-		}
-		atomic.AddUint64(&bee.nonce, 1)
-	} else if chainType == "fabric:simple" {
-		ruleAddr = "0x00000000000000000000000000000000000000a1"
-		res, err = bee.invokeContract(bee.normalFrom, constant.RuleManagerContractAddr.Address(), atomic.LoadUint64(&bee.nonce),
-			"UpdateMasterRule", rpcx.String(ID), rpcx.String(ruleAddr))
-		if err != nil {
-			return fmt.Errorf("update rule error:%w", err)
-		}
-		result = &RegisterResult{}
-		err = json.Unmarshal(res.Ret, result)
-		if res.Status != pb.Receipt_SUCCESS {
-			fmt.Printf("ChainID:%s,Res:%s\n", ID, string(res.Ret))
-		}
-		if err != nil {
-			return fmt.Errorf("unmarshal error:%w", err)
-		}
-		err = bee.VotePass(result.ProposalID)
-		if err != nil {
-			return fmt.Errorf("contract vote error:%w", err)
-		}
-		atomic.AddUint64(&bee.nonce, 1)
+	//register server
+	args = []*pb.Arg{
+		rpcx.String(from.String()),
+		rpcx.String("mychannel&transfer"),
+		rpcx.String(from.String()),
+		rpcx.String("CallContract"),
+		rpcx.String("test"),
+		rpcx.Uint64(1),
+		rpcx.String(""),
+		rpcx.String("test"),
+		rpcx.String("reason"),
+	}
+	res, err = bee.invokeContract(bee.normalFrom, constant.ServiceMgrContractAddr.Address(), atomic.LoadUint64(&bee.nonce), "RegisterService", args...)
+	if err != nil {
+		return fmt.Errorf("register server error %w", err)
+	}
+	atomic.AddUint64(&bee.nonce, 1)
+	//vote server
+	result = &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	if err != nil || result.ProposalID == "" {
+		return fmt.Errorf("vote server unmarshal error: %w", err)
+	}
+	err = bee.VotePass(result.ProposalID)
+	if err != nil {
+		return fmt.Errorf("vote server error: %w", err)
 	}
 	prepareInterchainTx()
 	return nil
@@ -363,7 +356,7 @@ func (bee *bee) sendTransferTx(to *types.Address, normalNo uint64) error {
 
 func (bee *bee) sendInterchainTx(i uint64, nonce uint64) error {
 	atomic.AddInt64(&sender, 1)
-	ibtp := mockIBTP(i, "did:bitxhub:appchain"+bee.normalFrom.String()+":.", "did:bitxhub:appchain"+bee.normalFrom.String()+":.", bee.config.Proof)
+	ibtp := mockIBTP(i, "1356:"+bee.normalFrom.String()+":mychannel&transfer", bee.config.Proof)
 
 	tx := &pb.BxhTransaction{
 		From:      bee.normalFrom,
@@ -391,9 +384,11 @@ func prepareInterchainTx() {
 		return
 	}
 
+	transferAmount := make([]byte, 8)
+	binary.BigEndian.PutUint64(transferAmount, 1)
 	content := &pb.Content{
 		Func: "interchainCharge",
-		Args: [][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
+		Args: [][]byte{[]byte("Alice"), []byte("Alice"), transferAmount},
 	}
 
 	bytes, _ := content.Marshal()
@@ -406,11 +401,11 @@ func prepareInterchainTx() {
 	ibtppd, _ = payload.Marshal()
 }
 
-func mockIBTP(index uint64, from, to string, proof []byte) *pb.IBTP {
+func mockIBTP(index uint64, from string, proof []byte) *pb.IBTP {
 	proofHash := sha256.Sum256(proof)
 	return &pb.IBTP{
 		From:          from,
-		To:            to,
+		To:            "1356:" + To + ":mychannel&transfer",
 		Payload:       ibtppd,
 		Index:         index,
 		Type:          pb.IBTP_INTERCHAIN,
@@ -445,7 +440,6 @@ func (bee *bee) VotePass(id string) error {
 	if err != nil {
 		return err
 	}
-
 	key, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
 	if err != nil {
 		return err
@@ -535,17 +529,20 @@ func (bee *bee) vote(key crypto.PrivateKey, index uint64, args ...*pb.Arg) (*pb.
 }
 
 func (bee *bee) GetChainStatusById(id string) (*pb.Receipt, error) {
-	node, err := repo.Node2Path()
-	key, err := asym.RestorePrivateKey(node, repo.KeyPassword)
+	path, err := repo.Node2Path()
+	if err != nil {
+		return nil, err
+	}
+	pk, err := asym.RestorePrivateKey(path, repo.KeyPassword)
 	if err != nil {
 		return nil, err
 	}
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: bee.config.BitxhubAddr[0]}),
 		rpcx.WithLogger(cfg.logger),
-		rpcx.WithPrivateKey(key),
+		rpcx.WithPrivateKey(pk),
 	)
-	address, err := key.PublicKey().Address()
+	address, err := pk.PublicKey().Address()
 	if err != nil {
 		return nil, err
 	}
@@ -556,7 +553,6 @@ func (bee *bee) GetChainStatusById(id string) (*pb.Receipt, error) {
 		Method: "GetAppchain",
 		Args:   args,
 	}
-
 	payload, err := invokePayload.Marshal()
 	if err != nil {
 		return nil, err
@@ -568,7 +564,6 @@ func (bee *bee) GetChainStatusById(id string) (*pb.Receipt, error) {
 		Payload: payload,
 	}
 	payload, err = data.Marshal()
-
 	tx := &pb.BxhTransaction{
 		From:      address,
 		To:        constant.AppchainMgrContractAddr.Address(),
@@ -579,7 +574,7 @@ func (bee *bee) GetChainStatusById(id string) (*pb.Receipt, error) {
 		return nil, err
 	}
 	receipt, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:  bee.adminFrom.String(),
+		From:  address.String(),
 		Nonce: atomic.AddUint64(&index2, 1),
 	})
 	if err != nil {
@@ -588,7 +583,7 @@ func (bee *bee) GetChainStatusById(id string) (*pb.Receipt, error) {
 	return receipt, nil
 }
 
-func TransferFromAdmin(config *Config, adminPrivKey crypto.PrivateKey, adminFrom *types.Address, address *types.Address, amount string, nonce uint64) error {
+func TransferFromAdmin(config *Config, adminPrivKey crypto.PrivateKey, adminFrom *types.Address, address *types.Address, amount string) error {
 	node0 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[0]}
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(node0),
@@ -615,7 +610,7 @@ func TransferFromAdmin(config *Config, adminPrivKey crypto.PrivateKey, adminFrom
 
 	ret, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
 		From:  adminFrom.String(),
-		Nonce: nonce,
+		Nonce: atomic.AddUint64(&adminNonce, 1) - 1,
 	})
 	if err != nil {
 		return err

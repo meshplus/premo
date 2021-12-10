@@ -54,8 +54,8 @@ var testCMD = &cli.Command{
 		},
 		&cli.StringFlag{
 			Name:  "appchain",
-			Usage: "Specify appchain type: fabric:simple, fabric:complex, hpc",
-			Value: "fabric:simple",
+			Usage: "Specify appchain type: fabric, flato, eth",
+			Value: "flato",
 		},
 	},
 	Action: benchmark,
@@ -63,7 +63,7 @@ var testCMD = &cli.Command{
 
 func benchmark(ctx *cli.Context) error {
 	box := packr.NewBox(repo.ConfigPath)
-	//val, err := box.Find("fabric.validators")
+	//val, err := box.Find("validator_fabric")
 	val, err := box.Find("single_validator")
 	if err != nil {
 		return err
@@ -72,21 +72,34 @@ func benchmark(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	typ := ""
 
 	appchain := ctx.String("appchain")
-	if appchain == "fabric:complex" {
-		val, err = box.Find("validator_1.0.0_rc_complex")
+	if appchain == "fabric" {
+		val, err = box.Find("validator_fabric_complex")
 		if err != nil {
 			return err
 		}
-		proof, err = box.Find("proof_1.0.0_rc_complex")
+		proof, err = box.Find("proof_fabric")
 		if err != nil {
 			return err
 		}
-	} else if appchain != "fabric:simple" && appchain != "hyperchain" {
+		typ = "Fabric V1.4.3"
+	} else if appchain == "flato" {
+		//val, err = box.Find("validator_flato")
+		//if err != nil {
+		//	return err
+		//}
+		//proof, err = box.Find("proof_flato")
+		//if err != nil {
+		//	return err
+		//}
+		typ = "Flato V1.0.3"
+	} else if appchain == "eth" {
+		typ = "ETH"
+	} else {
 		return fmt.Errorf("unsupported appchain type")
 	}
-
 	contract, err := box.Find("rule.wasm")
 	if err != nil {
 		return err
@@ -94,6 +107,7 @@ func benchmark(ctx *cli.Context) error {
 
 	keyPath := ctx.String("key_path")
 	if keyPath == "" {
+		//default use node4
 		keyPath, err = repo.Node4Path()
 		if err != nil {
 			return err
@@ -109,7 +123,7 @@ func benchmark(ctx *cli.Context) error {
 		Validator:   string(val),
 		Proof:       proof,
 		Rule:        contract,
-		Appchain:    appchain,
+		Appchain:    typ,
 	}
 
 	if config.Concurrent > config.TPS {
