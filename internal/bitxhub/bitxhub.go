@@ -2,6 +2,7 @@ package bitxhub
 
 import (
 	"context"
+	"github.com/meshplus/bitxhub-model/pb"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -193,8 +194,6 @@ func (broker *Broker) Start(typ string) error {
 	wg.Add(len(broker.bees))
 
 	current := time.Now()
-	lastCounter := atomic.LoadInt64(&counter)
-	lastDelayer := atomic.LoadInt64(&delayer)
 
 	meta0, err := broker.client.GetChainMeta()
 	if err != nil {
@@ -219,20 +218,57 @@ func (broker *Broker) Start(typ string) error {
 	}).Info("start all bees")
 
 	go func() {
+		var (
+			cnt  = int64(0)
+			dly  = int64(0)
+			mDly = int64(0)
+		)
+		ch, err := broker.client.Subscribe(context.TODO(), pb.SubscriptionRequest_BLOCK, nil)
+		if err != nil {
+			log.WithField("error", err).Error("subscribe block")
+			return
+		}
 		ticker := time.NewTicker(time.Second)
+		defer ticker.Stop()
+
 		for {
 			select {
 			case <-broker.ctx.Done():
 				return
 			case <-ticker.C:
-				currentCounter := atomic.LoadInt64(&counter)
-				c := float64(currentCounter - lastCounter)
-				lastCounter = currentCounter
+				c := float64(cnt)
+				d := float64(dly) / float64(time.Millisecond)
+				md := float64(mDly) / float64(time.Millisecond)
+				log.Infof("current tps is %d, average tx delay is %fms, max tx delay is %fms", cnt, d/c, md)
 
-				currentDelayer := atomic.LoadInt64(&delayer)
-				d := float64(currentDelayer-lastDelayer) / float64(time.Millisecond)
-				lastDelayer = currentDelayer
-				log.Infof("current tps is %f, tx_delay is %fms", c, d/c)
+				if maxDelay < mDly {
+					maxDelay = mDly
+				}
+
+				cnt = 0
+				dly = 0
+				mDly = 0
+
+			case data, ok := <-ch:
+				if !ok {
+					log.Warn("block subscription channel is closed")
+					return
+				}
+
+				block := data.(*pb.Block)
+				now := time.Now().UnixNano()
+				for _, tx := range block.Transactions.Transactions {
+					cnt++
+					counter++
+
+					txDelay := now - tx.GetTimeStamp()
+					dly += txDelay
+					delayer += txDelay
+
+					if mDly < txDelay {
+						mDly = txDelay
+					}
+				}
 			}
 		}
 	}()
@@ -275,7 +311,7 @@ func (broker *Broker) Stop(current time.Time) error {
 	}
 	err := broker.client.Stop()
 	if err != nil {
-		panic(err)
+		log.Warn(err)
 	}
 	delayerAvg := float64(delayer) / float64(counter)
 	log.WithFields(logrus.Fields{
