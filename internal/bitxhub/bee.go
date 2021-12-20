@@ -25,6 +25,8 @@ import (
 	"github.com/wonderivan/logger"
 )
 
+var maxDelay int64
+var proofHash [32]byte
 var counter int64
 var sender int64
 var delayer int64
@@ -196,7 +198,7 @@ func (bee *bee) sendBVMTx(normalNo uint64) error {
 	}
 	tx.TransactionHash = types.NewHashByStr(txHash)
 
-	go bee.counterReceipt(tx)
+	//go bee.counterReceipt(tx)
 	return nil
 }
 
@@ -349,8 +351,8 @@ func (bee *bee) sendTransferTx(to *types.Address, normalNo uint64) error {
 		return err
 	}
 	tx.TransactionHash = types.NewHashByStr(txHash)
-	go bee.counterReceipt(tx)
-	atomic.AddInt64(&sender, 1)
+	//go bee.counterReceipt(tx)
+	//atomic.AddInt64(&sender, 1)
 	return nil
 }
 
@@ -374,7 +376,7 @@ func (bee *bee) sendInterchainTx(i uint64, nonce uint64) error {
 		return err
 	}
 	tx.TransactionHash = types.NewHashByStr(txHash)
-	go bee.counterReceipt(tx)
+	//go bee.counterReceipt(tx)
 
 	return nil
 }
