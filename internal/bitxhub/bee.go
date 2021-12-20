@@ -3,9 +3,12 @@ package bitxhub
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -35,7 +38,6 @@ type bee struct {
 	client        rpcx.Client
 	tps           int
 	count         uint64
-	adminNonce    uint64
 	nonce         uint64
 	ctx           context.Context
 	config        *Config
@@ -82,7 +84,6 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, config
 		tps:           tps,
 		ctx:           ctx,
 		config:        config,
-		adminNonce:    atomic.LoadUint64(&adminNonce),
 		nonce:         nonce,
 	}, nil
 }
@@ -203,18 +204,35 @@ func (bee *bee) prepareChain(typ, desc string) error {
 	bee.client.SetPrivateKey(bee.normalPrivKey)
 	// register chain
 	from, _ := bee.normalPrivKey.PublicKey().Address()
+	broker := "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"
 	address := "0x00000000000000000000000000000000000000a2"
+	if typ == "Fabric V1.4.3" {
+		address = "0x00000000000000000000000000000000000000a0"
+		broker = "{\"channel_id\":\"mychannel\",\"chaincode_id\":\"broker\",\"broker_version\":\"1\"}"
+	} else if typ == "Flato V1.0.3" {
+		repoRoot, err := repo.PathRoot()
+		contract, err := ioutil.ReadFile(filepath.Join(repoRoot, "rule.wasm"))
+		if err != nil {
+			return fmt.Errorf("read rule file err %w", err)
+		}
+		addr, err := bee.client.DeployContract(contract, nil)
+		if err != nil {
+			return fmt.Errorf("deploy rule err %w", err)
+		}
+		atomic.AddUint64(&bee.nonce, 1)
+		address = addr.String()
+	}
 	args := []*pb.Arg{
-		rpcx.String(from.String()), //chainID
-		rpcx.String(from.String()), //chainName
-		rpcx.String(typ),           //chainType
-		rpcx.Bytes([]byte("")),     //trustRoot
-		rpcx.String("0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"), //broker
-		rpcx.String(desc),                 //desc
-		rpcx.String(address),              //masterRuleAddr
-		rpcx.String("https://github.com"), //masterRuleUrl
-		rpcx.String(from.String()),        //adminAddrs
-		rpcx.String("reason"),             //reason
+		rpcx.String(from.String()),               //chainID
+		rpcx.String(from.String()),               //chainName
+		rpcx.String(typ),                         //chainType
+		rpcx.Bytes([]byte(bee.config.Validator)), //trustRoot
+		rpcx.String(broker),                      //broker
+		rpcx.String(desc),                        //desc
+		rpcx.String(address),                     //masterRuleAddr
+		rpcx.String("https://github.com"),        //masterRuleUrl
+		rpcx.String(from.String()),               //adminAddrs
+		rpcx.String("reason"),                    //reason
 	}
 	res, err := bee.invokeContract(bee.normalFrom, constant.AppchainMgrContractAddr.Address(), atomic.LoadUint64(&bee.nonce),
 		"RegisterAppchain", args...)
@@ -366,9 +384,11 @@ func prepareInterchainTx() {
 		return
 	}
 
+	transferAmount := make([]byte, 8)
+	binary.BigEndian.PutUint64(transferAmount, 1)
 	content := &pb.Content{
 		Func: "interchainCharge",
-		Args: [][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
+		Args: [][]byte{[]byte("Alice"), []byte("Alice"), transferAmount},
 	}
 
 	bytes, _ := content.Marshal()
@@ -420,7 +440,6 @@ func (bee *bee) VotePass(id string) error {
 	if err != nil {
 		return err
 	}
-
 	key, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
 	if err != nil {
 		return err
