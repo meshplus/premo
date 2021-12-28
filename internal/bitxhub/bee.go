@@ -13,9 +13,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/Rican7/retry"
-	"github.com/Rican7/retry/strategy"
-
 	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"github.com/meshplus/bitxhub-core/governance"
 	"github.com/meshplus/bitxhub-kit/crypto"
@@ -104,21 +101,14 @@ func (bee *bee) start(typ string) error {
 		case <-ticker.C:
 			for i := 0; i < bee.tps; i++ {
 				bee.count++
-				nonce := atomic.LoadUint64(&bee.nonce)
-				atomic.AddUint64(&bee.nonce, 1)
+				nonce := atomic.AddUint64(&bee.nonce, 1) - 1
 				go func(count, nonce uint64) {
 					select {
 					case <-bee.ctx.Done():
 						return
 					default:
-						if err := retry.Retry(func(attempt uint) error {
-							err := bee.sendTx(typ, count, nonce)
-							if err != nil {
-								return err
-							}
-							return nil
-						}, strategy.Wait(time.Second),
-						); err != nil {
+						err := bee.sendTx(typ, count, nonce)
+						if err != nil {
 							logger.Error(err)
 						}
 					}
