@@ -50,11 +50,10 @@ func (suite *Model14) SetupTest() {
 //tc：根据存在的合约地址注册dapp，dapp注册成功
 func (suite Model14) Test1401_RegisterDappIsSuccess() {
 	address := suite.deployLedgerContract()
-	fmt.Println(address)
-	//pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	//suite.Require().Nil(err)
-	//err = suite.RegisterDapp(pk, address.String())
-	//suite.Require().Nil(err)
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	err = suite.RegisterDapp(pk, address.String())
+	suite.Require().Nil(err)
 }
 
 //tc：根据不存在的合约地址注册dapp，dapp注册失败

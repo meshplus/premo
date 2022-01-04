@@ -23,8 +23,8 @@ require (
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/meshplus/bitxhub-core v1.3.1-0.20211019055819-2e20288cafa4
 	github.com/meshplus/bitxhub-kit v1.2.1-0.20210902085548-07f4fa85bfc9
-	github.com/meshplus/bitxhub-model v1.2.1-0.20211123095257-a88a97a00981
-	github.com/meshplus/go-bitxhub-client v1.4.1-0.20211125014603-87d082ffe1a6
+	github.com/meshplus/bitxhub-model v1.2.1-0.20211228020023-9ad5546d56ec
+	github.com/meshplus/go-bitxhub-client v1.4.1-0.20211228025029-2156610004da
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.7.2-0.20200724220135-c650ae9fa103 // indirect

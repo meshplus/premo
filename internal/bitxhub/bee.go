@@ -101,8 +101,7 @@ func (bee *bee) start(typ string) error {
 		case <-ticker.C:
 			for i := 0; i < bee.tps; i++ {
 				bee.count++
-				nonce := atomic.LoadUint64(&bee.nonce)
-				atomic.AddUint64(&bee.nonce, 1)
+				nonce := atomic.AddUint64(&bee.nonce, 1) - 1
 				go func(count, nonce uint64) {
 					select {
 					case <-bee.ctx.Done():
