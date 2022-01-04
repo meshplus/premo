@@ -13,6 +13,10 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/Rican7/retry"
+	"github.com/Rican7/retry/backoff"
+	"github.com/Rican7/retry/strategy"
+
 	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"github.com/meshplus/bitxhub-core/governance"
 	"github.com/meshplus/bitxhub-kit/crypto"
@@ -107,10 +111,14 @@ func (bee *bee) start(typ string) error {
 					case <-bee.ctx.Done():
 						return
 					default:
-						err := bee.sendTx(typ, count, nonce)
-						if err != nil {
-							logger.Error(err)
-						}
+						err := retry.Retry(func(attempt uint) error {
+							err := bee.sendTx(typ, count, nonce)
+							if err != nil {
+								return err
+							}
+							return nil
+						}, strategy.Backoff(backoff.Fibonacci(500*time.Millisecond)))
+						logger.Error(err)
 					}
 				}(bee.count, nonce)
 			}
