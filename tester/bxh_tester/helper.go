@@ -24,7 +24,7 @@ import (
 
 var cfg = &config{
 	addrs: []string{
-		"wsl:60011",
+		"localhost:60011",
 		"localhost:60012",
 		"localhost:60013",
 		"localhost:60014",
