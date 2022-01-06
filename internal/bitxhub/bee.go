@@ -20,11 +20,12 @@ import (
 	"github.com/wonderivan/logger"
 )
 
+var maxDelay int64
+var proofHash [32]byte
 var counter int64
 var sender int64
 var delayer int64
 var ibtppd []byte
-var proofHash [32]byte
 
 type bee struct {
 	adminPrivKey  crypto.PrivateKey
@@ -90,8 +91,7 @@ func (bee *bee) start(typ string) error {
 		case <-ticker.C:
 			for i := 0; i < bee.tps; i++ {
 				bee.count++
-				nonce := atomic.LoadUint64(&bee.nonce)
-				atomic.AddUint64(&bee.nonce, 1)
+				nonce := atomic.AddUint64(&bee.nonce, 1) - 1
 				go func(count, nonce uint64) {
 					select {
 					case <-bee.ctx.Done():

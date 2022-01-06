@@ -9,11 +9,9 @@ require (
 	github.com/cloudflare/cfssl v0.0.0-20190409034051-768cd563887f // indirect
 	github.com/coreos/etcd v3.3.18+incompatible
 	github.com/ethereum/go-ethereum v1.10.2
-	github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5 // indirect
 	github.com/gballet/go-libpcsclite v0.0.0-20191108122812-4678299bea08 // indirect
 	github.com/gobuffalo/packd v1.0.0
 	github.com/gobuffalo/packr v1.30.1
-	github.com/golangci/golangci-lint v1.23.0 // indirect
 	github.com/google/certificate-transparency-go v1.1.0 // indirect
 	github.com/hyperledger/fabric-lib-go v1.0.0 // indirect
 	github.com/hyperledger/fabric-sdk-go v1.0.0-alpha5
@@ -25,7 +23,6 @@ require (
 	github.com/meshplus/bitxhub-model v1.1.2-0.20210513074749-d31e04a9f41d
 	github.com/meshplus/go-bitxhub-client v1.0.0-rc4.0.20210416022059-22729ce4c0f2
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.7.2-0.20200724220135-c650ae9fa103 // indirect
 	github.com/rjeczalik/notify v0.9.2 // indirect
