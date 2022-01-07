@@ -13,7 +13,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
+	"github.com/Rican7/retry"
+	"github.com/Rican7/retry/backoff"
+	"github.com/Rican7/retry/strategy"
+	appchainMgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"github.com/meshplus/bitxhub-core/governance"
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
@@ -26,7 +29,6 @@ import (
 )
 
 var maxDelay int64
-var proofHash [32]byte
 var counter int64
 var sender int64
 var delayer int64
@@ -107,7 +109,13 @@ func (bee *bee) start(typ string) error {
 					case <-bee.ctx.Done():
 						return
 					default:
-						err := bee.sendTx(typ, count, nonce)
+						err := retry.Retry(func(attempt uint) error {
+							err := bee.sendTx(typ, count, nonce)
+							if err != nil {
+								return err
+							}
+							return nil
+						}, strategy.Limit(5), strategy.Backoff(backoff.Fibonacci(500*time.Millisecond)))
 						if err != nil {
 							logger.Error(err)
 						}
@@ -255,7 +263,7 @@ func (bee *bee) prepareChain(typ, desc string) error {
 	if err != nil {
 		return fmt.Errorf("getChainStatus error: %w", err)
 	}
-	appchain := &appchain_mgr.Appchain{}
+	appchain := &appchainMgr.Appchain{}
 	err = json.Unmarshal(res.Ret, appchain)
 	if err != nil || appchain.Status != governance.GovernanceAvailable {
 		return fmt.Errorf("chain error: %w", err)
