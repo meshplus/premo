@@ -24,7 +24,7 @@ import (
 
 var cfg = &config{
 	addrs: []string{
-		"localhost:60011",
+		"wsl:60011",
 		"localhost:60012",
 		"localhost:60013",
 		"localhost:60014",
@@ -56,6 +56,54 @@ type Rule struct {
 	ChainId string                      `json:"chain_id"`
 	Status  governance.GovernanceStatus `json:"status"`
 	FSM     *fsm.FSM                    `json:"fsm"`
+}
+
+type ProposalType string
+type ProposalStatus string
+type EndReason string
+type RoleType string
+type Ballot struct {
+	VoterAddr string `json:"voter_addr"`
+	Approve   string `json:"approve"`
+	Num       uint64 `json:"num"`
+	Reason    string `json:"reason"`
+	VoteTime  int64  `json:"vote_time"`
+}
+type Role struct {
+	ID       string   `toml:"id" json:"id"`
+	RoleType RoleType `toml:"role_type" json:"role_type"`
+	// 	GovernanceAdmin info
+	Weight uint64 `json:"weight" toml:"weight"`
+	// AuditAdmin info
+	NodePid string `toml:"pid" json:"pid"`
+	// Appchain info
+	AppchainID string                      `toml:"appchain_id" json:"appchain_id"`
+	Status     governance.GovernanceStatus `toml:"status" json:"status"`
+	FSM        *fsm.FSM                    `json:"fsm"`
+}
+type Proposal struct {
+	Id            string                      `json:"id"`
+	Typ           ProposalType                `json:"typ"`
+	Status        ProposalStatus              `json:"status"`
+	ObjId         string                      `json:"obj_id"`
+	ObjLastStatus governance.GovernanceStatus `json:"obj_last_status"`
+	// ballot information: voter address -> ballot
+	BallotMap              map[string]Ballot    `json:"ballot_map"`
+	ApproveNum             uint64               `json:"approve_num"`
+	AgainstNum             uint64               `json:"against_num"`
+	ElectorateList         []*Role              `json:"electorate_list"`
+	InitialElectorateNum   uint64               `json:"initial_electorate_num"`
+	AvailableElectorateNum uint64               `json:"available_electorate_num"`
+	ThresholdElectorateNum uint64               `json:"threshold_electorate_num"`
+	EventType              governance.EventType `json:"event_type"`
+	EndReason              EndReason            `json:"end_reason"`
+	LockProposalId         string               `json:"lock_proposal_id"`
+	IsSpecial              bool                 `json:"is_special"`
+	IsSuperAdminVoted      bool                 `json:"is_super_admin_voted"`
+	SubmitReason           string               `json:"submit_reason"`
+	WithdrawReason         string               `json:"withdraw_reason"`
+	CreateTime             int64                `json:"create_time"`
+	Extra                  []byte               `json:"extra"`
 }
 
 var nonce1 uint64
@@ -122,15 +170,23 @@ func (suite *Snake) SetupSuite() {
 	nonce4 = nonce - 1
 }
 
-func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, chainID, address string) error {
+func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, name, address string) error {
 	client := suite.NewClient(pk)
+	from, err := pk.PublicKey().Address()
+	if err != nil {
+		return err
+	}
 	args := []*pb.Arg{
-		rpcx.String(chainID),   //ID
-		rpcx.Bytes([]byte("")), //trustRoot
+		rpcx.String(from.String()),  //chainID
+		rpcx.String(name),           //chainName
+		rpcx.String("Flato V1.0.3"), //chainType
+		rpcx.Bytes([]byte("")),      //trustRoot
 		rpcx.String("0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"), //broker
-		rpcx.String("desc"),   //desc
-		rpcx.String(address),  //masterRule
-		rpcx.String("reason"), //reason
+		rpcx.String("desc"),               //desc
+		rpcx.String(address),              //masterRuleAddr
+		rpcx.String("https://github.com"), //masterRuleUrl
+		rpcx.String(from.String()),        //adminAddrs
+		rpcx.String("reason"),             //reason
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "RegisterAppchain", nil, args...)
 	if err != nil {
@@ -343,7 +399,7 @@ func (suite *Snake) sendTransaction(pk crypto.PrivateKey) {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 }
 
-func (suite *Snake) GetChainStatusById(id string) (governance.GovernanceStatus, error) {
+func (suite *Snake) GetChainStatusByName(name string) (governance.GovernanceStatus, error) {
 	key, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	if err != nil {
 		return "", err
@@ -354,25 +410,22 @@ func (suite *Snake) GetChainStatusById(id string) (governance.GovernanceStatus, 
 		return "", err
 	}
 	args := []*pb.Arg{
-		rpcx.String(id),
+		rpcx.String(name),
 	}
 	invokePayload := &pb.InvokePayload{
-		Method: "GetAppchain",
+		Method: "GetAppchainByName",
 		Args:   args,
 	}
-
 	payload, err := invokePayload.Marshal()
 	if err != nil {
 		return "", err
 	}
-
 	data := &pb.TransactionData{
 		Type:    pb.TransactionData_INVOKE,
 		VmType:  pb.TransactionData_BVM,
 		Payload: payload,
 	}
 	payload, err = data.Marshal()
-
 	tx := &pb.BxhTransaction{
 		From:      address,
 		To:        constant.AppchainMgrContractAddr.Address(),
@@ -395,6 +448,54 @@ func (suite *Snake) GetChainStatusById(id string) (governance.GovernanceStatus, 
 		return "", err
 	}
 	return appchain.Status, nil
+}
+
+func (suite Snake) GetChainIDByName(name string) (string, error) {
+	key, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	if err != nil {
+		return "", err
+	}
+	client := suite.NewClient(key)
+	address, err := key.PublicKey().Address()
+	if err != nil {
+		return "", err
+	}
+	args := []*pb.Arg{
+		rpcx.String(name),
+	}
+	invokePayload := &pb.InvokePayload{
+		Method: "GetAppchainByName",
+		Args:   args,
+	}
+	payload, err := invokePayload.Marshal()
+	if err != nil {
+		return "", err
+	}
+	data := &pb.TransactionData{
+		Type:    pb.TransactionData_INVOKE,
+		VmType:  pb.TransactionData_BVM,
+		Payload: payload,
+	}
+	payload, err = data.Marshal()
+	tx := &pb.BxhTransaction{
+		From:      address,
+		To:        constant.AppchainMgrContractAddr.Address(),
+		Timestamp: time.Now().UnixNano(),
+		Payload:   payload,
+	}
+	if err != nil {
+		return "", err
+	}
+	res, err := client.SendTransactionWithReceipt(tx, nil)
+	if err != nil {
+		return "", err
+	}
+	appchain := appchain_mgr.Appchain{}
+	err = json.Unmarshal(res.Ret, &appchain)
+	if err != nil {
+		return "", err
+	}
+	return appchain.ID, nil
 }
 
 func (suite Snake) TransferFromAdmin(address string, amount string) error {
@@ -435,6 +536,7 @@ func (suite Snake) TransferFromAdmin(address string, amount string) error {
 	}
 
 	ret, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+		From:  from.String(),
 		Nonce: atomic.AddUint64(&nonce4, 1),
 	})
 	if err != nil {
@@ -449,13 +551,13 @@ func (suite Snake) TransferFromAdmin(address string, amount string) error {
 func (suite Snake) GetChainID(pk crypto.PrivateKey) string {
 	address, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	return "1356:Chain" + address.String()
+	return "Chain" + address.String()
 }
 
 func (suite Snake) GetServerID(pk crypto.PrivateKey) string {
 	address, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
-	return "Server" + address.String()
+	return address.String()
 }
 
 func (suite Snake) DeploySimpleRule() (string, error) {
@@ -496,8 +598,8 @@ func (suite *Snake) GetRuleStatus(pk crypto.PrivateKey, ChainID string, contract
 	return rule.Status, nil
 }
 
-func (suite *Snake) CheckChainStatus(chainID string, expectStatus governance.GovernanceStatus) error {
-	status, err := suite.GetChainStatusById(chainID)
+func (suite *Snake) CheckChainStatus(name string, expectStatus governance.GovernanceStatus) error {
+	status, err := suite.GetChainStatusByName(name)
 	if err != nil {
 		return err
 	}
@@ -533,3 +635,12 @@ func (suite Snake) CountAppchains() (string, error) {
 	}
 	return string(res.Ret), nil
 }
+
+//func (suite Snake) GetProposalByID(id string) (Proposal, error) {
+//	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+//	if err != nil {
+//		return "", err
+//	}
+//	client := suite.NewClient(pk)
+//
+//}

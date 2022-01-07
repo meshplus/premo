@@ -115,11 +115,11 @@ func (suite Model14) Test1406_UpdateDappWithUsedAddrIsFail() {
 	err = suite.RegisterDapp(pk2, address2.String())
 	suite.Require().Nil(err)
 	err = suite.UpdateDapp(pk2, address1.String())
-	suite.Require().Nil(err)
+	suite.Require().NotNil(err)
 	client := suite.NewClient(pk1)
 	res, err := client.InvokeBVMContract(constant.DappMgrContractAddr.Address(), "GetDapp", nil, rpcx.String(suite.GetDappID(pk2)))
 	suite.Require().Nil(err)
-	suite.Require().Contains(string(res.Ret), address1.String())
+	suite.Require().Contains(string(res.Ret), address2.String())
 }
 
 //tc：dapp处于unavailable状态更新dapp，dapp更新失败
@@ -207,26 +207,26 @@ func (suite Model14) Test1414_FreezeDappWithUnavailableDappIsFail() {
 	suite.Require().NotNil(err)
 }
 
-//tc：dapp处于activating状态冻结dapp，dapp冻结成功
-func (suite Model14) Test1415_FreezeDappWithActivatingDappIsSuccess() {
+//tc：dapp处于activating状态冻结dapp，dapp冻结失败
+func (suite Model14) Test1415_FreezeDappWithActivatingDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	err = suite.DappToActivating(pk, address.String())
 	suite.Require().Nil(err)
 	err = suite.FreezeDapp(pk)
-	suite.Require().Nil(err)
+	suite.Require().NotNil(err)
 }
 
-//tc：dapp处于updating状态冻结dapp，dapp冻结成功
-func (suite Model14) Test1416_FreezeDappWithUpdatingDappIsSuccess() {
+//tc：dapp处于updating状态冻结dapp，dapp冻结失败
+func (suite Model14) Test1416_FreezeDappWithUpdatingDappIsFail() {
 	address := suite.deployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	err = suite.DappToUpdating(pk, address.String())
 	suite.Require().Nil(err)
 	err = suite.FreezeDapp(pk)
-	suite.Require().Nil(err)
+	suite.Require().NotNil(err)
 }
 
 //tc：dapp处于freezing状态冻结dapp，dapp冻结失败
@@ -419,6 +419,17 @@ func (suite Model14) Test1432_TransferDappWithFrozenDappIsFail() {
 	suite.Require().NotNil(err)
 }
 
+//tc：dapp转让给自己，dapp转让失败
+func (suite Model14) Test1433_TransferDappWithSelfIsFail() {
+	address := suite.deployLedgerContract()
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	err = suite.RegisterDapp(pk, address.String())
+	suite.Require().Nil(err)
+	err = suite.TransferDapp(pk, pk)
+	suite.Require().NotNil(err)
+}
+
 //tc：dapp接收确认不存在的dapp转移，确认失败
 func (suite Model14) Test1433_ConfirmTransferWithNoExistTransferIsFail() {
 	address := suite.deployLedgerContract()
@@ -478,7 +489,7 @@ func (suite Model14) Test1437_EvaluateDappWithRepeatEvaluateIsFail() {
 func (suite Snake) RegisterDapp(pk crypto.PrivateKey, conAddrs string) error {
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
-		rpcx.String("dapp"),
+		rpcx.String(conAddrs),
 		rpcx.String("application"),
 		rpcx.String("test"),
 		rpcx.String("https://github.com/meshplus/bitxhub"),
@@ -509,8 +520,7 @@ func (suite Model14) UpdateDapp(pk crypto.PrivateKey, conAddrs string) error {
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
 		rpcx.String(suite.GetDappID(pk)),
-		rpcx.String("dapp"),
-		rpcx.String("application"),
+		rpcx.String(conAddrs + "123"),
 		rpcx.String("test"),
 		rpcx.String("https://github.com/meshplus/bitxhub"),
 		rpcx.String(conAddrs),
@@ -533,7 +543,6 @@ func (suite Model14) UpdateDapp(pk crypto.PrivateKey, conAddrs string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(result.ProposalID)
 	return nil
 }
 
@@ -685,7 +694,7 @@ func (suite Model14) DappToAvailable(pk crypto.PrivateKey, address string) error
 func (suite Model14) DappToUnavailable(pk crypto.PrivateKey, address string) error {
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
-		rpcx.String("dapp"),
+		rpcx.String(address),
 		rpcx.String("application"),
 		rpcx.String("test"),
 		rpcx.String("https://github.com/meshplus/bitxhub"),
@@ -748,8 +757,7 @@ func (suite Model14) DappToUpdating(pk crypto.PrivateKey, address string) error 
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
 		rpcx.String(suite.GetDappID(pk)),
-		rpcx.String("dapp"),
-		rpcx.String("application"),
+		rpcx.String(address + "123"),
 		rpcx.String("test"),
 		rpcx.String("https://github.com/meshplus/bitxhub"),
 		rpcx.String(address),
