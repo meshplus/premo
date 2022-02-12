@@ -68,10 +68,7 @@ func benchmark(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	proof, err := box.Find("proof_1.0.0_rc")
-	if err != nil {
-		return err
-	}
+	var proof []byte
 	typ := ""
 
 	appchain := ctx.String("appchain")
@@ -86,14 +83,6 @@ func benchmark(ctx *cli.Context) error {
 		}
 		typ = "Fabric V1.4.3"
 	} else if appchain == "flato" {
-		//val, err = box.Find("validator_flato")
-		//if err != nil {
-		//	return err
-		//}
-		//proof, err = box.Find("proof_flato")
-		//if err != nil {
-		//	return err
-		//}
 		typ = "Flato V1.0.3"
 	} else if appchain == "eth" {
 		typ = "ETH"

@@ -9,19 +9,14 @@ import (
 
 	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"github.com/meshplus/bitxhub-core/governance"
-
-	"github.com/meshplus/bitxhub-model/constant"
-
-	"github.com/meshplus/bitxhub-model/pb"
-
-	"github.com/meshplus/bitxhub-kit/types"
-
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
+	"github.com/meshplus/bitxhub-kit/types"
+	"github.com/meshplus/bitxhub-model/constant"
+	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	"github.com/meshplus/premo/internal/repo"
 	"github.com/sirupsen/logrus"
-	"github.com/wonderivan/logger"
 )
 
 var index1 uint64
@@ -197,7 +192,7 @@ func New(config *Config) (*Broker, error) {
 }
 
 func (broker *Broker) Start(typ string) error {
-	logger.Info("starting broker")
+	log.Info("starting broker")
 	var wg sync.WaitGroup
 	wg.Add(len(broker.bees))
 
@@ -213,7 +208,7 @@ func (broker *Broker) Start(typ string) error {
 			wg.Done()
 			err := broker.bees[i].start(typ)
 			if err != nil {
-				logger.Error(err)
+				log.Error(err)
 				return
 			}
 			log.WithFields(logrus.Fields{
@@ -289,7 +284,7 @@ func (broker *Broker) Start(typ string) error {
 	if err != nil {
 		return err
 	}
-	logger.Info("Collecting tps info, please wait...")
+	log.Info("Collecting tps info, please wait...")
 	time.Sleep(20 * time.Second)
 
 	skip := (meta1.Height - meta0.Height) / 8
@@ -309,7 +304,7 @@ func (broker *Broker) Stop(current time.Time) error {
 	// wait for goroutines inside bees to stop
 	time.Sleep(3 * time.Second)
 
-	logger.Info("Bees are quiting, please wait...")
+	log.Info("Bees are quiting, please wait...")
 	for i := 0; i < len(broker.bees); i++ {
 		err := broker.bees[i].stop()
 		if err != nil {

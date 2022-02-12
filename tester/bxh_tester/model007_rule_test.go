@@ -3,15 +3,14 @@ package bxh_tester
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/meshplus/bitxhub-core/governance"
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
-	"github.com/meshplus/bitxhub-kit/types"
 	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -162,7 +161,7 @@ func (suite Model7) Test0714_RegisterRuleWithNoAdminIsFail() {
 	suite.Require().Nil(err)
 	pk2, _, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk2, from, address2, RegisterRule)
+	err = suite.RegisterRule(pk2, from, address2)
 	suite.Require().NotNil(err)
 }
 
@@ -174,7 +173,7 @@ func (suite Model7) Test0715_RegisterRuleIsSuccess() {
 	suite.Require().Nil(err)
 	_, _, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, RegisterRule)
+	err = suite.RegisterRule(pk, from, address2)
 	suite.Require().Nil(err)
 }
 
@@ -184,7 +183,7 @@ func (suite Model7) Test0716_RegisterRuleWithNoRegisterRuleIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address1, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, "0x000000000000000000000000000000000000001", RegisterRule)
+	err = suite.RegisterRule(pk, from, "0x000000000000000000000000000000000000001")
 	suite.Require().NotNil(err)
 }
 
@@ -194,7 +193,7 @@ func (suite Model7) Test0717_RegisterRuleWithAvailableRuleIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address, RegisterRule)
+	err = suite.RegisterRule(pk, from, address)
 	suite.Require().NotNil(err)
 }
 
@@ -218,9 +217,9 @@ func (suite Model7) Test0718_RegisterRuleWithBindingRuleIsFail() {
 	suite.Require().Nil(err)
 	err = suite.CheckRuleStatus(pk, from, address, governance.GovernanceUnbinding)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address, RegisterRule)
+	err = suite.RegisterRule(pk, from, address)
 	suite.Require().NotNil(err)
-	err = suite.InvokeRuleContract(pk, from, HappyRuleAddr, RegisterRule)
+	err = suite.RegisterRule(pk, from, HappyRuleAddr)
 	suite.Require().NotNil(err)
 }
 
@@ -230,7 +229,7 @@ func (suite Model7) Test0719_RegisterRuleWithBindableRuleIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, HappyRuleAddr, RegisterRule)
+	err = suite.RegisterRule(pk, from, HappyRuleAddr)
 	suite.Require().NotNil(err)
 }
 
@@ -242,13 +241,13 @@ func (suite Model7) Test0720_RegisterRuleWithForbiddenRuleIsFail() {
 	suite.Require().Nil(err)
 	_, _, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, RegisterRule)
+	err = suite.RegisterRule(pk, from, address2)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, LogoutRule)
+	err = suite.LogoutRule(pk, from, address2)
 	suite.Require().Nil(err)
 	err = suite.CheckRuleStatus(pk, from, address2, governance.GovernanceForbidden)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, RegisterRule)
+	err = suite.RegisterRule(pk, from, address2)
 	suite.Require().NotNil(err)
 }
 
@@ -256,7 +255,7 @@ func (suite Model7) Test0720_RegisterRuleWithForbiddenRuleIsFail() {
 func (suite Model7) Test0721_RegisterRuleWithUnRegisteredChainIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address, RegisterRule)
+	err = suite.RegisterRule(pk, from, address)
 	suite.Require().NotNil(err)
 }
 
@@ -268,7 +267,7 @@ func (suite Model7) Test0722_RegisterRuleWithUpdatingChainIsSuccess() {
 	suite.Require().Nil(err)
 	_, _, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, RegisterRule)
+	err = suite.RegisterRule(pk, from, address2)
 	suite.Require().Nil(err)
 }
 
@@ -280,7 +279,7 @@ func (suite Snake) Test0723_RegisterRuleWithActivatingChainIsSuccess() {
 	suite.Require().Nil(err)
 	_, _, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, RegisterRule)
+	err = suite.RegisterRule(pk, from, address2)
 	suite.Require().Nil(err)
 }
 
@@ -292,7 +291,7 @@ func (suite Snake) Test0724_RegisterRuleWithFreezingChainIsSuccess() {
 	suite.Require().Nil(err)
 	_, _, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, RegisterRule)
+	err = suite.RegisterRule(pk, from, address2)
 	suite.Require().Nil(err)
 }
 
@@ -304,7 +303,7 @@ func (suite Snake) Test0725_RegisterRuleWithFrozenChainIsSuccess() {
 	suite.Require().Nil(err)
 	_, _, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, RegisterRule)
+	err = suite.RegisterRule(pk, from, address2)
 	suite.Require().Nil(err)
 }
 
@@ -316,7 +315,7 @@ func (suite Snake) Test0726_RegisterRuleWithLogoutingChainIsSuccess() {
 	suite.Require().Nil(err)
 	_, _, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, RegisterRule)
+	err = suite.RegisterRule(pk, from, address2)
 	suite.Require().Nil(err)
 }
 
@@ -328,7 +327,7 @@ func (suite Snake) Test0726_RegisterRuleWithForbiddenChainIsSuccess() {
 	suite.Require().Nil(err)
 	_, _, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, RegisterRule)
+	err = suite.RegisterRule(pk, from, address2)
 	suite.Require().Nil(err)
 }
 
@@ -341,11 +340,11 @@ func (suite Model7) Test0712_UpdateAndLogoutRuleWithNoAdminIsSuccess() {
 	suite.Require().Nil(err)
 	pk2, _, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk1, from, address2, RegisterRule)
+	err = suite.RegisterRule(pk1, from, address2)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk2, from, address2, UpdateMasterRule)
+	err = suite.UpdateMasterRule(pk2, from, address2)
 	suite.Require().NotNil(err)
-	err = suite.InvokeRuleContract(pk2, from, address2, LogoutRule)
+	err = suite.LogoutRule(pk2, from, address2)
 	suite.Require().NotNil(err)
 }
 
@@ -358,11 +357,11 @@ func (suite Model7) Test0713_UpdateAndLogoutRuleIsSuccess() {
 	suite.Require().Nil(err)
 	_, _, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, RegisterRule)
+	err = suite.RegisterRule(pk, from, address2)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, UpdateMasterRule)
+	err = suite.UpdateMasterRule(pk, from, address2)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address1, LogoutRule)
+	err = suite.LogoutRule(pk, from, address1)
 	suite.Require().Nil(err)
 }
 
@@ -373,9 +372,9 @@ func (suite Model7) Test0714_UpdateAndLogoutRuleWithNoRegisterAdmin() {
 	suite.Require().Nil(err)
 	_, _, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, UpdateMasterRule)
+	err = suite.UpdateMasterRule(pk, from, address2)
 	suite.Require().NotNil(err)
-	err = suite.InvokeRuleContract(pk, from, address1, LogoutRule)
+	err = suite.LogoutRule(pk, from, address1)
 	suite.Require().NotNil(err)
 }
 
@@ -388,11 +387,11 @@ func (suite Model7) Test0717_UpdateAndLogoutRuleWithActivatingChain() {
 	suite.Require().Nil(err)
 	_, _, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, RegisterRule)
+	err = suite.RegisterRule(pk, from, address2)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, UpdateMasterRule)
+	err = suite.UpdateMasterRule(pk, from, address2)
 	suite.Require().NotNil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, LogoutRule)
+	err = suite.LogoutRule(pk, from, address2)
 	suite.Require().Nil(err)
 }
 
@@ -405,11 +404,11 @@ func (suite Model7) Test0717_UpdateAndLogoutRuleWithFreezingChain() {
 	suite.Require().Nil(err)
 	_, _, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, RegisterRule)
+	err = suite.RegisterRule(pk, from, address2)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, UpdateMasterRule)
+	err = suite.UpdateMasterRule(pk, from, address2)
 	suite.Require().NotNil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, LogoutRule)
+	err = suite.LogoutRule(pk, from, address2)
 	suite.Require().Nil(err)
 }
 
@@ -422,11 +421,11 @@ func (suite Model7) Test0718_UpdateAndLogoutRuleWithFrozenChain() {
 	suite.Require().Nil(err)
 	_, _, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, RegisterRule)
+	err = suite.RegisterRule(pk, from, address2)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, UpdateMasterRule)
+	err = suite.UpdateMasterRule(pk, from, address2)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address1, LogoutRule)
+	err = suite.LogoutRule(pk, from, address1)
 	suite.Require().Nil(err)
 }
 
@@ -439,11 +438,11 @@ func (suite Model7) Test0719_UpdateAndLogoutRuleWithLogoutingChainIsFail() {
 	suite.Require().Nil(err)
 	_, _, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, RegisterRule)
+	err = suite.RegisterRule(pk, from, address2)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, UpdateMasterRule)
+	err = suite.UpdateMasterRule(pk, from, address2)
 	suite.Require().NotNil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, LogoutRule)
+	err = suite.LogoutRule(pk, from, address2)
 	suite.Require().Nil(err)
 }
 
@@ -454,9 +453,9 @@ func (suite Model7) Test0720_UpdateAndLogoutRuleWithForbiddenChainIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ChainToForbidden(pk, from, address1)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, HappyRuleAddr, UpdateMasterRule)
+	err = suite.UpdateMasterRule(pk, from, HappyRuleAddr)
 	suite.Require().NotNil(err)
-	err = suite.InvokeRuleContract(pk, from, HappyRuleAddr, LogoutRule)
+	err = suite.LogoutRule(pk, from, HappyRuleAddr)
 	suite.Require().NotNil(err)
 }
 
@@ -467,9 +466,9 @@ func (suite Model7) Test0721_UpdateAndLogoutRuleWithNoRegisterRuleIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, "0x000000000000000000000000000000000000001", UpdateMasterRule)
+	err = suite.UpdateMasterRule(pk, from, "0x000000000000000000000000000000000000001")
 	suite.Require().NotNil(err)
-	err = suite.InvokeRuleContract(pk, from, "0x000000000000000000000000000000000000001", LogoutRule)
+	err = suite.LogoutRule(pk, from, "0x000000000000000000000000000000000000001")
 	suite.Require().NotNil(err)
 }
 
@@ -480,9 +479,9 @@ func (suite Model7) Test0722_UpdateAndLogoutRuleWithAvailableRuleIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address, UpdateMasterRule)
+	err = suite.UpdateMasterRule(pk, from, address)
 	suite.Require().NotNil(err)
-	err = suite.InvokeRuleContract(pk, from, address, LogoutRule)
+	err = suite.LogoutRule(pk, from, address)
 	suite.Require().NotNil(err)
 }
 
@@ -504,9 +503,9 @@ func (suite Model7) Test0723_UpdateAndLogoutRuleWithBindingRuleIsSuccess() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	err = suite.CheckRuleStatus(pk, from, HappyRuleAddr, governance.GovernanceBinding)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, HappyRuleAddr, UpdateMasterRule)
+	err = suite.UpdateMasterRule(pk, from, HappyRuleAddr)
 	suite.Require().NotNil(err)
-	err = suite.InvokeRuleContract(pk, from, HappyRuleAddr, LogoutRule)
+	err = suite.LogoutRule(pk, from, HappyRuleAddr)
 	suite.Require().NotNil(err)
 }
 
@@ -529,9 +528,9 @@ func (suite Model7) Test0724_UpdateAndLogoutRuleWithUnbindingRuleIsSuccess() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	err = suite.CheckRuleStatus(pk, from, address, governance.GovernanceUnbinding)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address, UpdateMasterRule)
+	err = suite.UpdateMasterRule(pk, from, address)
 	suite.Require().NotNil(err)
-	err = suite.InvokeRuleContract(pk, from, address, LogoutRule)
+	err = suite.LogoutRule(pk, from, address)
 	suite.Require().NotNil(err)
 }
 
@@ -544,77 +543,35 @@ func (suite Model7) Test0725_UpdateAndLogoutRuleWithForbiddenRuleIsFail() {
 	suite.Require().Nil(err)
 	_, _, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, RegisterRule)
+	err = suite.RegisterRule(pk, from, address2)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, LogoutRule)
+	err = suite.LogoutRule(pk, from, address2)
 	suite.Require().Nil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, UpdateMasterRule)
+	err = suite.UpdateMasterRule(pk, from, address2)
 	suite.Require().NotNil(err)
-	err = suite.InvokeRuleContract(pk, from, address2, LogoutRule)
+	err = suite.LogoutRule(pk, from, address2)
 	suite.Require().NotNil(err)
 }
 
-func (suite *Snake) InvokeRuleContract(pk crypto.PrivateKey, ChainID string, contractAddr string, method string) error {
+// DeploySimpleRule deploy simple rule
+func (suite Snake) DeploySimpleRule() (string, error) {
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	if err != nil {
+		return "", err
+	}
 	client := suite.NewClient(pk)
-	var args []*pb.Arg
-	if method == LogoutRule {
-		args = []*pb.Arg{
-			rpcx.String(ChainID),
-			rpcx.String(contractAddr),
-		}
-	} else {
-		args = []*pb.Arg{
-			rpcx.String(ChainID),
-			rpcx.String(contractAddr),
-			rpcx.String("reason"),
-		}
-	}
-
-	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), method, nil, args...)
+	contract, err := ioutil.ReadFile("testdata/simple_rule.wasm")
 	if err != nil {
-		return err
+		return "", err
 	}
-	if res.Status == pb.Receipt_FAILED {
-		return errors.New(string(res.Ret))
-	}
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
-	if result.ProposalID == "" {
-		return nil
-	}
-	err = suite.VotePass(result.ProposalID)
+	address, err := client.DeployContract(contract, nil)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return address.String(), nil
 }
 
-func (suite *Snake) InvokeRuleContractWithReject(pk crypto.PrivateKey, ChainID string, contractAddr *types.Address, method string) error {
-	client := suite.NewClient(pk)
-	args := []*pb.Arg{
-		rpcx.String(ChainID),
-		rpcx.String(contractAddr.String()),
-		rpcx.String("reason"),
-	}
-	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), method, nil, args...)
-	if err != nil {
-		return err
-	}
-	result := &RegisterResult{}
-	err = json.Unmarshal(res.Ret, result)
-	if res.Status == pb.Receipt_FAILED {
-		return errors.New(string(res.Ret))
-	}
-	if result.ProposalID == "" {
-		return nil
-	}
-	err = suite.VoteReject(result.ProposalID)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
+// DeployRule deploy rule and return address
 func (suite Snake) DeployRule() (crypto.PrivateKey, string, string, error) {
 	address, err := suite.DeploySimpleRule()
 	if err != nil {
@@ -631,35 +588,24 @@ func (suite Snake) DeployRule() (crypto.PrivateKey, string, string, error) {
 	return pk, from.String(), address, nil
 }
 
-func (suite Snake) RegisterAppchainWithType(pk crypto.PrivateKey, typ, address, broker string) error {
+// RegisterRule register rule
+func (suite Snake) RegisterRule(pk crypto.PrivateKey, ChainID, contractAddr string) error {
 	client := suite.NewClient(pk)
-	from, err := pk.PublicKey().Address()
-	if err != nil {
-		return err
-	}
 	args := []*pb.Arg{
-		rpcx.String(from.String()),        //chainID
-		rpcx.String(from.String()),        //chainName
-		rpcx.String(typ),                  //chainType
-		rpcx.Bytes([]byte("")),            //trustRoot
-		rpcx.String(broker),               //broker
-		rpcx.String("desc"),               //desc
-		rpcx.String(address),              //masterRuleAddr
-		rpcx.String("https://github.com"), //masterRuleUrl
-		rpcx.String(from.String()),        //adminAddrs
-		rpcx.String("reason"),             //reason
+		rpcx.String(ChainID),
+		rpcx.String(contractAddr),
 	}
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "RegisterAppchain", nil, args...)
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), RegisterRule, nil, args...)
 	if err != nil {
 		return err
 	}
-	if res.Status != pb.Receipt_SUCCESS {
-		return errors.New(string(res.Ret))
+	if res.Status == pb.Receipt_FAILED {
+		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
+	if result.ProposalID == "" {
+		return nil
 	}
 	err = suite.VotePass(result.ProposalID)
 	if err != nil {
@@ -668,6 +614,60 @@ func (suite Snake) RegisterAppchainWithType(pk crypto.PrivateKey, typ, address, 
 	return nil
 }
 
+// UpdateMasterRule update master rule
+func (suite Snake) UpdateMasterRule(pk crypto.PrivateKey, ChainID, contractAddr string) error {
+	client := suite.NewClient(pk)
+	args := []*pb.Arg{
+		rpcx.String(ChainID),
+		rpcx.String(contractAddr),
+	}
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), UpdateMasterRule, nil, args...)
+	if err != nil {
+		return err
+	}
+	if res.Status == pb.Receipt_FAILED {
+		return fmt.Errorf(string(res.Ret))
+	}
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	if result.ProposalID == "" {
+		return nil
+	}
+	err = suite.VotePass(result.ProposalID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// LogoutRule logout rule
+func (suite Snake) LogoutRule(pk crypto.PrivateKey, ChainID, contractAddr string) error {
+	client := suite.NewClient(pk)
+	args := []*pb.Arg{
+		rpcx.String(ChainID),
+		rpcx.String(contractAddr),
+		rpcx.String("reason"),
+	}
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), LogoutRule, nil, args...)
+	if err != nil {
+		return err
+	}
+	if res.Status == pb.Receipt_FAILED {
+		return fmt.Errorf(string(res.Ret))
+	}
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	if result.ProposalID == "" {
+		return nil
+	}
+	err = suite.VotePass(result.ProposalID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Rules return all rules
 func (suite Snake) Rules(chainID string) ([]Rule, error) {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	if err != nil {
@@ -679,7 +679,7 @@ func (suite Snake) Rules(chainID string) ([]Rule, error) {
 		return nil, err
 	}
 	if res.Status != pb.Receipt_SUCCESS {
-		return nil, errors.New(string(res.Ret))
+		return nil, fmt.Errorf(string(res.Ret))
 	}
 	var rules []Rule
 	err = json.Unmarshal(res.Ret, &rules)
@@ -689,6 +689,7 @@ func (suite Snake) Rules(chainID string) ([]Rule, error) {
 	return rules, nil
 }
 
+// RuleContains check whether the rule contains
 func (suite Snake) RuleContains(chainID, address string) bool {
 	rules, err := suite.Rules(chainID)
 	if err != nil {
@@ -700,4 +701,38 @@ func (suite Snake) RuleContains(chainID, address string) bool {
 		}
 	}
 	return false
+}
+
+// CheckRuleStatus check rule status
+func (suite *Snake) CheckRuleStatus(pk crypto.PrivateKey, chainID, address string, expectStatus governance.GovernanceStatus) error {
+	status, err := suite.GetRuleStatus(pk, chainID, address)
+	if err != nil {
+		return err
+	}
+	if expectStatus != status {
+		return fmt.Errorf("expect status is %s ,but get status %s", expectStatus, status)
+	}
+	return nil
+}
+
+// GetRuleStatus get rule status by chainID and address
+func (suite *Snake) GetRuleStatus(pk crypto.PrivateKey, ChainID string, contractAddr string) (governance.GovernanceStatus, error) {
+	client := suite.NewClient(pk)
+	args := []*pb.Arg{
+		rpcx.String(ChainID),
+		rpcx.String(contractAddr),
+	}
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "GetRuleByAddr", nil, args...)
+	if err != nil {
+		return "", err
+	}
+	if res.Status == pb.Receipt_FAILED {
+		return "", fmt.Errorf(string(res.Ret))
+	}
+	rule := &Rule{}
+	err = json.Unmarshal(res.Ret, rule)
+	if err != nil {
+		return "", err
+	}
+	return rule.Status, nil
 }
