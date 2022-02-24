@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -25,7 +24,6 @@ import (
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	"github.com/meshplus/premo/internal/repo"
-	"github.com/wonderivan/logger"
 )
 
 var maxDelay int64
@@ -117,7 +115,7 @@ func (bee *bee) start(typ string) error {
 							return nil
 						}, strategy.Limit(5), strategy.Backoff(backoff.Fibonacci(500*time.Millisecond)))
 						if err != nil {
-							logger.Error(err)
+							log.Error(err)
 						}
 					}
 				}(bee.count, nonce)
@@ -430,12 +428,12 @@ func (bee *bee) counterReceipt(tx *pb.BxhTransaction) {
 			if strings.Contains(err.Error(), "not found in DB") {
 				continue
 			}
-			logger.Error(err)
+			log.Error(err)
 			return
 		}
 
 		if !receipt.IsSuccess() {
-			logger.Error("receipt for tx %s is failed, error msg: %s", tx.TransactionHash.String(), string(receipt.Ret))
+			log.Error("receipt for tx %s is failed, error msg: %s", tx.TransactionHash.String(), string(receipt.Ret))
 			return
 		}
 		break
@@ -625,7 +623,7 @@ func TransferFromAdmin(config *Config, adminPrivKey crypto.PrivateKey, adminFrom
 		return err
 	}
 	if ret.Status != pb.Receipt_SUCCESS {
-		return errors.New(string(ret.Ret))
+		return fmt.Errorf(string(ret.Ret))
 	}
 	return nil
 }

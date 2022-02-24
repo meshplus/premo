@@ -1,7 +1,6 @@
 package bxh_tester
 
 import (
-	"fmt"
 	"io/ioutil"
 	"strconv"
 
@@ -22,24 +21,21 @@ func (suite Model4) SetupTest() {
 }
 
 func (suite Model4) Test0401_LegerSet() {
-	address := suite.deployLedgerContract()
-	fmt.Println(address)
-	//pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	//suite.Require().Nil(err)
-	//client := suite.NewClient(pk)
-	//
-	//res, err := client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
-	//suite.Require().Nil(err)
-	//suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
-	//suite.Require().Equal("1", string(res.Ret))
-}
-
-func (suite Model4) Test0402_LegerSetWithValueLoss() {
-	address := suite.deployLedgerContract()
+	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
+	res, err := client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
+	suite.Require().Nil(err)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+	suite.Require().Equal("1", string(res.Ret))
+}
 
+func (suite Model4) Test0402_LegerSetWithValueLoss() {
+	address := suite.DeployLedgerContract()
+	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
 	res, err := client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
@@ -47,11 +43,10 @@ func (suite Model4) Test0402_LegerSetWithValueLoss() {
 }
 
 func (suite Model4) Test0403_LegerSetWithKVLoss() {
-	address := suite.deployLedgerContract()
+	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-
 	res, err := client.InvokeXVMContract(address, "state_test_set", nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
@@ -59,11 +54,10 @@ func (suite Model4) Test0403_LegerSetWithKVLoss() {
 }
 
 func (suite Model4) Test0404_LegerSetWithErrorMethod() {
-	address := suite.deployLedgerContract()
+	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-
 	res, err := client.InvokeXVMContract(address, "state_test_set111", nil, rpcx.String("Alice"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
@@ -71,16 +65,14 @@ func (suite Model4) Test0404_LegerSetWithErrorMethod() {
 }
 
 func (suite Model4) Test0405_LegerSetRepeat() {
-	address := suite.deployLedgerContract()
+	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-
 	res, err := client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().Equal("1", string(res.Ret))
-
 	res, err = client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
@@ -88,11 +80,10 @@ func (suite Model4) Test0405_LegerSetRepeat() {
 }
 
 func (suite Model4) Test0406_LegerGetAliceWithoutSet() {
-	address := suite.deployLedgerContract()
+	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-
 	res, err := client.InvokeXVMContract(address, "state_test_get", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
@@ -100,11 +91,10 @@ func (suite Model4) Test0406_LegerGetAliceWithoutSet() {
 }
 
 func (suite Model4) Test0407_GetNilWithoutSet() {
-	address := suite.deployLedgerContract()
+	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-
 	res, err := client.InvokeXVMContract(address, "state_test_get", nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
@@ -112,16 +102,14 @@ func (suite Model4) Test0407_GetNilWithoutSet() {
 }
 
 func (suite Model4) Test0408_SetAliceGetAlice() {
-	address := suite.deployLedgerContract()
+	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-
 	res, err := client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().Equal("1", string(res.Ret))
-
 	res, err = client.InvokeXVMContract(address, "state_test_get", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
@@ -129,16 +117,14 @@ func (suite Model4) Test0408_SetAliceGetAlice() {
 }
 
 func (suite Model4) Test0409_SetAliceGetBob() {
-	address := suite.deployLedgerContract()
+	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-
 	res, err := client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().Equal("1", string(res.Ret))
-
 	res, err = client.InvokeXVMContract(address, "state_test_get", nil, rpcx.String("Bob"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
@@ -146,16 +132,14 @@ func (suite Model4) Test0409_SetAliceGetBob() {
 }
 
 func (suite Model4) Test0410_SetAliceGetNil() {
-	address := suite.deployLedgerContract()
+	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-
 	res, err := client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().Equal("1", string(res.Ret))
-
 	res, err = client.InvokeXVMContract(address, "state_test_get", nil)
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
@@ -163,21 +147,18 @@ func (suite Model4) Test0410_SetAliceGetNil() {
 }
 
 func (suite Model4) Test0411_SetAliceGetAliceRepeat() {
-	address := suite.deployLedgerContract()
+	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-
 	res, err := client.InvokeXVMContract(address, "state_test_set", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().Equal("1", string(res.Ret))
-
 	res, err = client.InvokeXVMContract(address, "state_test_get", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	suite.Require().Equal("1", string(res.Ret))
-
 	res, err = client.InvokeXVMContract(address, "state_test_get", nil, rpcx.String("Alice"), rpcx.String("111"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
@@ -185,7 +166,7 @@ func (suite Model4) Test0411_SetAliceGetAliceRepeat() {
 }
 
 func (suite Model4) Test0412_GetCurrentHeight() {
-	address := suite.deployResultContract()
+	address := suite.DeployResultContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -193,11 +174,11 @@ func (suite Model4) Test0412_GetCurrentHeight() {
 	suite.Require().Nil(err)
 	meta, err := client.GetChainMeta()
 	suite.Require().Nil(err)
-	suite.Equal(string(res.Ret), strconv.FormatUint(meta.Height-1, 10))
+	suite.Require().LessOrEqual(string(res.Ret), strconv.FormatUint(meta.Height-1, 10))
 }
 
 func (suite Model4) Test0412_GetTxHash() {
-	address := suite.deployResultContract()
+	address := suite.DeployResultContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -206,7 +187,7 @@ func (suite Model4) Test0412_GetTxHash() {
 	suite.Require().Equal(string(res.Ret), res.TxHash.String())
 }
 
-func (suite *Snake) deployLedgerContract() *types.Address {
+func (suite *Snake) DeployLedgerContract() *types.Address {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -218,7 +199,7 @@ func (suite *Snake) deployLedgerContract() *types.Address {
 	return address
 }
 
-func (suite Snake) deployResultContract() *types.Address {
+func (suite Snake) DeployResultContract() *types.Address {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)

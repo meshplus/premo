@@ -25,7 +25,6 @@ func (suite *Model3) Test0301_Set10MData() {
 	rand10MBytes := make([]byte, 1<<23+1<<21)
 	_, err = rand.Read(rand10MBytes)
 	suite.Require().Nil(err)
-
 	_, err = client.InvokeBVMContract(constant.StoreContractAddr.Address(), "Set", nil, pb.String("test-10m"), pb.String(string(rand10MBytes)))
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "received message larger than max")
@@ -70,13 +69,11 @@ func (suite *Model3) Test0305_SetAndGetNormal() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-	receipt1, err := client.InvokeBVMContract(constant.StoreContractAddr.Address(), "Set", nil, pb.String(normalKey), pb.String(normalValue))
+	res1, err := client.InvokeBVMContract(constant.StoreContractAddr.Address(), "Set", nil, pb.String(normalKey), pb.String(normalValue))
 	suite.Require().Nil(err)
-	suite.Require().True(receipt1.IsSuccess())
-
-	receipt2, err := client.InvokeBVMContract(constant.StoreContractAddr.Address(), "Get", nil, pb.String("key_for_normal"))
+	suite.Require().True(res1.IsSuccess())
+	res2, err := client.InvokeBVMContract(constant.StoreContractAddr.Address(), "Get", nil, pb.String("key_for_normal"))
 	suite.Require().Nil(err)
-
-	suite.Require().True(receipt2.IsSuccess())
-	suite.Require().Equal(normalValue, string(receipt2.Ret))
+	suite.Require().True(res2.IsSuccess())
+	suite.Require().Equal(normalValue, string(res2.Ret))
 }

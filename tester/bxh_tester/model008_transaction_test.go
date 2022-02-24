@@ -24,9 +24,9 @@ func (suite *Model8) SetupTest() {
 }
 
 func (suite *Model8) Test0801_TXEmptyFrom() {
-	node2, err := repo.Node2Path()
+	pk, _, err := repo.Node2Priv()
 	suite.Require().Nil(err)
-	pk, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
+	_, to, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
@@ -34,9 +34,8 @@ func (suite *Model8) Test0801_TXEmptyFrom() {
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
-
 	tx := &pb.BxhTransaction{
-		To:        suite.to,
+		To:        to,
 		Timestamp: time.Now().UnixNano(),
 		Payload:   payload,
 	}
@@ -48,19 +47,13 @@ func (suite *Model8) Test0801_TXEmptyFrom() {
 }
 
 func (suite *Model8) Test0802_TXEmptyTo() {
-	node2, err := repo.Node2Path()
-	suite.Require().Nil(err)
-	pk, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
-	suite.Require().Nil(err)
-	from, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
+	pk, from, err := repo.Node2Priv()
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
 		Amount: "1",
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
-
 	tx := &pb.BxhTransaction{
 		From:      from,
 		Timestamp: time.Now().UnixNano(),
@@ -75,10 +68,7 @@ func (suite *Model8) Test0802_TXEmptyTo() {
 
 /*增加form和to都为空*/
 func (suite *Model8) Test0803_TXEmptyFromAndTo() {
-	node2, err := repo.Node2Path()
-	suite.Require().Nil(err)
-	pk, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
-	suite.Require().Nil(err)
+	pk, _, err := repo.Node2Priv()
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
 		Amount: "1",
@@ -99,19 +89,13 @@ func (suite *Model8) Test0803_TXEmptyFromAndTo() {
 
 /*增加from和to相同*/
 func (suite *Model8) Test0804_TXSameFromAndTo() {
-	node2, err := repo.Node2Path()
-	suite.Require().Nil(err)
-	pk, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
-	suite.Require().Nil(err)
-	from, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
+	pk, from, err := repo.Node2Priv()
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
 		Amount: "1",
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
-
 	tx := &pb.BxhTransaction{
 		From:      from,
 		To:        from,
@@ -153,11 +137,9 @@ func (suite *Model8) Test0805_TXEmptySig() {
 }
 
 func (suite *Model8) Test0806_TXWrongSigPrivateKey() {
-	node2, err := repo.Node2Path()
+	pk, from, err := repo.Node2Priv()
 	suite.Require().Nil(err)
-	pk, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
-	suite.Require().Nil(err)
-	from, err := pk.PublicKey().Address()
+	_, to, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
@@ -165,22 +147,17 @@ func (suite *Model8) Test0806_TXWrongSigPrivateKey() {
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
-
 	tx := &pb.BxhTransaction{
 		From:      from,
-		To:        suite.to,
+		To:        to,
 		Timestamp: time.Now().UnixNano(),
 		Payload:   payload,
 	}
-
 	pk1, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
-
 	client1 := suite.NewClient(pk1)
-
 	hash, err := client1.SendTransaction(tx, nil)
 	suite.Require().NotNil(err)
-
 	_, err = client.GetReceipt(hash)
 	suite.Require().NotNil(err)
 }
@@ -190,32 +167,27 @@ func (suite *Model8) Test0807_TXWrongSigAlgorithm() {
 }
 
 func (suite *Model8) Test0808_TXExtra10MB() {
-	node2, err := repo.Node2Path()
+	pk, from, err := repo.Node2Priv()
 	suite.Require().Nil(err)
-	pk, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
-	suite.Require().Nil(err)
-	from, err := pk.PublicKey().Address()
+	_, to, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	MB10 := make([]byte, 10*1024*1024) // 10MB
 	for i := 0; i < len(MB10); i++ {
 		MB10[i] = uint8(rand.Intn(255))
 	}
-
 	data := &pb.TransactionData{
 		Amount: "1",
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
-
 	tx := &pb.BxhTransaction{
 		From:      from,
-		To:        suite.to,
+		To:        to,
 		Timestamp: time.Now().UnixNano(),
 		Extra:     MB10,
 		Payload:   payload,
 	}
-
 	nonce := atomic.LoadUint64(&nonce2)
 	_, err = client.SendTransaction(tx, &rpcx.TransactOpts{
 		Nonce: nonce,
@@ -225,11 +197,9 @@ func (suite *Model8) Test0808_TXExtra10MB() {
 }
 
 func (suite *Model8) Test0809_GetTxByHash() {
-	node2, err := repo.Node2Path()
+	pk, from, err := repo.Node2Priv()
 	suite.Require().Nil(err)
-	pk, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
-	suite.Require().Nil(err)
-	from, err := pk.PublicKey().Address()
+	_, to, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
@@ -237,10 +207,9 @@ func (suite *Model8) Test0809_GetTxByHash() {
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
-
 	tx := &pb.BxhTransaction{
 		From:      from,
-		To:        suite.to,
+		To:        to,
 		Timestamp: time.Now().UnixNano(),
 		Payload:   payload,
 	}
@@ -249,7 +218,6 @@ func (suite *Model8) Test0809_GetTxByHash() {
 		Nonce: nonce,
 	})
 	suite.Require().Nil(err)
-
 	var ret *pb.GetTransactionResponse
 	err1 := retry.Retry(func(attempt uint) error {
 		pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
@@ -269,11 +237,9 @@ func (suite *Model8) Test0809_GetTxByHash() {
 }
 
 func (suite *Model8) Test0810_GetReceiptByHash() {
-	node2, err := repo.Node2Path()
+	pk, from, err := repo.Node2Priv()
 	suite.Require().Nil(err)
-	pk, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
-	suite.Require().Nil(err)
-	from, err := pk.PublicKey().Address()
+	_, to, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
@@ -281,14 +247,12 @@ func (suite *Model8) Test0810_GetReceiptByHash() {
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
-
 	tx := &pb.BxhTransaction{
 		From:      from,
-		To:        suite.to,
+		To:        to,
 		Timestamp: time.Now().UnixNano(),
 		Payload:   payload,
 	}
-
 	nonce := atomic.AddUint64(&nonce2, 1)
 	ret, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
 		Nonce: nonce,
@@ -299,11 +263,9 @@ func (suite *Model8) Test0810_GetReceiptByHash() {
 
 /*通过错误的hash值进行查询*/
 func (suite *Model8) Test0811_GetReceiptByWrongHash() {
-	node2, err := repo.Node2Path()
+	pk, from, err := repo.Node2Priv()
 	suite.Require().Nil(err)
-	pk, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
-	suite.Require().Nil(err)
-	from, err := pk.PublicKey().Address()
+	_, to, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
@@ -311,19 +273,16 @@ func (suite *Model8) Test0811_GetReceiptByWrongHash() {
 	}
 	payload, err := data.Marshal()
 	suite.Require().Nil(err)
-
 	tx := &pb.BxhTransaction{
 		From:      from,
-		To:        suite.to,
+		To:        to,
 		Timestamp: time.Now().UnixNano(),
 		Payload:   payload,
 	}
-
 	nonce := atomic.AddUint64(&nonce2, 1)
 	hash, err := client.SendTransaction(tx, &rpcx.TransactOpts{
 		Nonce: nonce,
 	})
-
 	hash = hash[0:len(hash)-5] + "12345"
 	ret, err := client.GetReceipt(hash)
 	suite.Require().Nil(ret)
