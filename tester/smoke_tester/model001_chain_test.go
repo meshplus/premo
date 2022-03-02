@@ -28,10 +28,6 @@ type Model1 struct {
 	*Snake
 }
 
-func (suite *Model1) SetupTest() {
-	suite.T().Parallel()
-}
-
 //tc：根据区块高度查询区块，返回正确的区块信息
 func (suite *Model1) Test0101_GetBlockByHeightIsSuccess() {
 	pk, _, err := repo.KeyPriv()
@@ -49,40 +45,8 @@ func (suite *Model1) Test0101_GetBlockByHeightIsSuccess() {
 	suite.Require().Equal(chainMeta.Height, block.BlockHeader.Number)
 }
 
-//tc：根据不存在的区块高度查询区块，返回错误信息
-func (suite *Model1) Test0102_GetBlockByNonexistentHeightIsFail() {
-	pk, _, err := repo.KeyPriv()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	// get current block height
-	chainMeta, err := client.GetChainMeta()
-	suite.Require().Nil(err)
-	_, err = client.GetBlock(strconv.Itoa(int(chainMeta.Height+1)), pb.GetBlockRequest_HEIGHT)
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "out of bounds")
-	_, err = client.GetBlock("0", pb.GetBlockRequest_HEIGHT)
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "out of bounds")
-	_, err = client.GetBlock("-1", pb.GetBlockRequest_HEIGHT)
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "wrong block number")
-}
-
-//tc：根据非法的区块高度查询区块，返回错误信息
-func (suite *Model1) Test0103_GetBlockByWrongHeightIsFail() {
-	pk, _, err := repo.KeyPriv()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	_, err = client.GetBlock("a", pb.GetBlockRequest_HEIGHT)
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "wrong block number")
-	_, err = client.GetBlock("!我@#", pb.GetBlockRequest_HEIGHT)
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "wrong block number")
-}
-
 //tc：根据当前区块的父区块高度查询区块，返回正确的区块信息
-func (suite *Model1) Test0104_GetBlockByParentHeightIsSuccess() {
+func (suite *Model1) Test0102_GetBlockByParentHeightIsSuccess() {
 	pk, _, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -97,7 +61,7 @@ func (suite *Model1) Test0104_GetBlockByParentHeightIsSuccess() {
 }
 
 //tc：根据区块哈希查询区块，返回正确的区块信息
-func (suite *Model1) Test0105_GetBlockByHashIsSuccess() {
+func (suite *Model1) Test0103_GetBlockByHashIsSuccess() {
 	pk, _, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -109,21 +73,8 @@ func (suite *Model1) Test0105_GetBlockByHashIsSuccess() {
 	suite.Require().Equal(chainMeta.BlockHash.String(), block.BlockHash.String())
 }
 
-//tc：根据错误的区块哈希查询区块，返回错误信息
-func (suite *Model1) Test0106_GetBlockByWrongHashIsFail() {
-	pk, _, err := repo.KeyPriv()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	_, err = client.GetBlock(" ", pb.GetBlockRequest_HASH)
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "invalid format of block hash for querying block")
-	_, err = client.GetBlock("0x0000000000000000000000000000000012345678900000000000000000000000", pb.GetBlockRequest_HASH)
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "not found in DB")
-}
-
 //tc：根据当前区块的父区块哈希查询区块，返回正确的区块信息
-func (suite *Model1) Test0107_GetBlockByParentHashIsSuccess() {
+func (suite *Model1) Test0104_GetBlockByParentHashIsSuccess() {
 	pk, _, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -139,7 +90,7 @@ func (suite *Model1) Test0107_GetBlockByParentHashIsSuccess() {
 }
 
 //tc：查询链的validators，返回中继链的validator信息
-func (suite *Model1) Test0108_GetValidatorsIsSuccess() {
+func (suite *Model1) Test0105_GetValidatorsIsSuccess() {
 	pk, _, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -149,7 +100,7 @@ func (suite *Model1) Test0108_GetValidatorsIsSuccess() {
 }
 
 //tc：根据指定范围查询区块头，返回正确范围内的区块头信息
-func (suite *Model1) Test0109_GetBlockHeaderIsSuccess() {
+func (suite *Model1) Test0106_GetBlockHeaderIsSuccess() {
 	pk, _, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -170,25 +121,8 @@ func (suite *Model1) Test0109_GetBlockHeaderIsSuccess() {
 	suite.Require().Equal(chainMeta.Height, head.Number)
 }
 
-//tc：根据不存在的范围查询区块头，返回区块头为空
-func (suite *Model1) Test0110_GetNonexistentBlockHeaderIsFail() {
-	pk, _, err := repo.KeyPriv()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	// get current chain meta
-	chainMeta, err := client.GetChainMeta()
-	suite.Require().Nil(err)
-	ctx, cancel := context.WithTimeout(context.Background(), GetInfoTimeout)
-	defer cancel()
-	ch := make(chan *pb.BlockHeader)
-	err = client.GetBlockHeader(ctx, chainMeta.Height+1, chainMeta.Height+1, ch)
-	suite.Require().Nil(err)
-	_, ok := <-ch
-	suite.Require().Equal(false, ok)
-}
-
 //tc：查询链的元数据，返回当前链的chain_meta信息
-func (suite *Model1) Test0111_GetChainMetaIsSuccess() {
+func (suite *Model1) Test0107_GetChainMetaIsSuccess() {
 	pk, _, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -201,7 +135,7 @@ func (suite *Model1) Test0111_GetChainMetaIsSuccess() {
 }
 
 //tc：查询指定区块高度范围内的所有区块，返回正确范围区块信息
-func (suite *Model1) Test0112_GetBlocksIsSuccess() {
+func (suite *Model1) Test0108_GetBlocksIsSuccess() {
 	pk, _, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -219,20 +153,8 @@ func (suite *Model1) Test0112_GetBlocksIsSuccess() {
 	suite.Require().Equal(int(chainMeta.Height-start)+1, len(res.Blocks))
 }
 
-//tc：查询不存在的高度范围的所有区块，返回区块信息为空
-func (suite *Model1) Test0113_GetBlocksByNonexistentRangeIsFail() {
-	pk, _, err := repo.KeyPriv()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	chainMeta, err := client.GetChainMeta()
-	suite.Require().Nil(err)
-	res, err := client.GetBlocks(chainMeta.Height+1, chainMeta.Height+1)
-	suite.Require().Nil(err)
-	suite.Require().Equal(0, len(res.Blocks))
-}
-
 //tc：根据指定地址查询余额，返回正确余额信息
-func (suite *Model1) Test0114_GetAccountBalanceIsSuccess() {
+func (suite *Model1) Test0109_GetAccountBalanceIsSuccess() {
 	pk, from, err := repo.Node1Priv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -244,34 +166,8 @@ func (suite *Model1) Test0114_GetAccountBalanceIsSuccess() {
 	suite.Require().NotEqual("0", data.Balance.String())
 }
 
-//tc：根据空的地址查询余额，返回余额为0
-func (suite *Model1) Test0115_GetAccountBalanceByNilAddressIsFail() {
-	pk, _, err := repo.KeyPriv()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	res, err := client.GetAccountBalance("0x0000000000000000000000000000000000000001")
-	suite.Require().Nil(err)
-	data := Account{}
-	err = json.Unmarshal(res.Data, &data)
-	suite.Require().Nil(err)
-	suite.Require().Equal("0", data.Balance.String())
-}
-
-//tc：根据错误的地址查询余额，返回余额为0
-func (suite *Model1) Test0116_GetAccountBalanceByWrongAddressIsFail() {
-	pk, _, err := repo.KeyPriv()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	_, err = client.GetAccountBalance("ABC")
-	suite.Require().NotNil(err)
-	_, err = client.GetAccountBalance("0x123")
-	suite.Require().NotNil(err)
-	_, err = client.GetAccountBalance("__ _~~+——*/")
-	suite.Require().NotNil(err)
-}
-
 //tc：查询链的共识状态，返回正确的状态信息
-func (suite *Model1) Test0117_GetChainStatusIsSuccess() {
+func (suite *Model1) Test0110_GetChainStatusIsSuccess() {
 	pk, _, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -281,7 +177,7 @@ func (suite *Model1) Test0117_GetChainStatusIsSuccess() {
 }
 
 //tc：查询链的网络状态，返回正确的状态信息
-func (suite *Model1) Test0118_GetNetworkMetaIsSuccess() {
+func (suite *Model1) Test0111_GetNetworkMetaIsSuccess() {
 	pk, _, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)

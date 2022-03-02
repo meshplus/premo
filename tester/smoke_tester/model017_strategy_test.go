@@ -116,150 +116,16 @@ func (suite Model17) Test1707_UpdateDappMgrZeroPermissionIsSuccess() {
 	suite.Require().Equal(ZeroPermission, strategy.Typ)
 }
 
-//tc：更新应用链管理的策略为简单治理策略，提案未通过，其他管理员发起应用链管理投票策略变更的提案，提案发起失败
-func (suite Model17) Test1708_UpdateAppchainMgrZeroPermissionWithUpdatingIsFail() {
-	result, err := suite.StrategyToUpdating(AppchainMgr)
-	suite.Require().Nil(err)
-	//recover strategy
-	defer func() {
-		err = suite.VotePass(result.ProposalID)
-		suite.Require().Nil(err)
-	}()
-	err = suite.UpdateStrategy(AppchainMgr, ZeroPermission, "")
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "is updating, can not do update")
-}
-
-//tc：更新验证规则的策略为简单治理策略，提案未通过，其他管理员发起应用链管理投票策略变更的提案，提案发起失败
-func (suite Model17) Test1709_UpdateRuleMgrZeroPermissionWithUpdatingIsFail() {
-	result, err := suite.StrategyToUpdating(RuleMgr)
-	suite.Require().Nil(err)
-	//recover strategy
-	defer func() {
-		err = suite.VotePass(result.ProposalID)
-		suite.Require().Nil(err)
-	}()
-	err = suite.UpdateStrategy(RuleMgr, ZeroPermission, "")
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "is updating, can not do update")
-}
-
-//tc：更新节点管理的策略为简单治理策略，提案未通过，其他管理员发起应用链管理投票策略变更的提案，提案发起失败
-func (suite Model17) Test1710_UpdateNodeMgrZeroPermissionWithUpdatingIsFail() {
-	result, err := suite.StrategyToUpdating(NodeMgr)
-	suite.Require().Nil(err)
-	//recover strategy
-	defer func() {
-		err = suite.VotePass(result.ProposalID)
-		suite.Require().Nil(err)
-	}()
-	err = suite.UpdateStrategy(NodeMgr, ZeroPermission, "")
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "is updating, can not do update")
-}
-
-//tc：更新服务管理的策略为简单治理策略，提案未通过，其他管理员发起应用链管理投票策略变更的提案，提案发起失败
-func (suite Model17) Test1711_UpdateServiceMgrZeroPermissionWithUpdatingIsFail() {
-	result, err := suite.StrategyToUpdating(ServiceMgr)
-	suite.Require().Nil(err)
-	//recover strategy
-	defer func() {
-		err = suite.VotePass(result.ProposalID)
-		suite.Require().Nil(err)
-	}()
-	err = suite.UpdateStrategy(ServiceMgr, ZeroPermission, "")
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "is updating, can not do update")
-}
-
-//tc：更新投票管理的策略为简单治理策略，提案未通过，其他管理员发起应用链管理投票策略变更的提案，提案发起失败
-func (suite Model17) Test1712_UpdateStrategyMgrZeroPermissionWithUpdatingIsFail() {
-	result, err := suite.StrategyToUpdating(StrategyMgr)
-	suite.Require().Nil(err)
-	//recover strategy
-	defer func() {
-		err = suite.VotePass(result.ProposalID)
-		suite.Require().Nil(err)
-	}()
-	err = suite.UpdateStrategy(StrategyMgr, ZeroPermission, "")
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "is updating, can not do update")
-}
-
-//tc：更新身份管理的策略为简单治理策略，提案未通过，其他管理员发起应用链管理投票策略变更的提案，提案发起失败
-func (suite Model17) Test1713_UpdateRoleMgrZeroPermissionWithUpdatingIsFail() {
-	result, err := suite.StrategyToUpdating(RoleMgr)
-	suite.Require().Nil(err)
-	//recover strategy
-	defer func() {
-		err = suite.VotePass(result.ProposalID)
-		suite.Require().Nil(err)
-	}()
-	err = suite.UpdateStrategy(RoleMgr, ZeroPermission, "")
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "is updating, can not do update")
-}
-
-//tc：更新Dapp管理的策略为简单治理策略，提案未通过，其他管理员发起应用链管理投票策略变更的提案，提案发起失败
-func (suite Model17) Test1714_UpdateDappMgrZeroPermissionWithUpdatingIsFail() {
-	result, err := suite.StrategyToUpdating(DappMgr)
-	suite.Require().Nil(err)
-	//recover strategy
-	defer func() {
-		err = suite.VotePass(result.ProposalID)
-		suite.Require().Nil(err)
-	}()
-	err = suite.UpdateStrategy(DappMgr, ZeroPermission, "")
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "is updating, can not do update")
-}
-
 //tc：更新全部模块的策略为简单治理策略，策略更新成功
-func (suite Model17) Test1715_UpdateAllStrategyZeroIsSuccess() {
+func (suite Model17) Test1708_UpdateAllStrategyZeroIsSuccess() {
 	err := suite.StrategyToSimple(RuleMgr)
 	suite.Require().Nil(err)
 	err = suite.UpdateAllStrategy(ZeroPermission, "")
 	suite.Require().Nil(err)
 }
 
-//tc：更新某一模块的投票策略，提案未通过，更新全部投票策略失败
-func (suite Model17) Test1716_UpdateAllStrategyWithUpdatingRuleMgrIsFail() {
-	result, err := suite.StrategyToUpdating(RuleMgr)
-	suite.Require().Nil(err)
-	//recover strategy
-	defer func() {
-		err := suite.VotePass(result.ProposalID)
-		suite.Require().Nil(err)
-	}()
-	err = suite.UpdateAllStrategy(ZeroPermission, "")
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "is updating, can not do update")
-}
-
-//tc：更新全部投票策略，提案未通过，更新某一模块的投票策略失败
-func (suite Model17) Test1717_UpdateStrategyWithUpdatingAllStrategyIsFail() {
-	result, err := suite.AllStrategyToUpdating()
-	suite.Require().Nil(err)
-	//recover strategy
-	defer func() {
-		err := suite.VotePass(result.ProposalID)
-		suite.Require().Nil(err)
-	}()
-	err = suite.UpdateStrategy(RuleMgr, ZeroPermission, "")
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "is updating, can not do update")
-}
-
-//tc：简单治理投票策略下更新投票策略为简单多数策略，公式非法，策略更新失败
-func (suite Model17) Test1718_UpdateStrategyWithErrorExtraInZeroIsFail() {
-	err := suite.StrategyToZero(StrategyMgr)
-	suite.Require().Nil(err)
-	err = suite.UpdateStrategy(StrategyMgr, SimpleMajority, "1==2")
-	suite.Require().NotNil(err)
-}
-
 //tc：更新应用链管理的策略为简单治理策略，策略更新成功
-func (suite Model17) Test1719_UpdateAppchainMgrSimpleMajorityIsSuccess() {
+func (suite Model17) Test1709_UpdateAppchainMgrSimpleMajorityIsSuccess() {
 	err := suite.StrategyToZero(AppchainMgr)
 	suite.Require().Nil(err)
 	err = suite.UpdateStrategy(AppchainMgr, SimpleMajority, "a > 0.5 * t")
@@ -270,7 +136,7 @@ func (suite Model17) Test1719_UpdateAppchainMgrSimpleMajorityIsSuccess() {
 }
 
 //tc：更新验证规则管理的策略为简单多数策略，策略更新成功
-func (suite Model17) Test1720_UpdateRuleMgrSimpleMajorityIsSuccess() {
+func (suite Model17) Test1710_UpdateRuleMgrSimpleMajorityIsSuccess() {
 	err := suite.StrategyToZero(RuleMgr)
 	suite.Require().Nil(err)
 	err = suite.UpdateStrategy(RuleMgr, SimpleMajority, "a > 0.5 * t")
@@ -281,7 +147,7 @@ func (suite Model17) Test1720_UpdateRuleMgrSimpleMajorityIsSuccess() {
 }
 
 //tc：更新节点管理的策略为简单多数策略，策略更新成功
-func (suite Model17) Test1721_UpdateNodeMgrSimpleMajorityIsSuccess() {
+func (suite Model17) Test1711_UpdateNodeMgrSimpleMajorityIsSuccess() {
 	err := suite.StrategyToZero(NodeMgr)
 	suite.Require().Nil(err)
 	err = suite.UpdateStrategy(NodeMgr, SimpleMajority, "a > 0.5 * t")
@@ -292,7 +158,7 @@ func (suite Model17) Test1721_UpdateNodeMgrSimpleMajorityIsSuccess() {
 }
 
 //tc：更新服务管理的策略为简单多数策略，策略更新成功
-func (suite Model17) Test1722_UpdateServiceMgrSimpleMajorityIsSuccess() {
+func (suite Model17) Test1712_UpdateServiceMgrSimpleMajorityIsSuccess() {
 	err := suite.StrategyToZero(ServiceMgr)
 	suite.Require().Nil(err)
 	err = suite.UpdateStrategy(ServiceMgr, SimpleMajority, "a > 0.5 * t")
@@ -303,7 +169,7 @@ func (suite Model17) Test1722_UpdateServiceMgrSimpleMajorityIsSuccess() {
 }
 
 //tc：更新投票策略管理的策略为简单多数策略，策略更新成功
-func (suite Model17) Test1723_UpdateStrategyMgrSimpleMajorityIsSuccess() {
+func (suite Model17) Test1713_UpdateStrategyMgrSimpleMajorityIsSuccess() {
 	err := suite.StrategyToZero(StrategyMgr)
 	suite.Require().Nil(err)
 	err = suite.UpdateStrategy(StrategyMgr, SimpleMajority, "a > 0.5 * t")
@@ -314,7 +180,7 @@ func (suite Model17) Test1723_UpdateStrategyMgrSimpleMajorityIsSuccess() {
 }
 
 //tc：更新身份管理的策略为简单多数策略，策略更新成功
-func (suite Model17) Test1724_UpdateRoleMgrSimpleMajorityIsSuccess() {
+func (suite Model17) Test1714_UpdateRoleMgrSimpleMajorityIsSuccess() {
 	err := suite.StrategyToZero(RoleMgr)
 	suite.Require().Nil(err)
 	err = suite.UpdateStrategy(RoleMgr, SimpleMajority, "a > 0.5 * t")
@@ -325,7 +191,7 @@ func (suite Model17) Test1724_UpdateRoleMgrSimpleMajorityIsSuccess() {
 }
 
 //tc：更新Dapp管理的策略为简单多数策略，策略更新成功
-func (suite Model17) Test1725_UpdateDappMgrSimpleMajorityIsSuccess() {
+func (suite Model17) Test1715_UpdateDappMgrSimpleMajorityIsSuccess() {
 	err := suite.StrategyToZero(DappMgr)
 	suite.Require().Nil(err)
 	err = suite.UpdateStrategy(DappMgr, SimpleMajority, "a > 0.5 * t")
@@ -335,122 +201,16 @@ func (suite Model17) Test1725_UpdateDappMgrSimpleMajorityIsSuccess() {
 	suite.Require().Equal(SimpleMajority, strategy.Typ)
 }
 
-//tc：更新应用链管理的策略为简单多数策略，提案未通过，其他管理员发起应用链管理投票策略变更的提案，提案发起失败
-func (suite Model17) Test1726_UpdateAppchainMgrSimpleMajorityWithUpdatingIsFail() {
-	result, err := suite.StrategyToUpdating(AppchainMgr)
-	suite.Require().Nil(err)
-	//recover strategy
-	defer func() {
-		err = suite.VotePass(result.ProposalID)
-		suite.Require().Nil(err)
-	}()
-	err = suite.UpdateStrategy(AppchainMgr, SimpleMajority, "a > 0.5 * t")
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "is updating, can not do update")
-}
-
-//tc：更新验证规则的策略为简单治理策略，提案未通过，其他管理员发起应用链管理投票策略变更的提案，提案发起失败
-func (suite Model17) Test1727_UpdateRuleMgrSimpleMajorityWithUpdatingIsFail() {
-	result, err := suite.StrategyToUpdating(RuleMgr)
-	suite.Require().Nil(err)
-	//recover strategy
-	defer func() {
-		err = suite.VotePass(result.ProposalID)
-		suite.Require().Nil(err)
-	}()
-	err = suite.UpdateStrategy(RuleMgr, SimpleMajority, "a > 0.5 * t")
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "is updating, can not do update")
-}
-
-//tc：更新节点管理的策略为简单多数策略，提案未通过，其他管理员发起应用链管理投票策略变更的提案，提案发起失败
-func (suite Model17) Test1728_UpdateNodeMgrSimpleMajorityWithUpdatingIsFail() {
-	result, err := suite.StrategyToUpdating(NodeMgr)
-	suite.Require().Nil(err)
-	//recover strategy
-	defer func() {
-		err = suite.VotePass(result.ProposalID)
-		suite.Require().Nil(err)
-	}()
-	err = suite.UpdateStrategy(NodeMgr, SimpleMajority, "a > 0.5 * t")
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "is updating, can not do update")
-}
-
-//tc：更新服务管理的策略为简单多数策略，提案未通过，其他管理员发起应用链管理投票策略变更的提案，提案发起失败
-func (suite Model17) Test1729_UpdateServiceMgrSimpleMajorityWithUpdatingIsFail() {
-	result, err := suite.StrategyToUpdating(ServiceMgr)
-	suite.Require().Nil(err)
-	//recover strategy
-	defer func() {
-		err = suite.VotePass(result.ProposalID)
-		suite.Require().Nil(err)
-	}()
-	err = suite.UpdateStrategy(ServiceMgr, SimpleMajority, "a > 0.5 * t")
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "is updating, can not do update")
-}
-
-//tc：更新投票管理的策略为简单多数策略，提案未通过，其他管理员发起应用链管理投票策略变更的提案，提案发起失败
-func (suite Model17) Test1730_UpdateStrategyMgrSimpleMajorityWithUpdatingIsFail() {
-	result, err := suite.StrategyToUpdating(StrategyMgr)
-	suite.Require().Nil(err)
-	//recover strategy
-	defer func() {
-		err = suite.VotePass(result.ProposalID)
-		suite.Require().Nil(err)
-	}()
-	err = suite.UpdateStrategy(StrategyMgr, SimpleMajority, "a > 0.5 * t")
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "is updating, can not do update")
-}
-
-//tc：更新身份管理的策略为简单多数策略，提案未通过，其他管理员发起应用链管理投票策略变更的提案，提案发起失败
-func (suite Model17) Test1731_UpdateRoleMgrSimpleMajorityWithUpdatingIsFail() {
-	result, err := suite.StrategyToUpdating(RoleMgr)
-	suite.Require().Nil(err)
-	//recover strategy
-	defer func() {
-		err = suite.VotePass(result.ProposalID)
-		suite.Require().Nil(err)
-	}()
-	err = suite.UpdateStrategy(RoleMgr, SimpleMajority, "a > 0.5 * t")
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "is updating, can not do update")
-}
-
-//tc：更新Dapp管理的策略为简单多数策略，提案未通过，其他管理员发起应用链管理投票策略变更的提案，提案发起失败
-func (suite Model17) Test1732_UpdateDappMgrSimpleMajorityWithUpdatingIsFail() {
-	result, err := suite.StrategyToUpdating(DappMgr)
-	suite.Require().Nil(err)
-	//recover strategy
-	defer func() {
-		err = suite.VotePass(result.ProposalID)
-		suite.Require().Nil(err)
-	}()
-	err = suite.UpdateStrategy(DappMgr, SimpleMajority, "a > 0.5 * t")
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "is updating, can not do update")
-}
-
 //tc：更新全部模块的策略为简单多数策略，策略更新成功
-func (suite Model17) Test1733_UpdateAllStrategySimpleIsSuccess() {
-	err := suite.StrategyToSimple(RuleMgr)
+func (suite Model17) Test1716_UpdateAllStrategySimpleIsSuccess() {
+	err := suite.StrategyToZero(RuleMgr)
 	suite.Require().Nil(err)
 	err = suite.UpdateAllStrategy(SimpleMajority, "a > 0.5 * t")
 	suite.Require().Nil(err)
 }
 
-//tc：简单多数投票策略下更新投票策略为简单多数策略，公式非法，策略更新失败
-func (suite Model17) Test1734_UpdateStrategyWithErrorExtraInSimpleIsFail() {
-	err := suite.StrategyToSimple(StrategyMgr)
-	suite.Require().Nil(err)
-	err = suite.UpdateStrategy(StrategyMgr, SimpleMajority, "1==2")
-	suite.Require().NotNil(err)
-}
-
 //tc：更新投票策略为简单多数策略，公式为t==4，增加治理管理员，公式变为默认公式
-func (suite Model17) Test1735_UpdateStrategyBeforeAdminAdded() {
+func (suite Model17) Test1717_UpdateStrategyBeforeAdminAdded() {
 	err := suite.StrategyToSimple(StrategyMgr)
 	suite.Require().Nil(err)
 	err = suite.UpdateStrategy(StrategyMgr, SimpleMajority, "t==4")

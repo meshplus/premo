@@ -20,8 +20,8 @@ func (suite *Model2) SetupTest() {
 	suite.T().Parallel()
 }
 
-//tc:发送转账交易，from的金额少于转账的金额，交易回执显示失败
-func (suite *Model2) Test0201_TransferLessThanAmount() {
+//tc：发送转账交易，from的金额少于转账的金额，交易回执显示失败
+func (suite *Model2) Test0201_TransferLessThanAmountIsFail() {
 	pk, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	_, to, err := repo.KeyPriv()
@@ -50,8 +50,8 @@ func (suite *Model2) Test0201_TransferLessThanAmount() {
 	suite.Require().Contains(string(ret.Ret), "not sufficient funds")
 }
 
-//tc:发送转账交易，to为0x0000000000000000000000000000000000000000，转账成功
-func (suite *Model2) Test0202_ToAddressIs0X000___000() {
+//tc：发送转账交易，to为0x0000000000000000000000000000000000000000，交易回执显示成功
+func (suite *Model2) Test0202_ToAddressIs0X000IsSuccess() {
 	pk, from, err := repo.Node2Priv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -74,8 +74,8 @@ func (suite *Model2) Test0202_ToAddressIs0X000___000() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, ret.Status)
 }
 
-//tc:发送转账交易，type设置为XVM，交易回执显示失败
-func (suite *Model2) Test0203_TypeIsXVM() {
+//tc：发送转账交易，type设置为XVM，交易回执显示失败
+func (suite *Model2) Test0203_TypeIsXVMIsFail() {
 	pk, from, err := repo.Node2Priv()
 	suite.Require().Nil(err)
 	_, to, err := repo.KeyPriv()
@@ -102,8 +102,8 @@ func (suite *Model2) Test0203_TypeIsXVM() {
 	suite.Require().Equal(pb.Receipt_FAILED, ret.Status)
 }
 
-//tc:发送转账交易，正常情况发送，交易回执状态显示成功，对应from和to地址金额相对应变化
-func (suite *Model2) Test0204_Transfer() {
+//tc：发送转账交易，正常情况发送，交易回执状态显示成功，对应from和to地址金额相对应变化
+func (suite *Model2) Test0204_TransferIsSuccess() {
 	pk, from, err := repo.Node2Priv()
 	suite.Require().Nil(err)
 	_, to, err := repo.KeyPriv()

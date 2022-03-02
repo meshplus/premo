@@ -33,7 +33,7 @@ func (suite Model6) Test0601_RegisterAppchainIsSuccess() {
 }
 
 //tc：注册应用链，管理员审核不通过，应用链注册失败
-func (suite Model6) Test0602_RegisterAppchainWithReject() {
+func (suite Model6) Test0602_RegisterAppchainWithRejectIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -71,7 +71,7 @@ func (suite Model6) Test0603_RegisterAppchainWithUsedNameIsFail() {
 	suite.Require().NotNil(err)
 }
 
-//tc：通过曾被占用的应用链名称注册应用链，应用链注册失败
+//tc：通过曾被占用的应用链名称注册应用链，应用链注册成功
 func (suite Model6) Test0604_RegisterAppchainWithFreeNameIsSuccess() {
 	pk1, from1, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
@@ -161,7 +161,7 @@ func (suite Model6) Test0610_RegisterAppchainWithRepeatedAdminIsFail() {
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 }
 
-//tc：通过曾被占用的管理员地址注册应用链，应用链注册失败
+//tc：通过曾被占用的管理员地址注册应用链，应用链注册成功
 func (suite Model6) Test0611_RegisterAppchainWithFreeAdminIsSuccess() {
 	pk1, from1, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
@@ -452,8 +452,18 @@ func (suite Model6) Test0626_UpdateAppchainWithNoExistSelfIsFail() {
 	suite.Require().NotNil(err)
 }
 
+//tc：应用链处于updating状态更新应用链，应用链更新失败
+func (suite Model6) Test0627_UpdateAppchainWithUpdatingChainIsFail() {
+	pk, from, address, err := suite.DeployRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToUpdating(pk, from, address)
+	suite.Require().Nil(err)
+	err = suite.UpdateAppchain(pk, from, from, "desc", []byte(""), from)
+	suite.Require().NotNil(err)
+}
+
 //tc：应用链处于activating状态更新应用链，应用链更新失败
-func (suite Model6) Test0627_UpdateAppchainWithActivatingChainIsFail() {
+func (suite Model6) Test0628_UpdateAppchainWithActivatingChainIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToActivating(pk, from, address)
@@ -463,7 +473,7 @@ func (suite Model6) Test0627_UpdateAppchainWithActivatingChainIsFail() {
 }
 
 //tc：应用链处于freezing状态更新应用链，应用链更新失败
-func (suite Model6) Test0628_UpdateAppchainWithFreezingChainIsFail() {
+func (suite Model6) Test0629_UpdateAppchainWithFreezingChainIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFreezing(pk, from, address)
@@ -473,7 +483,7 @@ func (suite Model6) Test0628_UpdateAppchainWithFreezingChainIsFail() {
 }
 
 //tc：应用链处于frozen状态更新应用链，应用链更新成功
-func (suite Model6) Test0629_UpdateAppchainWithFrozenChainIsSuccess() {
+func (suite Model6) Test0630_UpdateAppchainWithFrozenChainIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFrozen(pk, from, address)
@@ -483,7 +493,7 @@ func (suite Model6) Test0629_UpdateAppchainWithFrozenChainIsSuccess() {
 }
 
 //tc：应用链处于logouting状态更新应用链，应用链更新失败
-func (suite Model6) Test0630_UpdateAppchainWithLogoutingChainIsFail() {
+func (suite Model6) Test0631_UpdateAppchainWithLogoutingChainIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToLogouting(pk, from, address)
@@ -493,7 +503,7 @@ func (suite Model6) Test0630_UpdateAppchainWithLogoutingChainIsFail() {
 }
 
 //tc：应用链处于forbidden状态更新应用链，应用链更新失败
-func (suite Model6) Test0631_UpdateAppchainWithForbiddenChainIsFail() {
+func (suite Model6) Test0632_UpdateAppchainWithForbiddenChainIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToForbidden(pk, from, address)
@@ -502,8 +512,29 @@ func (suite Model6) Test0631_UpdateAppchainWithForbiddenChainIsFail() {
 	suite.Require().NotNil(err)
 }
 
+//tc：更新主验证规则中，应用链处于frozen状态，更新应用链，应用链更新失败
+func (suite Model6) Test0633_UpdateAppchainWithUpdateMasterRuleIsFail() {
+	pk, from, address, err := suite.DeployRule()
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, from, address)
+	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
+	args := []*pb.Arg{
+		rpcx.String(from),
+		rpcx.String(HappyRuleAddr),
+		rpcx.String("reason"),
+	}
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), UpdateMasterRule, nil, args...)
+	suite.Require().Nil(err)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+	err = suite.CheckChainStatus(from, governance.GovernanceFrozen)
+	suite.Require().Nil(err)
+	err = suite.UpdateAppchain(pk, from, from+"111", "desc", []byte(""), from)
+	suite.Require().NotNil(err)
+}
+
 //tc：应用链更新名称字段，产生提案
-func (suite Model6) Test0632_UpdateAppchainWithNameFieldHaveProposal() {
+func (suite Model6) Test0634_UpdateAppchainWithNameFieldHaveProposalIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -526,7 +557,7 @@ func (suite Model6) Test0632_UpdateAppchainWithNameFieldHaveProposal() {
 }
 
 //tc：应用链信任根名称字段，产生提案
-func (suite Model6) Test0633_UpdateAppchainWithTrustRootFieldHaveProposal() {
+func (suite Model6) Test0635_UpdateAppchainWithTrustRootFieldHaveProposalIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -549,7 +580,7 @@ func (suite Model6) Test0633_UpdateAppchainWithTrustRootFieldHaveProposal() {
 }
 
 //tc：应用链更新管理员地址字段，产生提案
-func (suite Model6) Test0634_UpdateAppchainWithAdminsFieldHaveProposal() {
+func (suite Model6) Test0636_UpdateAppchainWithAdminsFieldHaveProposalIsSuccess() {
 	pk1, from1, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk1, from1, address)
@@ -576,7 +607,7 @@ func (suite Model6) Test0634_UpdateAppchainWithAdminsFieldHaveProposal() {
 }
 
 //tc：应用链更新描述字段，不产生提案
-func (suite Model6) Test0635_UpdateAppchainWithDescFieldNoProposal() {
+func (suite Model6) Test0637_UpdateAppchainWithDescFieldNoProposalIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -599,7 +630,7 @@ func (suite Model6) Test0635_UpdateAppchainWithDescFieldNoProposal() {
 }
 
 //tc：非中继链管理员冻结应用链，应用链冻结失败
-func (suite Model6) Test0636_FreezeAppchainWithNoAdminIsFail() {
+func (suite Model6) Test0638_FreezeAppchainWithNoAdminIsFail() {
 	pk1, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk1, from, address)
@@ -613,7 +644,7 @@ func (suite Model6) Test0636_FreezeAppchainWithNoAdminIsFail() {
 }
 
 //tc：应用链未注册，冻结应用链，应用链冻结失败
-func (suite Model6) Test0637_FreezeAppchainWithNoRegisterChainIsFail() {
+func (suite Model6) Test0639_FreezeAppchainWithNoRegisterChainIsFail() {
 	pk, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -623,7 +654,7 @@ func (suite Model6) Test0637_FreezeAppchainWithNoRegisterChainIsFail() {
 }
 
 //tc：中继链管理员冻结应用链，应用链冻结成功
-func (suite Model6) Test0638_FreezeAppchainIsSuccess() {
+func (suite Model6) Test0640_FreezeAppchainIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -632,8 +663,18 @@ func (suite Model6) Test0638_FreezeAppchainIsSuccess() {
 	suite.Require().Nil(err)
 }
 
-//tc：应用链处于activating状态冻结应用链，应用链冻结成功
-func (suite Model6) Test0639_FreezeAppchainWithActivatingChainIsSuccess() {
+//tc：应用链处于updating状态冻结应用链，应用链冻结失败
+func (suite Model6) Test0641_FreezeAppchainWithUpdatingChainIsFail() {
+	pk, from, address, err := suite.DeployRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToUpdating(pk, from, address)
+	suite.Require().Nil(err)
+	err = suite.FreezeAppchain(from)
+	suite.Require().NotNil(err)
+}
+
+//tc：应用链处于activating状态冻结应用链，应用链冻结失败
+func (suite Model6) Test0642_FreezeAppchainWithActivatingChainIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToActivating(pk, from, address)
@@ -645,7 +686,7 @@ func (suite Model6) Test0639_FreezeAppchainWithActivatingChainIsSuccess() {
 }
 
 //tc：应用链处于freezing状态冻结应用链，应用链冻结失败
-func (suite Model6) Test0640_FreezeAppchainWithFreezingChainIsFail() {
+func (suite Model6) Test0643_FreezeAppchainWithFreezingChainIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFreezing(pk, from, address)
@@ -655,7 +696,7 @@ func (suite Model6) Test0640_FreezeAppchainWithFreezingChainIsFail() {
 }
 
 //tc：应用链处于frozen状态冻结应用链，应用链冻结失败
-func (suite Model6) Test0641_FreezeAppchainWithFrozenChainIsFail() {
+func (suite Model6) Test0644_FreezeAppchainWithFrozenChainIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -669,7 +710,7 @@ func (suite Model6) Test0641_FreezeAppchainWithFrozenChainIsFail() {
 }
 
 //tc：应用链处于logouting状态冻结应用链，应用链冻结失败
-func (suite Model6) Test0642_FreezeAppchainWithLogoutingChainIsFail() {
+func (suite Model6) Test0645_FreezeAppchainWithLogoutingChainIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToLogouting(pk, from, address)
@@ -679,7 +720,7 @@ func (suite Model6) Test0642_FreezeAppchainWithLogoutingChainIsFail() {
 }
 
 //tc：应用链处于forbidden状态冻结应用链，应用链冻结失败
-func (suite Model6) Test0643_FreezeAppchainWithForbiddenChainIsFail() {
+func (suite Model6) Test0646_FreezeAppchainWithForbiddenChainIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToForbidden(pk, from, address)
@@ -688,8 +729,29 @@ func (suite Model6) Test0643_FreezeAppchainWithForbiddenChainIsFail() {
 	suite.Require().NotNil(err)
 }
 
+//tc：更新主验证规则中，应用链处于frozen状态，冻结应用链，应用链冻结失败
+func (suite Model6) Test0647_FreezeAppchainWithUpdateMasterRuleIsFail() {
+	pk, from, address, err := suite.DeployRule()
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, from, address)
+	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
+	args := []*pb.Arg{
+		rpcx.String(from),
+		rpcx.String(HappyRuleAddr),
+		rpcx.String("reason"),
+	}
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), UpdateMasterRule, nil, args...)
+	suite.Require().Nil(err)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+	err = suite.CheckChainStatus(from, governance.GovernanceFrozen)
+	suite.Require().Nil(err)
+	err = suite.FreezeAppchain(from)
+	suite.Require().NotNil(err)
+}
+
 //tc：非中继链管理员非应用链管理员激活应用链，应用链激活失败
-func (suite Model6) Test0644_ActivateAppchainWithNoAdminIsFail() {
+func (suite Model6) Test0648_ActivateAppchainWithNoAdminIsFail() {
 	pk1, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFrozen(pk1, from, address)
@@ -701,7 +763,7 @@ func (suite Model6) Test0644_ActivateAppchainWithNoAdminIsFail() {
 }
 
 //tc：应用链管理员激活应用链，应用链激活成功
-func (suite Model6) Test0645_ActivateAppchainIsSuccess() {
+func (suite Model6) Test0649_ActivateAppchainIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFrozen(pk, from, address)
@@ -711,16 +773,12 @@ func (suite Model6) Test0645_ActivateAppchainIsSuccess() {
 }
 
 //tc：中继链管理员激活应用链，应用链激活成功
-func (suite Model6) Test0646_ActivateAppchainWithRelayAdminIsSuccess() {
+func (suite Model6) Test0650_ActivateAppchainWithRelayAdminIsSuccess() {
 	pk, chainID, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFrozen(pk, chainID, address)
 	suite.Require().Nil(err)
-	path, err := repo.Node1Path()
-	suite.Require().Nil(err)
-	node1pk, err := asym.RestorePrivateKey(path, repo.KeyPassword)
-	suite.Require().Nil(err)
-	from, err := node1pk.PublicKey().Address()
+	node1pk, from, err := repo.Node1Priv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(node1pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", &rpcx.TransactOpts{
@@ -737,15 +795,25 @@ func (suite Model6) Test0646_ActivateAppchainWithRelayAdminIsSuccess() {
 }
 
 //tc：应用链未注册，激活应用链，应用链激活失败
-func (suite Model6) Test0647_ActivateAppchainWithNoRegisterChainIsFail() {
+func (suite Model6) Test0651_ActivateAppchainWithNoRegisterChainIsFail() {
 	pk, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.ActivateAppchain(pk, from.String())
 	suite.Require().NotNil(err)
 }
 
+//tc：应用链处于updating状态激活应用链，应用链激活失败
+func (suite Model6) Test0652_ActivateAppchainWithUpdatingChainIsFail() {
+	pk, from, address, err := suite.DeployRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToUpdating(pk, from, address)
+	suite.Require().Nil(err)
+	err = suite.ActivateAppchain(pk, from)
+	suite.Require().NotNil(err)
+}
+
 //tc：应用链处于activating状态激活应用链，应用链激活失败
-func (suite Model6) Test0648_ActivateAppchainWithActivatingChainIsFail() {
+func (suite Model6) Test0653_ActivateAppchainWithActivatingChainIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToActivating(pk, from, address)
@@ -755,7 +823,7 @@ func (suite Model6) Test0648_ActivateAppchainWithActivatingChainIsFail() {
 }
 
 //tc：应用链处于freezing状态激活应用链，应用链激活失败
-func (suite Model6) Test0649_ActivateAppchainWithFreezingChainIsFail() {
+func (suite Model6) Test0654_ActivateAppchainWithFreezingChainIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFreezing(pk, from, address)
@@ -765,7 +833,7 @@ func (suite Model6) Test0649_ActivateAppchainWithFreezingChainIsFail() {
 }
 
 //tc：应用链处于logouting状态激活应用链，应用链激活失败
-func (suite Model6) Test0650_ActivateAppchainWithLogoutingChainIsFail() {
+func (suite Model6) Test0655_ActivateAppchainWithLogoutingChainIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToLogouting(pk, from, address)
@@ -775,7 +843,7 @@ func (suite Model6) Test0650_ActivateAppchainWithLogoutingChainIsFail() {
 }
 
 //tc：应用链处于forbidden状态激活应用链，应用链激活失败
-func (suite Model6) Test0651_ActivateAppchainWithForbiddenChainIsFail() {
+func (suite Model6) Test0656_ActivateAppchainWithForbiddenChainIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToForbidden(pk, from, address)
@@ -784,8 +852,29 @@ func (suite Model6) Test0651_ActivateAppchainWithForbiddenChainIsFail() {
 	suite.Require().NotNil(err)
 }
 
+//tc：更新主验证规则中，应用链处于frozen状态，激活应用链，应用链激活失败
+func (suite Model6) Test0657_ActivateAppchainWithUpdateMasterRuleIsFail() {
+	pk, from, address, err := suite.DeployRule()
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, from, address)
+	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
+	args := []*pb.Arg{
+		rpcx.String(from),
+		rpcx.String(HappyRuleAddr),
+		rpcx.String("reason"),
+	}
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), UpdateMasterRule, nil, args...)
+	suite.Require().Nil(err)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+	err = suite.CheckChainStatus(from, governance.GovernanceFrozen)
+	suite.Require().Nil(err)
+	err = suite.ActivateAppchain(pk, from)
+	suite.Require().NotNil(err)
+}
+
 //tc：非应用链管理员注销应用链，应用链注销失败
-func (suite Model6) Test0652_LogoutAppchainWithNoAdminIsFail() {
+func (suite Model6) Test0658_LogoutAppchainWithNoAdminIsFail() {
 	pk1, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk1, from, address)
@@ -797,7 +886,7 @@ func (suite Model6) Test0652_LogoutAppchainWithNoAdminIsFail() {
 }
 
 //tc：应用链管理员注销应用链，应用链注销成功
-func (suite Model6) Test0653_LogoutAppchainIsSuccess() {
+func (suite Model6) Test0659_LogoutAppchainIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -807,15 +896,25 @@ func (suite Model6) Test0653_LogoutAppchainIsSuccess() {
 }
 
 //tc：应用链未注册，注销应用链，应用链注销失败
-func (suite Model6) Test0654_LogoutAppchainWithNoRegisterChainIsFail() {
+func (suite Model6) Test0660_LogoutAppchainWithNoRegisterChainIsFail() {
 	pk, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.LogoutAppchain(pk, from.String())
 	suite.Require().NotNil(err)
 }
 
+//tc：应用链处于updating状态注销应用链，应用链注销成功
+func (suite Model6) Test0661_LogoutAppchainWithUpdatingCainIsSuccess() {
+	pk, from, address, err := suite.DeployRule()
+	suite.Require().Nil(err)
+	err = suite.ChainToUpdating(pk, from, address)
+	suite.Require().Nil(err)
+	err = suite.LogoutAppchain(pk, from)
+	suite.Require().Nil(err)
+}
+
 //tc：应用链处于activating状态注销应用链，应用链注销成功
-func (suite Model6) Test0655_LogoutAppchainWithActivatingChainIsSuccess() {
+func (suite Model6) Test0662_LogoutAppchainWithActivatingChainIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToActivating(pk, from, address)
@@ -824,8 +923,8 @@ func (suite Model6) Test0655_LogoutAppchainWithActivatingChainIsSuccess() {
 	suite.Require().Nil(err)
 }
 
-//tc：应用链处于freezing状态注销应用链，应用链激活成功
-func (suite Model6) Test0656_LogoutAppchainWithFreezingChainIsSuccess() {
+//tc：应用链处于freezing状态注销应用链，应用链注销成功
+func (suite Model6) Test0663_LogoutAppchainWithFreezingChainIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFreezing(pk, from, address)
@@ -835,7 +934,7 @@ func (suite Model6) Test0656_LogoutAppchainWithFreezingChainIsSuccess() {
 }
 
 //tc：应用链处于frozen状态注销应用链，应用链注销成功
-func (suite Model6) Test0657_LogoutAppchainWithFrozenChainIsSuccess() {
+func (suite Model6) Test0664_LogoutAppchainWithFrozenChainIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFrozen(pk, from, address)
@@ -845,7 +944,7 @@ func (suite Model6) Test0657_LogoutAppchainWithFrozenChainIsSuccess() {
 }
 
 //tc：应用链处于logouting状态注销应用链，应用链注销失败
-func (suite Model6) Test0658_LogoutAppchainWithLogoutingChainIsFail() {
+func (suite Model6) Test0665_LogoutAppchainWithLogoutingChainIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToLogouting(pk, from, address)
@@ -855,7 +954,7 @@ func (suite Model6) Test0658_LogoutAppchainWithLogoutingChainIsFail() {
 }
 
 //tc：应用链处于forbidden状态注销应用链，应用链注销失败
-func (suite Model6) Test0659_LogoutAppchainWithForbiddenChainIsFail() {
+func (suite Model6) Test0666_LogoutAppchainWithForbiddenChainIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToForbidden(pk, from, address)
@@ -864,13 +963,32 @@ func (suite Model6) Test0659_LogoutAppchainWithForbiddenChainIsFail() {
 	suite.Require().NotNil(err)
 }
 
+//tc：更新主验证规则中，应用链处于frozen状态，注销应用链，应用链注销成功
+func (suite Model6) Test0667_LogoutAppchainWithUpdateMasterRuleIsSuccess() {
+	pk, from, address, err := suite.DeployRule()
+	suite.Require().Nil(err)
+	err = suite.RegisterAppchain(pk, from, address)
+	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
+	args := []*pb.Arg{
+		rpcx.String(from),
+		rpcx.String(HappyRuleAddr),
+		rpcx.String("reason"),
+	}
+	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), UpdateMasterRule, nil, args...)
+	suite.Require().Nil(err)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+	err = suite.CheckChainStatus(from, governance.GovernanceFrozen)
+	suite.Require().Nil(err)
+	err = suite.LogoutAppchain(pk, from)
+	suite.Require().Nil(err)
+}
+
 // RegisterAppchain register appchain
 func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, name, address string) error {
 	client := suite.NewClient(pk)
 	from, err := pk.PublicKey().Address()
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(from.String()),  //chainID
 		rpcx.String(name),           //chainName
@@ -884,21 +1002,15 @@ func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, name, address string)
 		rpcx.String("reason"),             //reason
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "RegisterAppchain", nil, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.VotePass(result.ProposalID)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
@@ -906,9 +1018,7 @@ func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, name, address string)
 func (suite Snake) RegisterAppchainWithType(pk crypto.PrivateKey, typ, address, broker string) error {
 	client := suite.NewClient(pk)
 	from, err := pk.PublicKey().Address()
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(from.String()),        //chainID
 		rpcx.String(from.String()),        //chainName
@@ -922,39 +1032,25 @@ func (suite Snake) RegisterAppchainWithType(pk crypto.PrivateKey, typ, address, 
 		rpcx.String("reason"),             //reason
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "RegisterAppchain", nil, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.VotePass(result.ProposalID)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
 // FreezeAppchain freeze appchain
 func (suite *Snake) FreezeAppchain(chainID string) error {
-	path, err := repo.Node1Path()
-	if err != nil {
-		return err
-	}
-	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
-	if err != nil {
-		return err
-	}
+	node1Key, _, err := repo.Node1Priv()
+	suite.Require().Nil(err)
 	client := suite.NewClient(node1Key)
 	from, err := node1Key.PublicKey().Address()
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	nonce := atomic.AddUint64(&nonce1, 1)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
 		&rpcx.TransactOpts{
@@ -963,21 +1059,15 @@ func (suite *Snake) FreezeAppchain(chainID string) error {
 		},
 		rpcx.String(chainID), rpcx.String("reason"),
 	)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.VotePass(result.ProposalID)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
@@ -993,21 +1083,16 @@ func (suite *Snake) UpdateAppchain(pk crypto.PrivateKey, id, name, desc string, 
 		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if result.ProposalID != "" {
-		if err := suite.VotePass(result.ProposalID); err != nil {
-			return err
-		}
+		err = suite.VotePass(result.ProposalID)
+		suite.Require().Nil(err)
 	}
 	return nil
 }
@@ -1016,21 +1101,16 @@ func (suite *Snake) UpdateAppchain(pk crypto.PrivateKey, id, name, desc string, 
 func (suite *Snake) ActivateAppchain(pk crypto.PrivateKey, chainID string) error {
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil, rpcx.String(chainID), rpcx.String("reason"))
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if result.ProposalID != "" {
-		if err := suite.VotePass(result.ProposalID); err != nil {
-			return err
-		}
+		err = suite.VotePass(result.ProposalID)
+		suite.Require().Nil(err)
 	}
 	return nil
 }
@@ -1039,21 +1119,16 @@ func (suite *Snake) ActivateAppchain(pk crypto.PrivateKey, chainID string) error
 func (suite *Snake) LogoutAppchain(pk crypto.PrivateKey, chainID string) error {
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(chainID), rpcx.String("reason"))
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if result.ProposalID != "" {
-		if err := suite.VotePass(result.ProposalID); err != nil {
-			return err
-		}
+		err = suite.VotePass(result.ProposalID)
+		suite.Require().Nil(err)
 	}
 	return nil
 }
@@ -1061,34 +1136,24 @@ func (suite *Snake) LogoutAppchain(pk crypto.PrivateKey, chainID string) error {
 // ChainToActivating get an activating appchain
 func (suite Snake) ChainToActivating(pk crypto.PrivateKey, name, address string) error {
 	err := suite.RegisterAppchain(pk, name, address)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.FreezeAppchain(name)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil, rpcx.String(name), rpcx.String("reason"))
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}
 	err = suite.CheckChainStatus(name, governance.GovernanceActivating)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
 // ChainToUpdating get a updating appchain
 func (suite Snake) ChainToUpdating(pk crypto.PrivateKey, name, address string) error {
 	err := suite.RegisterAppchain(pk, name, address)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
 		rpcx.String(name),
@@ -1099,25 +1164,19 @@ func (suite Snake) ChainToUpdating(pk crypto.PrivateKey, name, address string) e
 		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}
 	err = suite.CheckChainStatus(name, governance.GovernanceUpdating)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
 // ChainToFreezing get a freezing appchain
 func (suite Snake) ChainToFreezing(pk crypto.PrivateKey, name, address string) error {
 	err := suite.RegisterAppchain(pk, name, address)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	node1, node1Addr, err := repo.Node1Priv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(node1)
@@ -1129,80 +1188,56 @@ func (suite Snake) ChainToFreezing(pk crypto.PrivateKey, name, address string) e
 		},
 		rpcx.String(name), rpcx.String("reason"),
 	)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}
 	err = suite.CheckChainStatus(name, governance.GovernanceFreezing)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
 // ChainToFrozen get a frozen appchain
 func (suite Snake) ChainToFrozen(pk crypto.PrivateKey, name, address string) error {
 	err := suite.RegisterAppchain(pk, name, address)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.FreezeAppchain(name)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.CheckChainStatus(name, governance.GovernanceFrozen)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
 // ChainToLogouting get a logouting appchain
 func (suite Snake) ChainToLogouting(pk crypto.PrivateKey, name, address string) error {
 	err := suite.RegisterAppchain(pk, name, address)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(name), rpcx.String("reason"))
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}
 	err = suite.CheckChainStatus(name, governance.GovernanceLogouting)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
 // ChainToForbidden get a forbidden appchain
 func (suite Snake) ChainToForbidden(pk crypto.PrivateKey, name, address string) error {
 	err := suite.RegisterAppchain(pk, name, address)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.LogoutAppchain(pk, name)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.CheckChainStatus(name, governance.GovernanceForbidden)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
 // CheckChainStatus check chain status
 func (suite *Snake) CheckChainStatus(name string, expectStatus governance.GovernanceStatus) error {
 	status, err := suite.GetChainStatusByName(name)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if expectStatus != status {
 		return fmt.Errorf("expect status is %s ,but get status %s", expectStatus, status)
 	}
@@ -1212,14 +1247,10 @@ func (suite *Snake) CheckChainStatus(name string, expectStatus governance.Govern
 // GetChainStatusByName return chain status by name
 func (suite *Snake) GetChainStatusByName(name string) (governance.GovernanceStatus, error) {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	from, err := pk.PublicKey().Address()
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(name),
 	}
@@ -1228,9 +1259,7 @@ func (suite *Snake) GetChainStatusByName(name string) (governance.GovernanceStat
 		Args:   args,
 	}
 	payload, err := invokePayload.Marshal()
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	data := &pb.TransactionData{
 		Type:    pb.TransactionData_INVOKE,
 		VmType:  pb.TransactionData_BVM,
@@ -1243,20 +1272,14 @@ func (suite *Snake) GetChainStatusByName(name string) (governance.GovernanceStat
 		Timestamp: time.Now().UnixNano(),
 		Payload:   payload,
 	}
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	res, err := client.SendTransactionWithReceipt(tx, nil)
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	if res.Status == pb.Receipt_FAILED {
 		return "", fmt.Errorf(string(res.Ret))
 	}
 	appchain := appchainmgr.Appchain{}
 	err = json.Unmarshal(res.Ret, &appchain)
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	return appchain.Status, nil
 }

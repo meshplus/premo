@@ -70,6 +70,7 @@ func benchmark(ctx *cli.Context) error {
 	}
 	var proof []byte
 	typ := ""
+	proof = []byte("111")
 
 	appchain := ctx.String("appchain")
 	if appchain == "fabric" {
@@ -89,10 +90,6 @@ func benchmark(ctx *cli.Context) error {
 	} else {
 		return fmt.Errorf("unsupported appchain type")
 	}
-	contract, err := box.Find("rule.wasm")
-	if err != nil {
-		return err
-	}
 
 	keyPath := ctx.String("key_path")
 	if keyPath == "" {
@@ -111,7 +108,6 @@ func benchmark(ctx *cli.Context) error {
 		BitxhubAddr: ctx.StringSlice("remote_bitxhub_addr"),
 		Validator:   string(val),
 		Proof:       proof,
-		Rule:        contract,
 		Appchain:    typ,
 	}
 
