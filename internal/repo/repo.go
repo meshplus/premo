@@ -28,13 +28,10 @@ func PathRoot() (string, error) {
 }
 
 // PathRootWithDefault gets current config path with default value
-func PathRootWithDefault(path string) (string, error) {
-	var err error
-	if len(path) == 0 {
-		path, err = PathRoot()
-		if err != nil {
-			return "", err
-		}
+func PathRootWithDefault() (string, error) {
+	path, err := PathRoot()
+	if err != nil {
+		return "", err
 	}
 	if !fileutil.Exist(path) {
 		return "", fmt.Errorf("please run `premo init` first")

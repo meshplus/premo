@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 
+	"github.com/coreos/etcd/pkg/fileutil"
 	"github.com/meshplus/premo/internal/repo"
 	"github.com/meshplus/premo/pkg/exec"
 	"github.com/urfave/cli/v2"
@@ -17,16 +17,10 @@ var bitxhubCMD = &cli.Command{
 			Name:  "start",
 			Usage: "Start the bitxhub cluster",
 			Flags: []cli.Flag{
-				&cli.IntFlag{
-					Name:    "num",
-					Aliases: []string{"n"},
-					Value:   4,
-					Usage:   "the number of the bitxhub nodes",
-				},
 				&cli.StringFlag{
 					Name:    "version",
 					Aliases: []string{"v"},
-					Value:   "master",
+					Value:   "v1.18",
 					Usage:   "the version of the bitxhub checkout",
 				},
 			},
@@ -43,15 +37,16 @@ var bitxhubCMD = &cli.Command{
 func stopBitxhub(ctx *cli.Context) error {
 	repoRoot, err := repo.PathRoot()
 	if err != nil {
-		return fmt.Errorf("please 'premo init' first")
+		return err
+	}
+	if !fileutil.Exist(repoRoot) {
+		return fmt.Errorf("please run `premo init` first")
 	}
 	return downBitxhub(repoRoot)
 }
 
 func downBitxhub(repoRoot string) error {
-	args := make([]string, 0)
-	args = append(args, "run_bitxhub.sh", "down")
-	err := exec.ExecuteShell(repoRoot, args...)
+	_, err := exec.ExecuteShell(repoRoot, "./stop_bitxhub.sh")
 	if err != nil {
 		return err
 	}
@@ -59,32 +54,28 @@ func downBitxhub(repoRoot string) error {
 }
 
 func startBitxhub(ctx *cli.Context) error {
-	num := ctx.Int("num")
-	version := ctx.String("version")
-
 	repoRoot, err := repo.PathRoot()
 	if err != nil {
-		return fmt.Errorf("please 'premo init' first")
+		return err
 	}
-	err = runBitXHub(num, repoRoot, version)
+	if !fileutil.Exist(repoRoot) {
+		return fmt.Errorf("please run `premo init` first")
+	}
+	version := ctx.String("version")
+	switch version {
+	case "v1.18":
+		repoRoot = repoRoot + "/quick-cross-chain-v1.18"
+	}
+
+	err = runBitXHub(repoRoot)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func runBitXHub(num int, repoRoot, version string) error {
-	var mode string
-	if num > 1 {
-		mode = "cluster"
-	} else {
-		mode = "solo"
-	}
-
-	args := make([]string, 0)
-	args = append(args, "run_bitxhub.sh", "up", mode, strconv.Itoa(num), version)
-
-	err := exec.ExecuteShell(repoRoot, args...)
+func runBitXHub(repoRoot string) error {
+	_, err := exec.ExecuteShell(repoRoot, "./1.start_bitxhub.sh")
 	if err != nil {
 		return err
 	}

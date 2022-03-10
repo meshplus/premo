@@ -12,6 +12,7 @@ require (
 	github.com/gobuffalo/packr v1.30.1
 	github.com/hyperledger/fabric-lib-go v1.0.0 // indirect
 	github.com/hyperledger/fabric-sdk-go v1.0.0-alpha5
+	github.com/jiuhuche120/spin v0.0.0-20220224085816-ab11eb007ff8
 	github.com/libp2p/go-libp2p-core v0.6.1
 	github.com/looplab/fsm v0.3.0
 	github.com/meshplus/bitxhub-core v1.3.1-0.20211019055819-2e20288cafa4

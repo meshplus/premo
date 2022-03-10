@@ -51,30 +51,6 @@ else
 	cd tester/bxh_tester && $(GO) test -v -run TestTester
 endif
 
-## make interchain-tester: Run interchain test
-interchain-tester:
-	@cd tester/interchain_tester && $(GO) test -v -run TestTester
-
-## make gosdk-tester: Run gosdk test
-gosdk-tester:
-ifeq ("${REPORT}", "Y")
-	$(GO) get github.com/ilyubin/gotest2allure/cmd/gotest2allure
-	-cd tester/gosdk-tester && $(GO) test -v -run TestTester -json > json-report.txt
-	cd tester/gosdk-tester && gotest2allure -f json-report.txt
-else
-	cd tester/gosdk-tester && $(GO) test -v -run TestTester
-endif
-
-## make http-tester: Run http test
-http-tester:
-ifeq ("${REPORT}", "Y")
-	$(GO) get github.com/ilyubin/gotest2allure/cmd/gotest2allure
-	-cd tester/http-tester && $(GO) test -v -run TestTester -json > json-report.txt
-	cd tester/http-tester && gotest2allure -f json-report.txt
-else
-	cd tester/http-tester && $(GO) test -v -run TestTester
-endif
-
 ## make install: Go install the project
 install:
 	cd internal/repo && packr

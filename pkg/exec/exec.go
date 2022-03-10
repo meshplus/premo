@@ -1,122 +1,59 @@
 package exec
 
 import (
-	"bytes"
 	"fmt"
-	"io"
-	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/jiuhuche120/spin"
 )
 
-type ExecTask struct {
-	Command string
-	Args    []string
-	Env     []string
-	Repo    string
+const (
+	Red    = 31
+	Orange = 33
 
-	StreamStdio  bool
-	PrintCommand bool
-}
+	DefaultShell = "/bin/bash"
+)
 
-type ExecResult struct {
-	Stdout   string
-	Stderr   string
-	ExitCode int
-}
+func ExecuteShell(repo string, args ...string) ([]byte, error) {
+	var arg []string
+	arg = append(arg, "-c")
+	arg = append(arg, args...)
+	cmd := exec.Command(DefaultShell, arg...)
+	cmd.Dir = repo
 
-// ExecuteShell executes the shell script that the scripts's name is the first element of args list
-func ExecuteShell(repoRoot string, args ...string) error {
-	task := ExecTask{
-		Command:      "/bin/bash",
-		Args:         args,
-		Repo:         repoRoot,
-		StreamStdio:  true,
-		PrintCommand: true,
-	}
-	result, err := task.Execute()
+	s := spin.New("\033[36mStart execute command: " + cmd.String() + "\033[m")
+	s.Start()
+	bytes, err := cmd.Output()
 	if err != nil {
-		return fmt.Errorf("execute shell error:%w", err)
+		s.Stop()
+		if len(bytes) != 0 {
+			PrintMessage(string(bytes), Red)
+		}
+		PrintMessage(err.Error(), Red)
+		return nil, fmt.Errorf(err.Error())
 	}
-	if result.ExitCode != 0 {
-		return fmt.Errorf("execute shell error:%s", result.Stderr)
-	}
-	return nil
+	s.Stop()
+	PrintMessage(string(bytes), Orange)
+	return bytes, nil
 }
-func (et ExecTask) Execute() (ExecResult, error) {
-	argsSt := ""
-	if len(et.Args) > 0 {
-		argsSt = strings.Join(et.Args, " ")
+
+func Execute(repo string, args ...string) ([]byte, error) {
+	var arg []string
+	arg = append(arg, "-c")
+	arg = append(arg, args...)
+	cmd := exec.Command(DefaultShell, arg...)
+	cmd.Dir = repo
+	bytes, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf(err.Error())
 	}
+	return bytes, nil
+}
 
-	if et.PrintCommand {
-		fmt.Println("exec: ", et.Command, argsSt)
+func PrintMessage(str string, color uint64) {
+	strs := strings.Split(str, "\n")
+	for i := 0; i < len(strs); i++ {
+		fmt.Printf("\033[%vm%v \033[m\n", color, strs[i])
 	}
-
-	var cmd *exec.Cmd
-
-	if strings.Index(et.Command, " ") > 0 {
-		parts := strings.Split(et.Command, " ")
-		command := parts[0]
-		args := parts[1:]
-		cmd = exec.Command(command, args...)
-
-	} else {
-		cmd = exec.Command(et.Command, et.Args...)
-	}
-
-	cmd.Dir = et.Repo
-
-	if len(et.Env) > 0 {
-		overrides := map[string]bool{}
-		for _, env := range et.Env {
-			key := strings.Split(env, "=")[0]
-			overrides[key] = true
-			cmd.Env = append(cmd.Env, env)
-		}
-
-		for _, env := range os.Environ() {
-			key := strings.Split(env, "=")[0]
-
-			if _, ok := overrides[key]; !ok {
-				cmd.Env = append(cmd.Env, env)
-			}
-		}
-	}
-
-	stdoutBuff := bytes.Buffer{}
-	stderrBuff := bytes.Buffer{}
-
-	var stdoutWriters io.Writer
-	var stderrWriters io.Writer
-
-	if et.StreamStdio {
-		stdoutWriters = io.MultiWriter(os.Stdout, &stdoutBuff)
-		stderrWriters = io.MultiWriter(os.Stderr, &stderrBuff)
-	} else {
-		stdoutWriters = &stdoutBuff
-		stderrWriters = &stderrBuff
-	}
-
-	cmd.Stdout = stdoutWriters
-	cmd.Stderr = stderrWriters
-	startErr := cmd.Start()
-
-	if startErr != nil {
-		return ExecResult{}, startErr
-	}
-
-	exitCode := 0
-	execErr := cmd.Wait()
-	if execErr != nil {
-		if exitError, ok := execErr.(*exec.ExitError); ok {
-			exitCode = exitError.ExitCode()
-		}
-	}
-
-	return ExecResult{
-		Stdout:   string(stdoutBuff.Bytes()),
-		Stderr:   string(stderrBuff.Bytes()),
-		ExitCode: exitCode,
-	}, nil
 }
