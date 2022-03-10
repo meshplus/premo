@@ -9,7 +9,7 @@ dst_appchain=${1-'Fabric_ChainID'}
 dst_service=${2-'mychannel&data_swapper'}
 key=${3-'10'}
 
-data_swapper_address=$(cat "$CURRENT_PATH"/flato/flato.toml|grep data_swapper.abi | awk {'print $1'})
+data_swapper_address=$(cat "$CURRENT_PATH"/flato/flato.toml | grep data_swapper.abi | awk {'print $1'})
 print_green "data_swapper contract address: $data_swapper_address"
 
 print_blue "get data from other appchain"

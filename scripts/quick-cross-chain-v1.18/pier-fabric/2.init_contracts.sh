@@ -18,7 +18,7 @@ function init_broker() {
 
 function register_transfer_contract() {
   print_blue "register transfer contract to broker"
-  goduck fabric contract invoke --config-path "$CURRENT_PATH"/fabric/config.yaml $transfer_address register 
+  goduck fabric contract invoke --config-path "$CURRENT_PATH"/fabric/config.yaml $transfer_address register
   sleep 1
   print_blue "audit transfer contract"
   goduck fabric contract invoke --config-path "$CURRENT_PATH"/fabric/config.yaml $broker_address audit $channelID,$transfer_address,1
@@ -27,7 +27,7 @@ function register_transfer_contract() {
 
 function register_data_swapper_contract() {
   print_blue "register data_swapper contract to broker"
-  goduck fabric contract invoke --config-path "$CURRENT_PATH"/fabric/config.yaml $data_swapper_address register 
+  goduck fabric contract invoke --config-path "$CURRENT_PATH"/fabric/config.yaml $data_swapper_address register
   sleep 1
   print_blue "audit data_swapper contract"
   goduck fabric contract invoke --config-path "$CURRENT_PATH"/fabric/config.yaml $broker_address audit $channelID,$data_swapper_address,1

@@ -10,12 +10,12 @@ REPO_PATH=${CURRENT_PATH}/repo_solo
 
 function check_before() {
   print_blue "===> Check bitxhub process before start"
-  process_count=$(ps aux |grep "bitxhub --repo" |grep -v grep|wc -l)
+  process_count=$(ps aux | grep "bitxhub --repo" | grep -v grep | wc -l)
   if [ $process_count == 0 ]; then
     print_green "No bitxhub node running"
   else
     print_red "Bitxhub nodes running, kill it"
-    kill -9 $(ps aux |grep "bitxhub --repo" |grep -v grep|awk '{print $2}')
+    kill -9 $(ps aux | grep "bitxhub --repo" | grep -v grep | awk '{print $2}')
   fi
 }
 
@@ -41,7 +41,7 @@ function start() {
 
 function check_after() {
   print_blue "===> Check bitxhub process after start"
-  process_count=$(ps -ef |grep "bitxhub --repo" |grep -v grep|wc -l)
+  process_count=$(ps -ef | grep "bitxhub --repo" | grep -v grep | wc -l)
   if [ $process_count -gt 0 ]; then
     print_green "Start bitxhub successed"
   else

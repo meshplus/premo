@@ -7,9 +7,9 @@ source "$PROJECT_PATH"/x.sh
 
 broker_address=$(cat "$CURRENT_PATH"/flato/flato.toml | grep contract_address | awk {'print $3'} | awk -F '\"' {'print $2'})
 print_green "broker contract address: $broker_address"
-transfer_address=$(cat "$CURRENT_PATH"/flato/flato.toml|grep transfer.abi | awk {'print $1'})
+transfer_address=$(cat "$CURRENT_PATH"/flato/flato.toml | grep transfer.abi | awk {'print $1'})
 print_green "transfer contract address: $transfer_address"
-data_swapper_address=$(cat "$CURRENT_PATH"/flato/flato.toml|grep data_swapper.abi | awk {'print $1'})
+data_swapper_address=$(cat "$CURRENT_PATH"/flato/flato.toml | grep data_swapper.abi | awk {'print $1'})
 print_green "data_swapper contract address: $data_swapper_address"
 
 function init_broker() {

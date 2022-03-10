@@ -5,7 +5,7 @@ CURRENT_PATH=$(pwd)
 PROJECT_PATH=$(dirname "${CURRENT_PATH}")
 source "$PROJECT_PATH"/x.sh
 
-transfer_address=$(cat "$CURRENT_PATH"/flato/flato.toml|grep transfer.abi | awk {'print $1'})
+transfer_address=$(cat "$CURRENT_PATH"/flato/flato.toml | grep transfer.abi | awk {'print $1'})
 print_green "transfer contract address: $transfer_address"
 
 #dst_appchain=$1

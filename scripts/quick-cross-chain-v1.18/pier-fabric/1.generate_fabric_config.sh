@@ -19,19 +19,22 @@ function prepare() {
       print_red "please make install fabric-clent-1.4 first!!"
       exit 2
     fi
+    if [ ! -f "$CURRENT_PATH"/plugins/ ]; then
+      mkdir "$CURRENT_PATH"/plugins/
+    fi
     print_blue "===> copy plugin"
     cp -r "$Fabric_Project_Path"/build/fabric-client-1.4 "$CURRENT_PATH"/plugins/
   fi
 
-#  if [ -n "$(docker ps -a |grep hyperledger | awk {'print $1'})" ]; then
-#    print_green "clean fabric-network first"
-#    goduck fabric clean
-#    sleep 2
-#    goduck fabric start
-#  else
-#    print_green "No fabric-network running, next start fabric-network by goduck"
-#    goduck fabric start
-#  fi
+  #  if [ -n "$(docker ps -a |grep hyperledger | awk {'print $1'})" ]; then
+  #    print_green "clean fabric-network first"
+  #    goduck fabric clean
+  #    sleep 2
+  #    goduck fabric start
+  #  else
+  #    print_green "No fabric-network running, next start fabric-network by goduck"
+  #    goduck fabric start
+  #  fi
   goduck fabric start
   sleep 2
 
@@ -60,11 +63,11 @@ function deploy_contracts() {
 function modify_pier_config() {
 
   print_blue "modify pier.toml"
-  x_sed "s/$(cat "$CURRENT_PATH"/pier.toml |grep "id.*appchain"|awk -F '\"' {'print $2'})/$Fabric_ChainID/g" "$CURRENT_PATH"/pier.toml
-  x_sed "s/$(cat "$CURRENT_PATH"/pier.toml |grep plugin|awk -F '\"' {'print $2'})/fabric-client-1.4/g" "$CURRENT_PATH"/pier.toml
-  x_sed "s/$(cat "$CURRENT_PATH"/pier.toml |grep config|awk -F '\"' {'print $2'})/fabric/g" "$CURRENT_PATH"/pier.toml
-  x_sed "s/$(cat "$CURRENT_PATH"/pier.toml |grep http|awk {'print $3'})/24544/g" "$CURRENT_PATH"/pier.toml
-  x_sed "s/$(cat "$CURRENT_PATH"/pier.toml |grep pprof|awk {'print $3'})/24555/g" "$CURRENT_PATH"/pier.toml
+  x_sed "s/$(cat "$CURRENT_PATH"/pier.toml | grep "id.*appchain" | awk -F '\"' {'print $2'})/$Fabric_ChainID/g" "$CURRENT_PATH"/pier.toml
+  x_sed "s/$(cat "$CURRENT_PATH"/pier.toml | grep plugin | awk -F '\"' {'print $2'})/fabric-client-1.4/g" "$CURRENT_PATH"/pier.toml
+  x_sed "s/$(cat "$CURRENT_PATH"/pier.toml | grep config | awk -F '\"' {'print $2'})/fabric/g" "$CURRENT_PATH"/pier.toml
+  x_sed "s/$(cat "$CURRENT_PATH"/pier.toml | grep http | awk {'print $3'})/24544/g" "$CURRENT_PATH"/pier.toml
+  x_sed "s/$(cat "$CURRENT_PATH"/pier.toml | grep pprof | awk {'print $3'})/24555/g" "$CURRENT_PATH"/pier.toml
 
   print_blue "modify fabric.toml"
   x_sed "s/$(cat "$CURRENT_PATH"/fabric/fabric.toml | grep chain_id | awk -F '\"' {'print $2'})/$Fabric_ChainID/g" "$CURRENT_PATH"/fabric/fabric.toml

@@ -17,9 +17,8 @@ print_green "transfer contract: $transfer_address"
 data_swapper_address=$(cat "$CURRENT_PATH"/data_swapper_address.info | awk {'print $1'})
 print_green "data_swapper contract: $data_swapper_address"
 
-
 function prepare() {
-  BitXHub_Type="$(cat "$PROJECT_PATH"/x.sh|grep BitXHub_Type | awk -F '\"' {'print $2'})"
+  BitXHub_Type="$(cat "$PROJECT_PATH"/x.sh | grep BitXHub_Type | awk -F '\"' {'print $2'})"
   if [ "$BitXHub_Type" == solo ]; then
     bitxhub_node1_config="$PROJECT_PATH/bitxhub/repo_solo"
   else
@@ -32,12 +31,12 @@ function prepare() {
 
 function register_appchain() {
   print_blue "register appchain to bitxhub"
-  pier --repo "$CURRENT_PATH" appchain register --appchain-id "$Ether_ChainID" --name "$Ether_ChainID" --type=ether --trustroot="$CURRENT_PATH"/ethereum/ether.validators --broker $broker_address --desc="ether appchain for test" --master-rule "$Ether_Rule_address" --rule-url http://github.com --admin 0xc60ba75739b3492189d80c71ad0aebc0c57695ff --reason "test" > "$CURRENT_PATH"/register_appchain.info
+  pier --repo "$CURRENT_PATH" appchain register --appchain-id "$Ether_ChainID" --name "$Ether_ChainID" --type=ether --trustroot="$CURRENT_PATH"/ethereum/ether.validators --broker $broker_address --desc="ether appchain for test" --master-rule "$Ether_Rule_address" --rule-url http://github.com --admin 0xc60ba75739b3492189d80c71ad0aebc0c57695ff --reason "test" >"$CURRENT_PATH"/register_appchain.info
 
   proposalId=$(cat "$CURRENT_PATH"/register_appchain.info | grep successfully | awk {'print $7'})
   if [ -z "$proposalId" ]; then
-	print_red "proposal id is empty"
-	exit 2
+    print_red "proposal id is empty"
+    exit 2
   fi
   print_green "register appchain successfully, proposalId is: $proposalId"
   sleep 1
@@ -66,6 +65,3 @@ register_data_swapper_service
 #    bitxhub --repo ${bitxhub_config_path}/node${i} client governance vote --id $proposalId --info approve --reason "test"
 #    sleep 2
 #    done
-
-
-

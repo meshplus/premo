@@ -7,12 +7,12 @@ source "$PROJECT_PATH"/x.sh
 
 function check_before() {
   print_blue "===> Check pier process after start"
-  process_count=$(ps -ef |grep "pier-flato" |grep -v grep|wc -l)
+  process_count=$(ps -ef | grep "pier-flato" | grep -v grep | wc -l)
   if [ $process_count -eq 0 ]; then
     print_green "No pier-flato running"
   else
     print_red "pier-flato running, kill it"
-    kill -9 $(ps aux |grep "pier-flato" |grep -v grep|awk '{print $2}')
+    kill -9 $(ps aux | grep "pier-flato" | grep -v grep | awk '{print $2}')
   fi
 }
 
@@ -23,7 +23,7 @@ function start() {
 
 function check_after() {
   print_blue "===> Check pier process after start"
-  process_count=$(ps -ef |grep "pier-flato" |grep -v grep|wc -l)
+  process_count=$(ps -ef | grep "pier-flato" | grep -v grep | wc -l)
   if [ $process_count -gt 1 ]; then
     print_green "Start pier-flato successed"
   else
@@ -36,4 +36,3 @@ check_before
 start
 sleep 3
 check_after
-

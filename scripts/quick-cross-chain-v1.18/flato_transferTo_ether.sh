@@ -14,13 +14,13 @@ amount=10
 function get_flato_balance() {
   print_blue "get Alice balance on flato"
   cd "$CURRENT_PATH"/pier-flato
-  bash getBalance.sh |grep receipt |awk {'print $7'}
+  bash getBalance.sh | grep receipt | awk {'print $7'}
 }
 
 function get_ether_balance() {
   print_blue "get Alice balance on ether"
   cd "$CURRENT_PATH"/pier-ether
-  bash getBalance.sh |grep result |awk {'print $3'}
+  bash getBalance.sh | grep result | awk {'print $3'}
 }
 
 function flato_transferTo_ether() {
@@ -32,7 +32,7 @@ function flato_transferTo_ether() {
   cd "$CURRENT_PATH"/pier-flato
   bash interchain_transfer.sh "$dst_appchain" "$dst_service" $amount
   #sleep 2
-  
+
   flato_balance_after=$(get_flato_balance)
   ether_balance_after=$(get_ether_balance)
   print_green "after interchain, Alice balance on flato is: $flato_balance_after"

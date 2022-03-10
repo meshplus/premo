@@ -14,7 +14,7 @@ data_swapper_address="data_swapper"
 pier_fabric_id=$(pier --repo "$CURRENT_PATH" id)
 
 function prepare() {
-  BitXHub_Type="$(cat "$PROJECT_PATH"/x.sh|grep BitXHub_Type | awk -F '\"' {'print $2'})"
+  BitXHub_Type="$(cat "$PROJECT_PATH"/x.sh | grep BitXHub_Type | awk -F '\"' {'print $2'})"
   if [ "$BitXHub_Type" == solo ]; then
     bash bitxhub_node1_config="$PROJECT_PATH"/bitxhub/repo_solo
   else
@@ -28,7 +28,7 @@ function prepare() {
 
 function register_appchain() {
   print_blue "register appchain to bitxhub"
-  pier --repo "$CURRENT_PATH" appchain register --appchain-id "$Fabric_ChainID" --name "$Fabric_ChainID" --type=fabric --trustroot="$CURRENT_PATH"/fabric/fabric.validators --broker-cid $channelID --broker-ccid $broker_address --broker-v $broker_version --desc="fabric appchain for test" --master-rule "$Fabric_Rule_address" --rule-url http://github.com  --reason "test" > "$CURRENT_PATH"/register_appchain.info
+  pier --repo "$CURRENT_PATH" appchain register --appchain-id "$Fabric_ChainID" --name "$Fabric_ChainID" --type=fabric --trustroot="$CURRENT_PATH"/fabric/fabric.validators --broker-cid $channelID --broker-ccid $broker_address --broker-v $broker_version --desc="fabric appchain for test" --master-rule "$Fabric_Rule_address" --rule-url http://github.com --reason "test" >"$CURRENT_PATH"/register_appchain.info
 
   proposalId=$(cat "$CURRENT_PATH"/register_appchain.info | grep successfully | awk {'print $7'})
   if [ -z "$proposalId" ]; then
@@ -54,4 +54,3 @@ prepare
 register_appchain
 register_transfer_service
 register_data_swapper_service
-

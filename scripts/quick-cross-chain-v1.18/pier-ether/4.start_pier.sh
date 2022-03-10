@@ -7,12 +7,12 @@ source "$PROJECT_PATH"/x.sh
 
 function check_before() {
   print_blue "===> Check pier process after start"
-  process_count=$(ps -ef |grep "pier-ether" |grep -v grep|wc -l)
+  process_count=$(ps -ef | grep "pier-ether" | grep -v grep | wc -l)
   if [ $process_count -eq 0 ]; then
     print_green "No pier-ether running"
   else
     print_red "pier-ether running, kill it"
-    kill -9 $(ps aux |grep "pier-ether" |grep -v grep|awk '{print $2}')
+    kill -9 $(ps aux | grep "pier-ether" | grep -v grep | awk '{print $2}')
   fi
 }
 
@@ -23,7 +23,7 @@ function start() {
 
 function check_after() {
   print_blue "===> Check pier process after start"
-  process_count=$(ps -ef |grep "pier-ether" |grep -v grep|wc -l)
+  process_count=$(ps -ef | grep "pier-ether" | grep -v grep | wc -l)
   if [ $process_count -gt 1 ]; then
     print_green "Start pier-ether successed"
   else
