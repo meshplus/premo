@@ -10,7 +10,7 @@ function prepare() {
   check_goduck
   if [ ! -d "$CURRENT_PATH"/contracts ]; then
     print_blue "===> copy contracts"
-    cp -r "$Flato_Project_Path"/example/contracts "$CURRENT_PATH"/
+    cp -r "$Flato_Project_Path"/example/ "$CURRENT_PATH"/contracts
   fi
   if [ ! -f "$CURRENT_PATH"/plugins/flt-client ]; then
     if [ ! -f "$Flato_Project_Path"/build/flt-client ]; then
@@ -50,12 +50,11 @@ function deploy_contracts() {
   fi
   x_sed '1,2d' "$CURRENT_PATH"/transfer.abi
   x_sed '/emitInterchainEvent/d' "$CURRENT_PATH"/transfer.abi
-  x_sed "s/$(cat "$CURRENT_PATH"/flato/flato.toml | grep transfer.abi | awk {'print $1'})/$transfer_address/g" "$CURRENT_PATH"/flato/flato.toml
+  echo $transfer_address >"$CURRENT_PATH"/transfer_address.info
   sleep 1
 
   print_blue "3. Deploy data_swapper contract"
   goduck hpc deploy --config-path "$CURRENT_PATH"/flato --code-path "$CURRENT_PATH"/contracts/data_swapper.sol $broker_address >"$CURRENT_PATH"/data_swapper.abi
-  #data_swapper_address=$(cat data_swapper.abi|grep address:| awk {'print $4'})
   data_swapper_address=$(cat "$CURRENT_PATH"/data_swapper.abi | grep address: | grep -o '0x.\{40\}')
   print_green "data_swapper contract address: $data_swapper_address"
   if [ -z "$data_swapper_address" ]; then
@@ -64,7 +63,7 @@ function deploy_contracts() {
   fi
   x_sed '1,2d' "$CURRENT_PATH"/data_swapper.abi
   x_sed '/emitInterchainEvent/d' "$CURRENT_PATH"/data_swapper.abi
-  x_sed "s/$(cat "$CURRENT_PATH"/flato/flato.toml | grep data_swapper.abi | awk {'print $1'})/$data_swapper_address/g" "$CURRENT_PATH"/flato/flato.toml
+  echo $data_swapper_address >"$CURRENT_PATH"/data_swapper_address.info
   sleep 1
 
   mv "$CURRENT_PATH"/*.abi "$CURRENT_PATH"/flato/

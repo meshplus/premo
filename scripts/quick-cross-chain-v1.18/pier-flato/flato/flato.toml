@@ -1,10 +1,11 @@
 [flato]
 addr = "172.16.30.83:5672"
-contract_address = "0x4BBd6986232d7DE66B7691AEAD95f95C0f4b8026"
+contract_address = "0x66d96142bc38a8A7CAf01A8B7C2301c9D6164eBa"
+contract_abi = "broker.abi"
+queue_name = "broker"
 user_name = "guest"
 password = "guest"
-queue_name = "xiaochenl-20220304-1646382719"
-exchange = "global_fa34664e"
+exchange = "global_fa34664e_1586853748854956704"
 contract_type = "solidity"
 validators = [
     "0x000f1a7a08ccc48e5d30f80850cf1cf283aa3abd",
@@ -12,10 +13,7 @@ validators = [
     "0xb18c8575e3284e79b92100025a31378feb8100d6",
     "0x856E2B9A5FA82FD1B031D1FF6863864DBAC7995D",
 ]
-
-[contract_abi]
-0x25358b25Ca8E33e2304471308E1b1f8ce35D6b8d = "transfer.abi"
-0x66d96142bc38a8A7CAf01A8B7C2301c9D6164eBa = "data_swapper.abi"
+timeout_height = 10
 
 [license]
 key = "133847740289a8dc5447bfbaedf10ed5ee9460110e4ba6b455e33cf941253527f18dd721515c5142fcea9b6415ddad6b3f1696011a4bbc86f35833ae9296a3ea"

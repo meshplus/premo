@@ -2,6 +2,7 @@ package exec
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os/exec"
 	"strings"
 
@@ -21,21 +22,42 @@ func ExecuteShell(repo string, args ...string) ([]byte, error) {
 	arg = append(arg, args...)
 	cmd := exec.Command(DefaultShell, arg...)
 	cmd.Dir = repo
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, err
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return nil, err
+	}
 
 	s := spin.New("\033[36mStart execute command: " + cmd.String() + "\033[m")
 	s.Start()
-	bytes, err := cmd.Output()
+	err = cmd.Start()
 	if err != nil {
+		return nil, err
+	}
+	data1, err := ioutil.ReadAll(stdout)
+	if err != nil {
+		return nil, err
+	}
+	data2, err := ioutil.ReadAll(stderr)
+	if err != nil {
+		return nil, err
+	}
+	if len(data2) != 0 {
 		s.Stop()
-		if len(bytes) != 0 {
-			PrintMessage(string(bytes), Red)
+		if len(data1) != 0 {
+			PrintMessage(string(data1), Red)
 		}
-		PrintMessage(err.Error(), Red)
-		return nil, fmt.Errorf(err.Error())
+		PrintMessage(string(data2), Red)
+		return nil, fmt.Errorf(string(data2))
 	}
 	s.Stop()
-	PrintMessage(string(bytes), Orange)
-	return bytes, nil
+	if len(data1) != 0 {
+		PrintMessage(string(data1), Orange)
+	}
+	return data1, nil
 }
 
 func Execute(repo string, args ...string) ([]byte, error) {
@@ -44,11 +66,30 @@ func Execute(repo string, args ...string) ([]byte, error) {
 	arg = append(arg, args...)
 	cmd := exec.Command(DefaultShell, arg...)
 	cmd.Dir = repo
-	bytes, err := cmd.Output()
+	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return nil, fmt.Errorf(err.Error())
+		return nil, err
 	}
-	return bytes, nil
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return nil, err
+	}
+	err = cmd.Start()
+	if err != nil {
+		return nil, err
+	}
+	data1, err := ioutil.ReadAll(stdout)
+	if err != nil {
+		return nil, err
+	}
+	data2, err := ioutil.ReadAll(stderr)
+	if err != nil {
+		return nil, err
+	}
+	if len(data2) != 0 {
+		return nil, fmt.Errorf(string(data2))
+	}
+	return data1, nil
 }
 
 func PrintMessage(str string, color uint64) {

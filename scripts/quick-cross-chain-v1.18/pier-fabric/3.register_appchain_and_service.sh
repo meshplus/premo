@@ -16,9 +16,9 @@ pier_fabric_id=$(pier --repo "$CURRENT_PATH" id)
 function prepare() {
   BitXHub_Type="$(cat "$PROJECT_PATH"/x.sh | grep BitXHub_Type | awk -F '\"' {'print $2'})"
   if [ "$BitXHub_Type" == solo ]; then
-    bash bitxhub_node1_config="$PROJECT_PATH"/bitxhub/repo_solo
+    bitxhub_node1_config="$PROJECT_PATH"/bitxhub/repo_solo
   else
-    bash bitxhub_node1_config="$PROJECT_PATH"/bitxhub/repo_raft/node1
+    bitxhub_node1_config="$PROJECT_PATH"/bitxhub/repo_raft/node1
   fi
 
   print_blue "get balance from bitxhub"

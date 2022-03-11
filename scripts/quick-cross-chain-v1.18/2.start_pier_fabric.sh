@@ -5,6 +5,7 @@ CURRENT_PATH=$(pwd)
 source x.sh
 
 check_pier
+cd "$Pier_Project_Path" && make install
 cd "$CURRENT_PATH"/pier-fabric
 bash 1.generate_fabric_config.sh
 sleep 2

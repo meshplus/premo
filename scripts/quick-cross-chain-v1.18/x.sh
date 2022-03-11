@@ -72,7 +72,7 @@ Flato_Rule_address="0x00000000000000000000000000000000000000a2"
 Fabric_Project_Path="$GOPATH/src/meshplus/pier-client-fabric"
 Fabric_ChainID="fabricappchain1"
 #默认先使用happy的验证规则
-Flato_Rule_address="0x00000000000000000000000000000000000000a2"
+Fabric_Rule_address="0x00000000000000000000000000000000000000a2"
 
 # Pier-ether Config
 Ether_Project_Path="$GOPATH/src/meshplus/pier-client-ethereum"

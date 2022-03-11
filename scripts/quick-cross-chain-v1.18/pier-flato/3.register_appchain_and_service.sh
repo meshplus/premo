@@ -11,11 +11,11 @@ print_green "pier-flato id: $pier_flato_id"
 broker_address=$(cat "$CURRENT_PATH"/flato/flato.toml | grep contract_address | awk {'print $3'} | awk -F '\"' {'print $2'})
 print_green "broker contract address: $broker_address"
 
-transfer_address=$(cat "$CURRENT_PATH"/flato/flato.toml | grep transfer.abi | awk {'print $1'})
-print_green "transfer contract address: $transfer_address"
+transfer_address=$(cat "$CURRENT_PATH"/transfer_address.info | awk {'print $1'})
+print_green "transfer contract: $transfer_address"
 
-data_swapper_address=$(cat "$CURRENT_PATH"/flato/flato.toml | grep data_swapper.abi | awk {'print $1'})
-print_green "data_swapper contract address: $data_swapper_address"
+data_swapper_address=$(cat "$CURRENT_PATH"/data_swapper_address.info | awk {'print $1'})
+print_green "data_swapper contract: $data_swapper_address"
 
 function prepare() {
   BitXHub_Type="$(cat "$PROJECT_PATH"/x.sh | grep BitXHub_Type | awk -F '\"' {'print $2'})"

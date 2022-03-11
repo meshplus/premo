@@ -14,24 +14,14 @@ print_green "transfer contract: $transfer_address"
 data_swapper_address=$(cat "$CURRENT_PATH"/data_swapper_address.info | awk {'print $1'})
 print_green "data_swapper contract: $data_swapper_address"
 
-function init_broker() {
-  print_blue "init broker contract"
-  goduck ether contract invoke --address http://172.16.30.84:8545 --key-path "$CURRENT_PATH"/ethereum/account.key --psd-path "$CURRENT_PATH"/ethereum/password --abi-path "$CURRENT_PATH"/broker.abi $broker_address initialize
-  sleep 1
-}
-
 function register_transfer_contract() {
-  print_blue "register and audit transfer contract"
-  goduck ether contract invoke --address http://172.16.30.84:8545 --key-path "$CURRENT_PATH"/ethereum/account.key --psd-path "$CURRENT_PATH"/ethereum/password --abi-path "$CURRENT_PATH"/broker.abi $broker_address register $transfer_address
-  sleep 1
+  print_blue "audit transfer contract"
   goduck ether contract invoke --address http://172.16.30.84:8545 --key-path "$CURRENT_PATH"/ethereum/account.key --psd-path "$CURRENT_PATH"/ethereum/password --abi-path "$CURRENT_PATH"/broker.abi $broker_address audit $transfer_address,1
   sleep 1
 }
 
 function register_data_swapper_contract() {
-  echo "2. register and audit data_swapper contract"
-  goduck ether contract invoke --address http://172.16.30.84:8545 --key-path ethereum/account.key --psd-path ethereum/password --abi-path broker.abi $broker_address register $data_swapper_address
-  sleep 1
+  print_blue "audit data_swapper contract"
   goduck ether contract invoke --address http://172.16.30.84:8545 --key-path ethereum/account.key --psd-path ethereum/password --abi-path broker.abi $broker_address audit $data_swapper_address,1
   sleep 1
 }
@@ -53,7 +43,6 @@ function init_data_swapper() {
   goduck ether contract invoke --address http://172.16.30.84:8545 --key-path ethereum/account.key --psd-path ethereum/password --abi-path data_swapper.abi $data_swapper_address getData ether
 }
 
-init_broker
 register_transfer_contract
 register_data_swapper_contract
 init_transfer
