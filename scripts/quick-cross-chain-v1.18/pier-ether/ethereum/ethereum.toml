@@ -1,0 +1,8 @@
+[ether]
+addr = "ws://172.16.30.84:8546"
+name = "etherappchain1"
+contract_address = "0xa027cCE93B27EBE21BA621784550cd015C0bd6e2"
+key_path = "account.key"
+password = "password"
+min_confirm = 1
+timeout_height = 101

@@ -22,12 +22,12 @@ func Initialize(repoRoot string) error {
 		p := filepath.Join(repoRoot, s)
 		dir := filepath.Dir(p)
 		if _, err := os.Stat(dir); os.IsNotExist(err) {
-			err := os.MkdirAll(dir, 0755)
+			err := os.MkdirAll(dir, 0777)
 			if err != nil {
 				return err
 			}
 		}
-		return ioutil.WriteFile(p, []byte(file.String()), 0644)
+		return ioutil.WriteFile(p, []byte(file.String()), 0777)
 	}
 
 	if err := scriptBox.Walk(walkFn); err != nil {

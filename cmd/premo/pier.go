@@ -4,9 +4,14 @@ import (
 	"fmt"
 
 	"github.com/meshplus/premo/internal/repo"
-	"github.com/meshplus/premo/pkg/constant"
 	"github.com/meshplus/premo/pkg/exec"
 	"github.com/urfave/cli/v2"
+)
+
+const (
+	FABRIC   = "fabric"
+	ETHEREUM = "ethereum"
+	FLATO    = "flato"
 )
 
 var pierCMD = &cli.Command{
@@ -20,13 +25,13 @@ var pierCMD = &cli.Command{
 				&cli.StringFlag{
 					Name:    "type",
 					Aliases: []string{"t"},
-					Value:   constant.FABRIC,
-					Usage:   "bring up the pier, one of the fabric or ethereum",
+					Value:   ETHEREUM,
+					Usage:   "bring up the pier, fabric or ethereum or flato",
 				},
 				&cli.StringFlag{
 					Name:    "version",
 					Aliases: []string{"v"},
-					Value:   "master",
+					Value:   "v1.18",
 					Usage:   "the version of the pier checkout",
 				},
 			},
@@ -39,8 +44,8 @@ var pierCMD = &cli.Command{
 				&cli.StringFlag{
 					Name:    "type",
 					Aliases: []string{"t"},
-					Value:   constant.FABRIC,
-					Usage:   "stop the pier , one of the fabric or ethereum",
+					Value:   ETHEREUM,
+					Usage:   "stop the pier , fabric or ethereum or flato",
 				},
 			},
 			Action: stopPier,
@@ -49,15 +54,19 @@ var pierCMD = &cli.Command{
 }
 
 func startPier(ctx *cli.Context) error {
-	pierVersion := ctx.String("version")
-	appchain := ctx.String("type")
-
-	repoRoot, err := repo.PathRootWithDefault("")
+	repoRoot, err := repo.PathRootWithDefault()
 	if err != nil {
 		return fmt.Errorf("please 'premo init' first")
 	}
 
-	err = runPier(appchain, repoRoot, pierVersion)
+	pierVersion := ctx.String("version")
+	appchain := ctx.String("type")
+	switch pierVersion {
+	case "v1.18":
+		repoRoot = repoRoot + "/quick-cross-chain-v1.18"
+	}
+
+	err = runPier(repoRoot, appchain)
 	if err != nil {
 		return err
 	}
@@ -76,27 +85,33 @@ func stopPier(ctx *cli.Context) error {
 }
 
 func downPier(repoRoot, appchain string) error {
-	args := make([]string, 0)
-	args = append(args, "run_pier.sh", "down", "-t", appchain)
-	err := exec.ExecuteShell(repoRoot, args...)
+	var arg string
+	switch appchain {
+	case ETHEREUM:
+		arg = "./stop_pier_ether.sh"
+	case FABRIC:
+		arg = "./stop_pier_fabric.sh"
+	case FLATO:
+		arg = "./stop_pier_flato.sh"
+	}
+	_, err := exec.ExecuteShell(repoRoot, arg)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func runPier(appchain, repoRoot, pierVersion string) error {
-	args := make([]string, 0)
+func runPier(repoRoot, appchain string) error {
+	var arg string
 	switch appchain {
-	case constant.FABRIC:
-		args = append(args, "run_pier.sh", "up", "-t", constant.FABRIC, "-r", ".pier_fabric", "-v", pierVersion)
-	case constant.ETHEREUM:
-		args = append(args, "run_pier.sh", "up", "-t", constant.ETHEREUM, "-r", ".pier_ethereum", "-v", pierVersion)
-	default:
-		return fmt.Errorf("pier mode must be one of the FABRIC or ETHEREUM")
+	case ETHEREUM:
+		arg = "./2.start_pier_ether.sh"
+	case FABRIC:
+		arg = "./2.start_pier_fabric.sh"
+	case FLATO:
+		arg = "./2.start_pier_flato.sh"
 	}
-
-	err := exec.ExecuteShell(repoRoot, args...)
+	_, err := exec.ExecuteShell(repoRoot, arg)
 	if err != nil {
 		return err
 	}

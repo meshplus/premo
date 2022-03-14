@@ -1,11 +1,7 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -13,14 +9,16 @@ import (
 	"github.com/cheynewallace/tabby"
 	"github.com/meshplus/bitxhub-kit/fileutil"
 	"github.com/meshplus/premo/internal/repo"
+	"github.com/meshplus/premo/pkg/exec"
 	gops "github.com/shirou/gopsutil/process"
 	"github.com/urfave/cli/v2"
 )
 
 var processes = []string{
-	".bitxhub/bitxhub",
-	".pier_ethereum/pier-ethereum",
-	".pier_fabric/pier-fabric",
+	"bitxhub",
+	"pier-ether start",
+	"pier-fabric start",
+	"pier-flato start",
 }
 
 var statusCMD = &cli.Command{
@@ -34,10 +32,10 @@ func showStatus(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-
 	if !fileutil.Exist(repoRoot) {
-		return fmt.Errorf("please `goduck init` first")
+		return fmt.Errorf("please run `premo init` first")
 	}
+
 	var table [][]string
 	table = append(table, []string{"Name", "Component", "PID", "Status", "Created Time", "Args"})
 
@@ -53,25 +51,13 @@ func showStatus(ctx *cli.Context) error {
 }
 
 func existProcess(repoPath string, pro string, table [][]string) ([][]string, error) {
-	pidPath := filepath.Join(repoPath, pro+".pid")
-	if !fileutil.Exist(pidPath) {
-		return table, nil
-	}
-	fi, err := os.Open(pidPath)
+	pids, err := getProccessPid(pro)
 	if err != nil {
-		return table, err
+		return nil, err
 	}
-	defer fi.Close()
-
-	br := bufio.NewReader(fi)
-	i := 1
-	for {
-		a, _, c := br.ReadLine()
-		if c == io.EOF {
-			break
-		}
+	for i := 0; i < len(pids); i++ {
 		status := "TERM"
-		pid, err := strconv.Atoi(string(a))
+		pid, err := strconv.Atoi(pids[i])
 		if err != nil {
 			return table, err
 		}
@@ -83,7 +69,6 @@ func existProcess(repoPath string, pro string, table [][]string) ([][]string, er
 		if err != nil {
 			continue
 		}
-
 		createTime, err := process.CreateTime()
 		if err != nil {
 			continue
@@ -92,23 +77,29 @@ func existProcess(repoPath string, pro string, table [][]string) ([][]string, er
 		timeFormat := tm.Format(time.RFC3339)
 
 		component, _ := process.Name()
-		name := strings.Split(pro, "/")[1]
-
 		slice, _ := process.CmdlineSlice()
 		args := strings.Join(slice, " ")
 
 		table = append(table, []string{
-			fmt.Sprintf(name+"-%d", i),
+			fmt.Sprintf(strings.Split(pro, " ")[0]+"-%d", i),
 			component,
 			strconv.Itoa(pid),
 			status,
 			timeFormat,
 			args,
 		})
-		i++
 	}
 	return table, nil
+}
 
+func getProccessPid(process string) ([]string, error) {
+	arg := fmt.Sprintf("ps aux | grep '%v' | grep -v grep | awk '{print $2}'", process)
+	bytes, err := exec.Execute("", arg)
+	if err != nil {
+		return nil, err
+	}
+	pids := strings.Split(string(bytes), "\n")
+	return pids[:len(pids)-1], nil
 }
 
 // PrintTable accepts a matrix of strings and print them as ASCII table to terminal
