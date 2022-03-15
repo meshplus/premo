@@ -68,11 +68,9 @@ func benchmark(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	proof, err := box.Find("proof_1.0.0_rc")
-	if err != nil {
-		return err
-	}
+	var proof []byte
 	typ := ""
+	proof = []byte("111")
 
 	appchain := ctx.String("appchain")
 	if appchain == "fabric" {
@@ -86,23 +84,11 @@ func benchmark(ctx *cli.Context) error {
 		}
 		typ = "Fabric V1.4.3"
 	} else if appchain == "flato" {
-		//val, err = box.Find("validator_flato")
-		//if err != nil {
-		//	return err
-		//}
-		//proof, err = box.Find("proof_flato")
-		//if err != nil {
-		//	return err
-		//}
 		typ = "Flato V1.0.3"
 	} else if appchain == "eth" {
 		typ = "ETH"
 	} else {
 		return fmt.Errorf("unsupported appchain type")
-	}
-	contract, err := box.Find("rule.wasm")
-	if err != nil {
-		return err
 	}
 
 	keyPath := ctx.String("key_path")
@@ -122,7 +108,6 @@ func benchmark(ctx *cli.Context) error {
 		BitxhubAddr: ctx.StringSlice("remote_bitxhub_addr"),
 		Validator:   string(val),
 		Proof:       proof,
-		Rule:        contract,
 		Appchain:    typ,
 	}
 

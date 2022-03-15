@@ -9,19 +9,14 @@ import (
 
 	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"github.com/meshplus/bitxhub-core/governance"
-
-	"github.com/meshplus/bitxhub-model/constant"
-
-	"github.com/meshplus/bitxhub-model/pb"
-
-	"github.com/meshplus/bitxhub-kit/types"
-
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
+	"github.com/meshplus/bitxhub-kit/types"
+	"github.com/meshplus/bitxhub-model/constant"
+	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	"github.com/meshplus/premo/internal/repo"
 	"github.com/sirupsen/logrus"
-	"github.com/wonderivan/logger"
 )
 
 var index1 uint64
@@ -30,17 +25,6 @@ var index3 uint64
 var adminNonce uint64
 var log = logrus.New()
 var To string
-var cfg = &config{
-	addrs: []string{
-		"localhost:60011",
-	},
-	logger: log,
-}
-
-type config struct {
-	addrs  []string
-	logger rpcx.Logger
-}
 
 type Broker struct {
 	config     *Config
@@ -58,7 +42,6 @@ type Config struct {
 	Type        string
 	Validator   string
 	Proof       []byte
-	Rule        []byte
 	KeyPath     string
 	BitxhubAddr []string
 	Appchain    string
@@ -84,7 +67,7 @@ func New(config *Config) (*Broker, error) {
 	node0 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[0]}
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(node0),
-		rpcx.WithLogger(cfg.logger),
+		rpcx.WithLogger(log),
 		rpcx.WithPrivateKey(adminPk),
 	)
 	if err != nil {
@@ -92,56 +75,33 @@ func New(config *Config) (*Broker, error) {
 	}
 
 	//query nodes nonce
-	node1, err := repo.Node1Path()
+	_, node1Address, err := repo.Node1Priv()
 	if err != nil {
 		return nil, err
 	}
-	key, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
-	if err != nil {
-		return nil, err
-	}
-	address, err := key.PublicKey().Address()
-	if err != nil {
-		return nil, err
-	}
-	index1, err = client.GetPendingNonceByAccount(address.String())
+	index1, err = client.GetPendingNonceByAccount(node1Address.String())
 	if err != nil {
 		return nil, err
 	}
 
-	node2, err := repo.Node2Path()
+	_, node2Address, err := repo.Node2Priv()
 	if err != nil {
 		return nil, err
 	}
-	key, err = asym.RestorePrivateKey(node2, repo.KeyPassword)
-	if err != nil {
-		return nil, err
-	}
-	address, err = key.PublicKey().Address()
-	if err != nil {
-		return nil, err
-	}
-	index2, err = client.GetPendingNonceByAccount(address.String())
+	index2, err = client.GetPendingNonceByAccount(node2Address.String())
 	if err != nil {
 		return nil, err
 	}
 
-	node3, err := repo.Node3Path()
+	_, node3Address, err := repo.Node3Priv()
 	if err != nil {
 		return nil, err
 	}
-	key, err = asym.RestorePrivateKey(node3, repo.KeyPassword)
+	index3, err = client.GetPendingNonceByAccount(node3Address.String())
 	if err != nil {
 		return nil, err
 	}
-	address, err = key.PublicKey().Address()
-	if err != nil {
-		return nil, err
-	}
-	index3, err = client.GetPendingNonceByAccount(address.String())
-	if err != nil {
-		return nil, err
-	}
+
 	index1 -= 1
 	index2 -= 1
 	index3 -= 1
@@ -197,7 +157,7 @@ func New(config *Config) (*Broker, error) {
 }
 
 func (broker *Broker) Start(typ string) error {
-	logger.Info("starting broker")
+	log.Info("starting broker")
 	var wg sync.WaitGroup
 	wg.Add(len(broker.bees))
 
@@ -213,7 +173,7 @@ func (broker *Broker) Start(typ string) error {
 			wg.Done()
 			err := broker.bees[i].start(typ)
 			if err != nil {
-				logger.Error(err)
+				log.Error(err)
 				return
 			}
 			log.WithFields(logrus.Fields{
@@ -289,7 +249,7 @@ func (broker *Broker) Start(typ string) error {
 	if err != nil {
 		return err
 	}
-	logger.Info("Collecting tps info, please wait...")
+	log.Info("Collecting tps info, please wait...")
 	time.Sleep(20 * time.Second)
 
 	skip := (meta1.Height - meta0.Height) / 8
@@ -309,7 +269,7 @@ func (broker *Broker) Stop(current time.Time) error {
 	// wait for goroutines inside bees to stop
 	time.Sleep(3 * time.Second)
 
-	logger.Info("Bees are quiting, please wait...")
+	log.Info("Bees are quiting, please wait...")
 	for i := 0; i < len(broker.bees); i++ {
 		err := broker.bees[i].stop()
 		if err != nil {
@@ -332,17 +292,13 @@ func (broker *Broker) Stop(current time.Time) error {
 
 func PrepareTo(config *Config, adminPk crypto.PrivateKey, adminFrom *types.Address) (string, error) {
 	node0 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[0]}
-	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	if err != nil {
-		log.Error(err)
-	}
-	from, err := pk.PublicKey().Address()
+	pk, from, err := repo.KeyPriv()
 	if err != nil {
 		log.Error(err)
 	}
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(node0),
-		rpcx.WithLogger(cfg.logger),
+		rpcx.WithLogger(log),
 		rpcx.WithPrivateKey(pk),
 	)
 	if err != nil {
@@ -380,7 +336,7 @@ func PrepareTo(config *Config, adminPk crypto.PrivateKey, adminFrom *types.Addre
 	if err != nil {
 		return "", fmt.Errorf("vote chain error: %w", err)
 	}
-	res, err = b.GetChainStatusById(from.String())
+	res, err = b.GetChainStatusById(pk, from.String())
 	if err != nil {
 		return "", fmt.Errorf("getChainStatus error: %w", err)
 	}

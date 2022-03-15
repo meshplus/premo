@@ -8,9 +8,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/pkg/errors"
 )
 
+//TODO:refactor pkg
 const (
 	Bool    = "bool"
 	Address = "address"
@@ -33,7 +33,7 @@ func ABIUnmarshal(abi abi.ABI, args [][]byte, funcName string) ([]interface{}, e
 	}
 
 	if len(m.Inputs) != len(args) {
-		return nil, errors.New("args'length is not equal")
+		return nil, fmt.Errorf("args'length is not equal")
 	} else {
 		for idx, arg := range args {
 			argx[idx], err = transform(string(arg), m.Inputs[idx].Type.String())
@@ -67,14 +67,13 @@ func UnpackOutput(abi abi.ABI, method string, receipt string) ([]interface{}, er
 
 	if len(m.Outputs) == 1 {
 		p, t := getSinglePacker(m.Outputs)
-		if err := abi.Unpack(p, method, []byte(receipt)); err != nil {
+		if _, err := abi.Unpack(method, []byte(receipt)); err != nil {
 			return nil, fmt.Errorf("unpack result %w", err)
 		}
-
 		return []interface{}{unpackResult(p, t)}, nil
 	} else {
 		p := getPacker(m.Outputs)
-		if err := abi.Unpack(&p.packers, method, []byte(receipt)); err != nil {
+		if _, err := abi.Unpack(method, []byte(receipt)); err != nil {
 			return nil, err
 		}
 
@@ -241,7 +240,7 @@ func transform(input string, t string) (interface{}, error) {
 		copy(r[:], []byte(input)[:32])
 		return r, nil
 	case "int256":
-		return nil, errors.New("type overFitted")
+		return nil, fmt.Errorf("type overFitted")
 	case Int64:
 		r, err := strconv.ParseInt(input, 10, 64)
 		if err != nil {
@@ -279,6 +278,6 @@ func transform(input string, t string) (interface{}, error) {
 		}
 		return r, nil
 	default:
-		return nil, errors.New("type overFitted")
+		return nil, fmt.Errorf("type overFitted")
 	}
 }

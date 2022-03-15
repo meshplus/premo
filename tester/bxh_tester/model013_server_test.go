@@ -13,7 +13,6 @@ import (
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	"github.com/meshplus/premo/internal/repo"
-	"github.com/pkg/errors"
 )
 
 type Model13 struct {
@@ -30,13 +29,13 @@ func (suite Model13) Test1301_RegisterServerWithUsedNameIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk1, chainID1, address1)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk1, chainID1, suite.GetServerID(pk1), chainID1, "CallContract")
+	err = suite.RegisterServer(pk1, chainID1, chainID1, chainID1, "CallContract")
 	suite.Require().Nil(err)
 	pk2, chainID2, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk2, chainID2, address2)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk2, chainID2, suite.GetServerID(pk2), chainID1, "CallContract")
+	err = suite.RegisterServer(pk2, chainID2, chainID2, chainID1, "CallContract")
 	suite.Require().NotNil(err)
 }
 
@@ -46,15 +45,15 @@ func (suite Model13) Test1302_RegisterServerWithHaveUsedNameIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk1, chainID1, address1)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk1, chainID1, suite.GetServerID(pk1), chainID1, "CallContract")
+	err = suite.RegisterServer(pk1, chainID1, chainID1, chainID1, "CallContract")
 	suite.Require().Nil(err)
-	err = suite.UpdateService(pk1, chainID1+":"+suite.GetServerID(pk1), chainID1+"123")
+	err = suite.UpdateService(pk1, chainID1+":"+chainID1, chainID1+"123")
 	suite.Require().Nil(err)
 	pk2, chainID2, address2, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk2, chainID2, address2)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk2, chainID2, suite.GetServerID(pk2), chainID1, "CallContract")
+	err = suite.RegisterServer(pk2, chainID2, chainID2, chainID1, "CallContract")
 	suite.Require().Nil(err)
 }
 
@@ -64,7 +63,7 @@ func (suite Model13) Test1303_RegisterServerWithEmptyNameIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), "", "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, "", "CallContract")
 	suite.Require().NotNil(err)
 }
 
@@ -78,17 +77,13 @@ func (suite Model13) Test1304_RegisterServerWithLogoutNameIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk2, chainID2, address2)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk2, chainID2, suite.GetServerID(pk2), chainID1, "CallContract")
+	err = suite.RegisterServer(pk2, chainID2, chainID2, chainID1, "CallContract")
 	suite.Require().NotNil(err)
 }
 
 //tc：中继链管理员注册服务，服务注册失败
 func (suite Model13) Test1305_RegisterServerWithRelayAdminIsFail() {
-	path, err := repo.Node1Path()
-	suite.Require().Nil(err)
-	pk1, err := asym.RestorePrivateKey(path, repo.KeyPassword)
-	suite.Require().Nil(err)
-	from, err := pk1.PublicKey().Address()
+	pk1, from, err := repo.Node1Priv()
 	suite.Require().Nil(err)
 	pk2, chainID, address, err := suite.DeployRule()
 	err = suite.RegisterAppchain(pk2, chainID, address)
@@ -96,7 +91,7 @@ func (suite Model13) Test1305_RegisterServerWithRelayAdminIsFail() {
 	client := suite.NewClient(pk1)
 	args := []*pb.Arg{
 		rpcx.String(chainID),
-		rpcx.String(suite.GetServerID(pk2)),
+		rpcx.String(chainID),
 		rpcx.String(chainID),
 		rpcx.String("CallContract"),
 		rpcx.String("test"),
@@ -120,7 +115,7 @@ func (suite Model13) Test1306_RegisterServerWithNoAdminIsFail() {
 	pk2, chainID, address, err := suite.DeployRule()
 	err = suite.RegisterAppchain(pk2, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk1, chainID, suite.GetServerID(pk2), chainID, "CallContract")
+	err = suite.RegisterServer(pk1, chainID, chainID, chainID, "CallContract")
 	suite.Require().NotNil(err)
 }
 
@@ -130,15 +125,15 @@ func (suite Model13) Test1307_RegisterServerIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 }
 
 //tc：应用链处于未注册状态注册服务，服务注册失败
 func (suite Model13) Test1308_RegisterServerWithNoRegisterAdminIsFail() {
-	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	pk, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, "test", suite.GetServerID(pk), "test", "CallContract")
+	err = suite.RegisterServer(pk, "test", from.String(), "test", "CallContract")
 	suite.Require().NotNil(err)
 }
 
@@ -148,7 +143,7 @@ func (suite Model13) Test1309_RegisterServerWithRegistingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToRegisting(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().NotNil(err)
 }
 
@@ -158,11 +153,11 @@ func (suite Model13) Test1310_RegisterServerWithAvailableServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
-	err = suite.CheckServerStatus(chainID+":"+suite.GetServerID(pk), governance.GovernanceAvailable)
+	err = suite.CheckServerStatus(chainID+":"+chainID, governance.GovernanceAvailable)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().NotNil(err)
 }
 
@@ -172,7 +167,7 @@ func (suite Model13) Test1311_RegisterServerWithUnavailableServerIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.ServerToUnavailable(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 }
 
@@ -182,7 +177,7 @@ func (suite Model13) Test1312_RegisterServerWithUpdatingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToUpdating(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().NotNil(err)
 }
 
@@ -192,7 +187,7 @@ func (suite Model13) Test1313_RegisterServerWithActivatingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToActivating(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().NotNil(err)
 }
 
@@ -202,7 +197,7 @@ func (suite Model13) Test1314_RegisterServerWithFreezingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToFreezing(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().NotNil(err)
 }
 
@@ -212,7 +207,7 @@ func (suite Model13) Test1315_RegisterServerWithFrozenServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToFrozen(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().NotNil(err)
 }
 
@@ -222,7 +217,7 @@ func (suite Model13) Test1316_RegisterServerWithLogoutingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToLogouting(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().NotNil(err)
 }
 
@@ -232,7 +227,7 @@ func (suite Model13) Test1317_RegisterServerWithForbiddenServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToForbidden(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().NotNil(err)
 }
 
@@ -242,7 +237,7 @@ func (suite Model13) Test1318_RegisterServerWithPauseServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToPause(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().NotNil(err)
 }
 
@@ -252,17 +247,17 @@ func (suite Model13) Test1319_RegisterServerWithActivatingChainIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ChainToActivating(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().NotNil(err)
 }
 
 //tc：应用链处于freezing状态注册服务，服务注册成功
-func (suite Model13) Test1320_RegisterServerWithFreezingChainIsFail() {
+func (suite Model13) Test1320_RegisterServerWithFreezingChainIsSuccess() {
 	pk, chainID, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFreezing(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 }
 
@@ -272,7 +267,7 @@ func (suite Model13) Test1321_RegisterServerWithFrozenChainIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ChainToFrozen(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().NotNil(err)
 }
 
@@ -282,7 +277,7 @@ func (suite Model13) Test1322_RegisterServerWithLogoutingChainIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ChainToLogouting(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().NotNil(err)
 }
 
@@ -292,7 +287,7 @@ func (suite Model13) Test1323_RegisterServerWithForbiddenChainsFail() {
 	suite.Require().Nil(err)
 	err = suite.ChainToForbidden(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().NotNil(err)
 }
 
@@ -302,7 +297,7 @@ func (suite Model13) Test1324_RegisterServerWithErrorTypeIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract111")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract111")
 	suite.Require().NotNil(err)
 }
 
@@ -312,17 +307,13 @@ func (suite Model13) Test1325_UpdateServerWithRelayAdminIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
-	path, err := repo.Node1Path()
-	suite.Require().Nil(err)
-	node1pk, err := asym.RestorePrivateKey(path, repo.KeyPassword)
-	suite.Require().Nil(err)
-	from, err := node1pk.PublicKey().Address()
-	suite.Require().Nil(err)
+	node1pk, from, err := repo.Node1Priv()
 	client := suite.NewClient(node1pk)
+	suite.Require().Nil(err)
 	args := []*pb.Arg{
-		rpcx.String(chainID + ":" + suite.GetServerID(pk)),
+		rpcx.String(chainID + ":" + chainID),
 		rpcx.String(chainID),
 		rpcx.String("test"),
 		rpcx.String(""),
@@ -343,9 +334,9 @@ func (suite Model13) Test1326_UpdateServerIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
-	err = suite.UpdateService(pk, chainID+":"+suite.GetServerID(pk), chainID+"123")
+	err = suite.UpdateService(pk, chainID+":"+chainID, chainID+"123")
 	suite.Require().Nil(err)
 }
 
@@ -355,11 +346,11 @@ func (suite Model13) Test1327_UpdateServerWithNoAdminIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk1, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk1, chainID, suite.GetServerID(pk1), chainID, "CallContract")
+	err = suite.RegisterServer(pk1, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 	pk2, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
-	err = suite.UpdateService(pk2, chainID+":"+suite.GetServerID(pk1), chainID)
+	err = suite.UpdateService(pk2, chainID+":"+chainID, chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -369,7 +360,7 @@ func (suite Model13) Test1328_UpdateServerWithRegistingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToRegisting(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.UpdateService(pk, chainID+":"+suite.GetServerID(pk), chainID+"123")
+	err = suite.UpdateService(pk, chainID+":"+chainID, chainID+"123")
 	suite.Require().NotNil(err)
 }
 
@@ -379,7 +370,7 @@ func (suite Model13) Test1329_UpdateServerWithUnavailableServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToUnavailable(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.UpdateService(pk, chainID+":"+suite.GetServerID(pk), chainID+"123")
+	err = suite.UpdateService(pk, chainID+":"+chainID, chainID+"123")
 	suite.Require().NotNil(err)
 }
 
@@ -389,7 +380,7 @@ func (suite Model13) Test1330_UpdateServerWithUpdatingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToUpdating(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.UpdateService(pk, chainID+":"+suite.GetServerID(pk), chainID+"123")
+	err = suite.UpdateService(pk, chainID+":"+chainID, chainID+"123")
 	suite.Require().NotNil(err)
 }
 
@@ -399,7 +390,7 @@ func (suite Model13) Test1331_UpdateServerWithActivatingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToActivating(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.UpdateService(pk, chainID+":"+suite.GetServerID(pk), chainID+"123")
+	err = suite.UpdateService(pk, chainID+":"+chainID, chainID+"123")
 	suite.Require().NotNil(err)
 }
 
@@ -409,7 +400,7 @@ func (suite Model13) Test1332_UpdateServerWithFreezingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToFreezing(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.UpdateService(pk, chainID+":"+suite.GetServerID(pk), chainID+"123")
+	err = suite.UpdateService(pk, chainID+":"+chainID, chainID+"123")
 	suite.Require().NotNil(err)
 }
 
@@ -419,9 +410,9 @@ func (suite Model13) Test1333_UpdateServerWithFrozenServerIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.ServerToFrozen(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.UpdateService(pk, chainID+":"+suite.GetServerID(pk), chainID+"123")
+	err = suite.UpdateService(pk, chainID+":"+chainID, chainID+"123")
 	suite.Require().Nil(err)
-	err = suite.CheckServerStatus(chainID+":"+suite.GetServerID(pk), governance.GovernanceAvailable)
+	err = suite.CheckServerStatus(chainID+":"+chainID, governance.GovernanceAvailable)
 	suite.Require().Nil(err)
 }
 
@@ -431,7 +422,7 @@ func (suite Model13) Test1334_UpdateServerWithLogoutingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToLogouting(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.UpdateService(pk, chainID+":"+suite.GetServerID(pk), chainID+"123")
+	err = suite.UpdateService(pk, chainID+":"+chainID, chainID+"123")
 	suite.Require().NotNil(err)
 }
 
@@ -441,7 +432,7 @@ func (suite Model13) Test1335_UpdateServerWithForbiddenServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToForbidden(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.UpdateService(pk, chainID+":"+suite.GetServerID(pk), chainID+"123")
+	err = suite.UpdateService(pk, chainID+":"+chainID, chainID+"123")
 	suite.Require().NotNil(err)
 }
 
@@ -451,7 +442,7 @@ func (suite Model13) Test1336_UpdateServerWithPauseServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToPause(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.UpdateService(pk, chainID+":"+suite.GetServerID(pk), chainID+"123")
+	err = suite.UpdateService(pk, chainID+":"+chainID, chainID+"123")
 	suite.Require().NotNil(err)
 }
 
@@ -461,7 +452,7 @@ func (suite Model13) Test1337_UpdateServerWithActivatingChainIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 	err = suite.FreezeAppchain(chainID)
 	suite.Require().Nil(err)
@@ -471,7 +462,7 @@ func (suite Model13) Test1337_UpdateServerWithActivatingChainIsFail() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceActivating)
 	suite.Require().Nil(err)
-	err = suite.UpdateService(pk, chainID+":"+suite.GetServerID(pk), chainID+"123")
+	err = suite.UpdateService(pk, chainID+":"+chainID, chainID+"123")
 	suite.Require().NotNil(err)
 }
 
@@ -481,15 +472,11 @@ func (suite Model13) Test1338_UpdateServerWithFreezingChainIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
-	path, err := repo.Node1Path()
-	suite.Require().Nil(err)
-	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
+	node1Key, pubAddress, err := repo.Node1Priv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(node1Key)
-	pubAddress, err := node1Key.PublicKey().Address()
-	suite.Require().Nil(err)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
 		&rpcx.TransactOpts{
 			From:  pubAddress.String(),
@@ -501,7 +488,7 @@ func (suite Model13) Test1338_UpdateServerWithFreezingChainIsSuccess() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceFreezing)
 	suite.Require().Nil(err)
-	err = suite.UpdateService(pk, chainID+":"+suite.GetServerID(pk), chainID+"123")
+	err = suite.UpdateService(pk, chainID+":"+chainID, chainID+"123")
 	suite.Require().Nil(err)
 }
 
@@ -511,13 +498,13 @@ func (suite Model13) Test1339_UpdateServerWithFrozenChainIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 	err = suite.FreezeAppchain(chainID)
 	suite.Require().Nil(err)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceFrozen)
 	suite.Require().Nil(err)
-	err = suite.UpdateService(pk, chainID+":"+suite.GetServerID(pk), chainID+"123")
+	err = suite.UpdateService(pk, chainID+":"+chainID, chainID+"123")
 	suite.Require().NotNil(err)
 }
 
@@ -527,7 +514,7 @@ func (suite Model13) Test1340_UpdateServerWithLogoutingChainIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(chainID), rpcx.String("reason"))
@@ -535,7 +522,7 @@ func (suite Model13) Test1340_UpdateServerWithLogoutingChainIsFail() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceLogouting)
 	suite.Require().Nil(err)
-	err = suite.UpdateService(pk, chainID+":"+suite.GetServerID(pk), chainID+"123")
+	err = suite.UpdateService(pk, chainID+":"+chainID, chainID+"123")
 	suite.Require().NotNil(err)
 }
 
@@ -545,13 +532,13 @@ func (suite Model13) Test1341_UpdateServerWithForbiddenChainIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 	err = suite.LogoutAppchain(pk, chainID)
 	suite.Require().Nil(err)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceForbidden)
 	suite.Require().Nil(err)
-	err = suite.UpdateService(pk, chainID+":"+suite.GetServerID(pk), chainID+"123")
+	err = suite.UpdateService(pk, chainID+":"+chainID, chainID+"123")
 	suite.Require().NotNil(err)
 }
 
@@ -561,11 +548,11 @@ func (suite Model13) Test1342_FreezeServerWithRelayAdminIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
-	err = suite.FreezeService(chainID + ":" + suite.GetServerID(pk))
+	err = suite.FreezeService(chainID + ":" + chainID)
 	suite.Require().Nil(err)
-	err = suite.CheckServerStatus(chainID+":"+suite.GetServerID(pk), governance.GovernanceFrozen)
+	err = suite.CheckServerStatus(chainID+":"+chainID, governance.GovernanceFrozen)
 	suite.Require().Nil(err)
 }
 
@@ -575,10 +562,10 @@ func (suite Model13) Test1343_FreezeServerWithAdminIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "FreezeService", nil, rpcx.String(chainID+":"+suite.GetServerID(pk)), rpcx.String("reason"))
+	res, err := client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "FreezeService", nil, rpcx.String(chainID+":"+chainID), rpcx.String("reason"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 }
@@ -589,7 +576,7 @@ func (suite Model13) Test1344_FreezeServerWithRegistingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToRegisting(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.FreezeService(chainID + ":" + suite.GetServerID(pk))
+	err = suite.FreezeService(chainID + ":" + chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -599,31 +586,31 @@ func (suite Model13) Test1345_FreezeServerWithUnavailableServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToUnavailable(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.FreezeService(chainID + ":" + suite.GetServerID(pk))
+	err = suite.FreezeService(chainID + ":" + chainID)
 	suite.Require().NotNil(err)
 }
 
-//tc：服务处于updating状态冻结服务，服务冻结成功
+//tc：服务处于updating状态冻结服务，服务冻结失败
 func (suite Model13) Test1346_FreezeServerWithUpdatingServerIsFail() {
 	pk, chainID, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToUpdating(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.FreezeService(chainID + ":" + suite.GetServerID(pk))
+	err = suite.FreezeService(chainID + ":" + chainID)
 	suite.Require().NotNil(err)
-	err = suite.CheckServerStatus(chainID+":"+suite.GetServerID(pk), governance.GovernanceUpdating)
+	err = suite.CheckServerStatus(chainID+":"+chainID, governance.GovernanceUpdating)
 	suite.Require().Nil(err)
 }
 
-//tc：服务处于activating状态冻结服务，服务冻结成功
+//tc：服务处于activating状态冻结服务，服务冻结失败
 func (suite Model13) Test1347_FreezeServerWithActivatingServerIsFail() {
 	pk, chainID, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ServerToActivating(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.FreezeService(chainID + ":" + suite.GetServerID(pk))
+	err = suite.FreezeService(chainID + ":" + chainID)
 	suite.Require().NotNil(err)
-	err = suite.CheckServerStatus(chainID+":"+suite.GetServerID(pk), governance.GovernanceActivating)
+	err = suite.CheckServerStatus(chainID+":"+chainID, governance.GovernanceActivating)
 	suite.Require().Nil(err)
 }
 
@@ -633,7 +620,7 @@ func (suite Model13) Test1348_FreezeServerWithFreezingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToFreezing(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.FreezeService(chainID + ":" + suite.GetServerID(pk))
+	err = suite.FreezeService(chainID + ":" + chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -643,7 +630,7 @@ func (suite Model13) Test1349_FreezeServerWithFrozenServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToFrozen(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.FreezeService(chainID + ":" + suite.GetServerID(pk))
+	err = suite.FreezeService(chainID + ":" + chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -653,7 +640,7 @@ func (suite Model13) Test1350_FreezeServerWithLogoutingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToLogouting(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.FreezeService(chainID + ":" + suite.GetServerID(pk))
+	err = suite.FreezeService(chainID + ":" + chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -663,7 +650,7 @@ func (suite Model13) Test1351_FreezeServerWithForbiddenServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToForbidden(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.FreezeService(chainID + ":" + suite.GetServerID(pk))
+	err = suite.FreezeService(chainID + ":" + chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -673,7 +660,7 @@ func (suite Model13) Test1352_FreezeServerWithPauseServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToPause(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.FreezeService(chainID + ":" + suite.GetServerID(pk))
+	err = suite.FreezeService(chainID + ":" + chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -683,7 +670,7 @@ func (suite Model13) Test1353_FreezeServerWithActivatingChainIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 	err = suite.FreezeAppchain(chainID)
 	suite.Require().Nil(err)
@@ -693,25 +680,21 @@ func (suite Model13) Test1353_FreezeServerWithActivatingChainIsFail() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceActivating)
 	suite.Require().Nil(err)
-	err = suite.FreezeService(chainID + ":" + suite.GetServerID(pk))
+	err = suite.FreezeService(chainID + ":" + chainID)
 	suite.Require().NotNil(err)
 }
 
 //tc：应用链处于freezing状态冻结服务，服务冻结成功
-func (suite Model13) Test1354_FreezeServerWithFreezingChainIsFail() {
+func (suite Model13) Test1354_FreezeServerWithFreezingChainIsSuccess() {
 	pk, chainID, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
-	path, err := repo.Node1Path()
-	suite.Require().Nil(err)
-	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
+	node1Key, pubAddress, err := repo.Node1Priv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(node1Key)
-	pubAddress, err := node1Key.PublicKey().Address()
-	suite.Require().Nil(err)
 	nonce := atomic.AddUint64(&nonce1, 1)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
 		&rpcx.TransactOpts{
@@ -724,7 +707,7 @@ func (suite Model13) Test1354_FreezeServerWithFreezingChainIsFail() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceFreezing)
 	suite.Require().Nil(err)
-	err = suite.FreezeService(chainID + ":" + suite.GetServerID(pk))
+	err = suite.FreezeService(chainID + ":" + chainID)
 	suite.Require().Nil(err)
 }
 
@@ -734,13 +717,13 @@ func (suite Model13) Test1355_FreezeServerWithFrozenChainIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 	err = suite.FreezeAppchain(chainID)
 	suite.Require().Nil(err)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceFrozen)
 	suite.Require().Nil(err)
-	err = suite.FreezeService(chainID + ":" + suite.GetServerID(pk))
+	err = suite.FreezeService(chainID + ":" + chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -750,7 +733,7 @@ func (suite Model13) Test1356_FreezeServerWithLogoutingChainIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(chainID), rpcx.String("reason"))
@@ -758,7 +741,7 @@ func (suite Model13) Test1356_FreezeServerWithLogoutingChainIsFail() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceLogouting)
 	suite.Require().Nil(err)
-	err = suite.FreezeService(chainID + ":" + suite.GetServerID(pk))
+	err = suite.FreezeService(chainID + ":" + chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -768,13 +751,13 @@ func (suite Model13) Test1357_FreezeServerWithForbiddenChainIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 	err = suite.LogoutAppchain(pk, chainID)
 	suite.Require().Nil(err)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceForbidden)
 	suite.Require().Nil(err)
-	err = suite.FreezeService(chainID + ":" + suite.GetServerID(pk))
+	err = suite.FreezeService(chainID + ":" + chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -784,17 +767,13 @@ func (suite Model13) Test1358_ActivateServerWithRelayAdminIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.ServerToFrozen(pk, chainID, address)
 	suite.Require().Nil(err)
-	path, err := repo.Node1Path()
+	node1Key, from, err := repo.Node1Priv()
 	suite.Require().Nil(err)
-	node1pk, err := asym.RestorePrivateKey(path, repo.KeyPassword)
-	suite.Require().Nil(err)
-	from, err := node1pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	client := suite.NewClient(node1pk)
+	client := suite.NewClient(node1Key)
 	res, err := client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "ActivateService", &rpcx.TransactOpts{
 		From:  from.String(),
 		Nonce: atomic.AddUint64(&nonce1, 1),
-	}, rpcx.String(chainID+":"+suite.GetServerID(pk)), rpcx.String("reason"))
+	}, rpcx.String(chainID+":"+chainID), rpcx.String("reason"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	result := &RegisterResult{}
@@ -802,7 +781,7 @@ func (suite Model13) Test1358_ActivateServerWithRelayAdminIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.VotePass(result.ProposalID)
 	suite.Require().Nil(err)
-	err = suite.CheckServerStatus(chainID+":"+suite.GetServerID(pk), governance.GovernanceAvailable)
+	err = suite.CheckServerStatus(chainID+":"+chainID, governance.GovernanceAvailable)
 	suite.Require().Nil(err)
 }
 
@@ -812,13 +791,13 @@ func (suite Model13) Test1359_ActivateServerIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
-	err = suite.FreezeService(chainID + ":" + suite.GetServerID(pk))
+	err = suite.FreezeService(chainID + ":" + chainID)
 	suite.Require().Nil(err)
-	err = suite.CheckServerStatus(chainID+":"+suite.GetServerID(pk), governance.GovernanceFrozen)
+	err = suite.CheckServerStatus(chainID+":"+chainID, governance.GovernanceFrozen)
 	suite.Require().Nil(err)
-	err = suite.ActivateService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.ActivateService(pk, chainID+":"+chainID)
 	suite.Require().Nil(err)
 }
 
@@ -828,7 +807,7 @@ func (suite Model13) Test1360_ActivateServerWithRegistingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToRegisting(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.ActivateService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.ActivateService(pk, chainID+":"+chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -838,7 +817,7 @@ func (suite Model13) Test1361_ActivateServerWithUnavailableServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToUnavailable(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.ActivateService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.ActivateService(pk, chainID+":"+chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -848,7 +827,7 @@ func (suite Model13) Test1362_ActivateServerWithUpdatingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToUpdating(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.ActivateService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.ActivateService(pk, chainID+":"+chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -858,7 +837,7 @@ func (suite Model13) Test1363_ActivateServerWithActivatingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToActivating(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.ActivateService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.ActivateService(pk, chainID+":"+chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -868,7 +847,7 @@ func (suite Model13) Test1364_ActivateServerWithFreezingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToFreezing(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.ActivateService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.ActivateService(pk, chainID+":"+chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -878,7 +857,7 @@ func (suite Model13) Test1365_ActivateServerWithLogoutingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToLogouting(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.ActivateService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.ActivateService(pk, chainID+":"+chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -888,7 +867,7 @@ func (suite Model13) Test1366_ActivateServerWithForbiddenServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToForbidden(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.ActivateService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.ActivateService(pk, chainID+":"+chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -898,7 +877,7 @@ func (suite Model13) Test1367_ActivateServerWithPauseServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToPause(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.ActivateService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.ActivateService(pk, chainID+":"+chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -908,7 +887,7 @@ func (suite Model13) Test1368_ActivateServerWithActivatingChainIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 	err = suite.FreezeAppchain(chainID)
 	suite.Require().Nil(err)
@@ -918,27 +897,23 @@ func (suite Model13) Test1368_ActivateServerWithActivatingChainIsFail() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceActivating)
 	suite.Require().Nil(err)
-	err = suite.ActivateService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.ActivateService(pk, chainID+":"+chainID)
 	suite.Require().NotNil(err)
 }
 
 //tc：应用链处于freezing状态激活服务，服务激活成功
-func (suite Model13) Test1369_ActivateServerWithFreezingChainIsFail() {
+func (suite Model13) Test1369_ActivateServerWithFreezingChainIsSuccess() {
 	pk, chainID, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
-	err = suite.FreezeService(chainID + ":" + suite.GetServerID(pk))
+	err = suite.FreezeService(chainID + ":" + chainID)
 	suite.Require().Nil(err)
-	path, err := repo.Node1Path()
-	suite.Require().Nil(err)
-	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
+	node1Key, pubAddress, err := repo.Node1Priv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(node1Key)
-	pubAddress, err := node1Key.PublicKey().Address()
-	suite.Require().Nil(err)
 	nonce := atomic.AddUint64(&nonce1, 1)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
 		&rpcx.TransactOpts{
@@ -951,9 +926,9 @@ func (suite Model13) Test1369_ActivateServerWithFreezingChainIsFail() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceFreezing)
 	suite.Require().Nil(err)
-	err = suite.ActivateService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.ActivateService(pk, chainID+":"+chainID)
 	suite.Require().Nil(err)
-	err = suite.CheckServerStatus(chainID+":"+suite.GetServerID(pk), governance.GovernanceAvailable)
+	err = suite.CheckServerStatus(chainID+":"+chainID, governance.GovernanceAvailable)
 	suite.Require().Nil(err)
 }
 
@@ -963,13 +938,13 @@ func (suite Model13) Test1370_ActivateServerWithFrozenChainIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 	err = suite.FreezeAppchain(chainID)
 	suite.Require().Nil(err)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceFrozen)
 	suite.Require().Nil(err)
-	err = suite.ActivateService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.ActivateService(pk, chainID+":"+chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -979,7 +954,7 @@ func (suite Model13) Test1371_ActivateServerWithLogoutingChainIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(chainID), rpcx.String("reason"))
@@ -987,7 +962,7 @@ func (suite Model13) Test1371_ActivateServerWithLogoutingChainIsFail() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceLogouting)
 	suite.Require().Nil(err)
-	err = suite.ActivateService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.ActivateService(pk, chainID+":"+chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -997,13 +972,13 @@ func (suite Model13) Test1372_ActivateServerWithForbiddenChainIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 	err = suite.LogoutAppchain(pk, chainID)
 	suite.Require().Nil(err)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceForbidden)
 	suite.Require().Nil(err)
-	err = suite.ActivateService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.ActivateService(pk, chainID+":"+chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -1013,19 +988,15 @@ func (suite Model13) Test1373_LogoutServerWithRelayAdminIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
-	path, err := repo.Node1Path()
+	node1Key, from, err := repo.Node1Priv()
 	suite.Require().Nil(err)
-	node1pk, err := asym.RestorePrivateKey(path, repo.KeyPassword)
-	suite.Require().Nil(err)
-	from, err := node1pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	client := suite.NewClient(node1pk)
+	client := suite.NewClient(node1Key)
 	res, err := client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "LogoutService", &rpcx.TransactOpts{
 		From:  from.String(),
 		Nonce: atomic.AddUint64(&nonce1, 1),
-	}, rpcx.String(chainID+":"+suite.GetServerID(pk)), rpcx.String("reason"))
+	}, rpcx.String(chainID+":"+chainID), rpcx.String("reason"))
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
 }
@@ -1036,9 +1007,9 @@ func (suite Model13) Test1374_LogoutServerWithRelayAdminIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
-	err = suite.LogoutService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.LogoutService(pk, chainID+":"+chainID)
 	suite.Require().Nil(err)
 }
 
@@ -1048,7 +1019,7 @@ func (suite Model13) Test1375_LogoutServerWithRegistingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToRegisting(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.LogoutService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.LogoutService(pk, chainID+":"+chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -1058,7 +1029,7 @@ func (suite Model13) Test1376_LogoutServerWithUnavailableServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToUnavailable(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.LogoutService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.LogoutService(pk, chainID+":"+chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -1068,7 +1039,7 @@ func (suite Model13) Test1377_LogoutServerWithUpdatingServerIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.ServerToUpdating(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.LogoutService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.LogoutService(pk, chainID+":"+chainID)
 	suite.Require().Nil(err)
 }
 
@@ -1078,7 +1049,7 @@ func (suite Model13) Test1378_LogoutServerWithActivatingServerIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.ServerToActivating(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.LogoutService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.LogoutService(pk, chainID+":"+chainID)
 	suite.Require().Nil(err)
 }
 
@@ -1088,7 +1059,7 @@ func (suite Model13) Test1379_LogoutServerWithFreezingServerIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.ServerToFreezing(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.LogoutService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.LogoutService(pk, chainID+":"+chainID)
 	suite.Require().Nil(err)
 }
 
@@ -1098,7 +1069,7 @@ func (suite Model13) Test1380_LogoutServerWithFrozenServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToFrozen(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.LogoutService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.LogoutService(pk, chainID+":"+chainID)
 	suite.Require().Nil(err)
 }
 
@@ -1108,7 +1079,7 @@ func (suite Model13) Test1381_LogoutServerWithLogoutingServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToLogouting(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.LogoutService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.LogoutService(pk, chainID+":"+chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -1118,7 +1089,7 @@ func (suite Model13) Test1382_LogoutServerWithForbiddenServerIsFail() {
 	suite.Require().Nil(err)
 	err = suite.ServerToForbidden(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.LogoutService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.LogoutService(pk, chainID+":"+chainID)
 	suite.Require().NotNil(err)
 }
 
@@ -1128,7 +1099,7 @@ func (suite Model13) Test1383_LogoutServerWithPauseServerIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.ServerToPause(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.LogoutService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.LogoutService(pk, chainID+":"+chainID)
 	suite.Require().Nil(err)
 }
 
@@ -1138,7 +1109,7 @@ func (suite Model13) Test1384_LogoutServerWithActivatingChainIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 	err = suite.FreezeAppchain(chainID)
 	suite.Require().Nil(err)
@@ -1148,7 +1119,7 @@ func (suite Model13) Test1384_LogoutServerWithActivatingChainIsSuccess() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceActivating)
 	suite.Require().Nil(err)
-	err = suite.LogoutService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.LogoutService(pk, chainID+":"+chainID)
 	suite.Require().Nil(err)
 }
 
@@ -1158,15 +1129,11 @@ func (suite Model13) Test1385_LogoutServerWithFreezingChainIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
-	path, err := repo.Node1Path()
-	suite.Require().Nil(err)
-	node1Key, err := asym.RestorePrivateKey(path, repo.KeyPassword)
+	node1Key, pubAddress, err := repo.Node1Priv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(node1Key)
-	pubAddress, err := node1Key.PublicKey().Address()
-	suite.Require().Nil(err)
 	nonce := atomic.AddUint64(&nonce1, 1)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
 		&rpcx.TransactOpts{
@@ -1179,7 +1146,7 @@ func (suite Model13) Test1385_LogoutServerWithFreezingChainIsSuccess() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceFreezing)
 	suite.Require().Nil(err)
-	err = suite.LogoutService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.LogoutService(pk, chainID+":"+chainID)
 	suite.Require().Nil(err)
 }
 
@@ -1189,13 +1156,13 @@ func (suite Model13) Test1386_LogoutServerWithFrozenChainIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 	err = suite.FreezeAppchain(chainID)
 	suite.Require().Nil(err)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceFrozen)
 	suite.Require().Nil(err)
-	err = suite.LogoutService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.LogoutService(pk, chainID+":"+chainID)
 	suite.Require().Nil(err)
 }
 
@@ -1205,7 +1172,7 @@ func (suite Model13) Test1387_LogoutServerWithLogoutingChainIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(chainID), rpcx.String("reason"))
@@ -1213,7 +1180,7 @@ func (suite Model13) Test1387_LogoutServerWithLogoutingChainIsSuccess() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceLogouting)
 	suite.Require().Nil(err)
-	err = suite.LogoutService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.LogoutService(pk, chainID+":"+chainID)
 	suite.Require().Nil(err)
 }
 
@@ -1223,16 +1190,17 @@ func (suite Model13) Test1388_LogoutServerWithForbiddenChainIsFail() {
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, chainID, address)
 	suite.Require().Nil(err)
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
 	suite.Require().Nil(err)
 	err = suite.LogoutAppchain(pk, chainID)
 	suite.Require().Nil(err)
 	err = suite.CheckChainStatus(chainID, governance.GovernanceForbidden)
 	suite.Require().Nil(err)
-	err = suite.LogoutService(pk, chainID+":"+suite.GetServerID(pk))
+	err = suite.LogoutService(pk, chainID+":"+chainID)
 	suite.Require().NotNil(err)
 }
 
+// RegisterServer register server
 func (suite Snake) RegisterServer(pk crypto.PrivateKey, chainID, serviceID, name, typ string) error {
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
@@ -1247,81 +1215,56 @@ func (suite Snake) RegisterServer(pk crypto.PrivateKey, chainID, serviceID, name
 		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "RegisterService", nil, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
-		return errors.New(string(res.Ret))
+		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.VotePass(result.ProposalID)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
+// FreezeService freeze server
 func (suite Snake) FreezeService(chainServiceID string) error {
-	path, err := repo.Node1Path()
-	if err != nil {
-		return err
-	}
-	node1pk, err := asym.RestorePrivateKey(path, repo.KeyPassword)
-	if err != nil {
-		return err
-	}
-	from, err := node1pk.PublicKey().Address()
-	if err != nil {
-		return err
-	}
-	client := suite.NewClient(node1pk)
+	node1Key, from, err := repo.Node1Priv()
+	suite.Require().Nil(err)
+	client := suite.NewClient(node1Key)
 	res, err := client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "FreezeService", &rpcx.TransactOpts{
 		From:  from.String(),
 		Nonce: atomic.AddUint64(&nonce1, 1),
 	}, rpcx.String(chainServiceID), rpcx.String("reason"))
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
-		return errors.New(string(res.Ret))
+		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.VotePass(result.ProposalID)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
+// ActivateService activate server
 func (suite Model13) ActivateService(pk crypto.PrivateKey, chainServiceID string) error {
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "ActivateService", nil, rpcx.String(chainServiceID), rpcx.String("reason"))
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
-		return errors.New(string(res.Ret))
+		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.VotePass(result.ProposalID)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
+// UpdateService update server
 func (suite Snake) UpdateService(pk crypto.PrivateKey, chainServiceID, name string) error {
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
@@ -1333,79 +1276,64 @@ func (suite Snake) UpdateService(pk crypto.PrivateKey, chainServiceID, name stri
 		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "UpdateService", nil, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
-		return errors.New(string(res.Ret))
+		return fmt.Errorf(string(res.Ret))
 	}
 	if string(res.Ret) == "" {
 		return nil
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.VotePass(result.ProposalID)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
+// LogoutService logout server
 func (suite Model13) LogoutService(pk crypto.PrivateKey, chainServiceID string) error {
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "LogoutService", nil, rpcx.String(chainServiceID), rpcx.String("reason"))
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
-		return errors.New(string(res.Ret))
+		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.VotePass(result.ProposalID)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
+// CheckServerStatus check server status
 func (suite Snake) CheckServerStatus(serverID string, status governance.GovernanceStatus) error {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "GetServiceInfo", nil, rpcx.String(serverID))
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
-		return errors.New(string(res.Ret))
+		return fmt.Errorf(string(res.Ret))
 	}
 	server := &serviceMgr.Service{}
 	err = json.Unmarshal(res.Ret, server)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if server.Status != status {
-		return errors.New(fmt.Sprintf("expect status is %s, but got %s", status, server.Status))
+		return fmt.Errorf("expect status is %s, but got %s", status, server.Status)
 	}
 	return nil
 }
 
+// ServerToRegisting get a registing server
 func (suite Model13) ServerToRegisting(pk crypto.PrivateKey, chainID, address string) error {
 	err := suite.RegisterAppchain(pk, chainID, address)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
 		rpcx.String(chainID),
-		rpcx.String(suite.GetServerID(pk)),
+		rpcx.String(chainID),
 		rpcx.String(chainID),
 		rpcx.String("CallContract"),
 		rpcx.String("test"),
@@ -1415,28 +1343,23 @@ func (suite Model13) ServerToRegisting(pk crypto.PrivateKey, chainID, address st
 		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "RegisterService", nil, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
-		return errors.New(string(res.Ret))
+		return fmt.Errorf(string(res.Ret))
 	}
-	err = suite.CheckServerStatus(chainID+":"+suite.GetServerID(pk), governance.GovernanceRegisting)
-	if err != nil {
-		return err
-	}
+	err = suite.CheckServerStatus(chainID+":"+chainID, governance.GovernanceRegisting)
+	suite.Require().Nil(err)
 	return nil
 }
 
+// ServerToUnavailable get a unavailable server
 func (suite Model13) ServerToUnavailable(pk crypto.PrivateKey, chainID, address string) error {
 	err := suite.RegisterAppchain(pk, chainID, address)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
 		rpcx.String(chainID),
-		rpcx.String(suite.GetServerID(pk)),
+		rpcx.String(chainID),
 		rpcx.String(chainID),
 		rpcx.String("CallContract"),
 		rpcx.String("test"),
@@ -1446,40 +1369,29 @@ func (suite Model13) ServerToUnavailable(pk crypto.PrivateKey, chainID, address 
 		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "RegisterService", nil, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
-		return errors.New(string(res.Ret))
+		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.VoteReject(result.ProposalID)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.CheckServerStatus(string(result.Extra), governance.GovernanceUnavailable)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
+// ServerToUpdating get an updating server
 func (suite Model13) ServerToUpdating(pk crypto.PrivateKey, chainID, address string) error {
 	err := suite.RegisterAppchain(pk, chainID, address)
-	if err != nil {
-		return err
-	}
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
-		rpcx.String(chainID + ":" + suite.GetServerID(pk)),
+		rpcx.String(chainID + ":" + chainID),
 		rpcx.String(chainID + "123"),
 		rpcx.String("test"),
 		rpcx.String(""),
@@ -1487,166 +1399,108 @@ func (suite Model13) ServerToUpdating(pk crypto.PrivateKey, chainID, address str
 		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "UpdateService", nil, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
-		return errors.New(string(res.Ret))
+		return fmt.Errorf(string(res.Ret))
 	}
-	err = suite.CheckServerStatus(chainID+":"+suite.GetServerID(pk), governance.GovernanceUpdating)
-	if err != nil {
-		return err
-	}
+	err = suite.CheckServerStatus(chainID+":"+chainID, governance.GovernanceUpdating)
+	suite.Require().Nil(err)
 	return nil
 }
 
+// ServerToActivating get an activating server
 func (suite Model13) ServerToActivating(pk crypto.PrivateKey, chainID, address string) error {
 	err := suite.RegisterAppchain(pk, chainID, address)
-	if err != nil {
-		return err
-	}
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
-	if err != nil {
-		return err
-	}
-	err = suite.FreezeService(chainID + ":" + suite.GetServerID(pk))
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
+	suite.Require().Nil(err)
+	err = suite.FreezeService(chainID + ":" + chainID)
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "ActivateService", nil, rpcx.String(chainID+":"+suite.GetServerID(pk)), rpcx.String("reason"))
-	if err != nil {
-		return err
-	}
+	res, err := client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "ActivateService", nil, rpcx.String(chainID+":"+chainID), rpcx.String("reason"))
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
-		return errors.New(string(res.Ret))
+		return fmt.Errorf(string(res.Ret))
 	}
-	err = suite.CheckServerStatus(chainID+":"+suite.GetServerID(pk), governance.GovernanceActivating)
-	if err != nil {
-		return err
-	}
+	err = suite.CheckServerStatus(chainID+":"+chainID, governance.GovernanceActivating)
+	suite.Require().Nil(err)
 	return nil
 }
 
+// ServerToFreezing get a freezing server
 func (suite Model13) ServerToFreezing(pk crypto.PrivateKey, chainID, address string) error {
 	err := suite.RegisterAppchain(pk, chainID, address)
-	if err != nil {
-		return err
-	}
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
-	if err != nil {
-		return err
-	}
-	path, err := repo.Node1Path()
-	if err != nil {
-		return err
-	}
-	node1pk, err := asym.RestorePrivateKey(path, repo.KeyPassword)
-	if err != nil {
-		return err
-	}
-	from, err := node1pk.PublicKey().Address()
-	if err != nil {
-		return err
-	}
-	client := suite.NewClient(node1pk)
+	suite.Require().Nil(err)
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
+	suite.Require().Nil(err)
+	node1Key, from, err := repo.Node1Priv()
+	suite.Require().Nil(err)
+	client := suite.NewClient(node1Key)
 	res, err := client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "FreezeService", &rpcx.TransactOpts{
 		From:  from.String(),
 		Nonce: atomic.AddUint64(&nonce1, 1),
-	}, rpcx.String(chainID+":"+suite.GetServerID(pk)), rpcx.String("reason"))
-	if err != nil {
-		return err
-	}
+	}, rpcx.String(chainID+":"+chainID), rpcx.String("reason"))
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
-		return errors.New(string(res.Ret))
+		return fmt.Errorf(string(res.Ret))
 	}
-	err = suite.CheckServerStatus(chainID+":"+suite.GetServerID(pk), governance.GovernanceFreezing)
-	if err != nil {
-		return err
-	}
+	err = suite.CheckServerStatus(chainID+":"+chainID, governance.GovernanceFreezing)
+	suite.Require().Nil(err)
 	return nil
 }
 
+// ServerToFrozen get a frozen server
 func (suite Model13) ServerToFrozen(pk crypto.PrivateKey, chainID, address string) error {
 	err := suite.RegisterAppchain(pk, chainID, address)
-	if err != nil {
-		return err
-	}
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
-	if err != nil {
-		return err
-	}
-	err = suite.FreezeService(chainID + ":" + suite.GetServerID(pk))
-	if err != nil {
-		return err
-	}
-	err = suite.CheckServerStatus(chainID+":"+suite.GetServerID(pk), governance.GovernanceFrozen)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
+	suite.Require().Nil(err)
+	err = suite.FreezeService(chainID + ":" + chainID)
+	suite.Require().Nil(err)
+	err = suite.CheckServerStatus(chainID+":"+chainID, governance.GovernanceFrozen)
+	suite.Require().Nil(err)
 	return nil
 }
 
+// ServerToLogouting get a logouting server
 func (suite Model13) ServerToLogouting(pk crypto.PrivateKey, chainID, address string) error {
 	err := suite.RegisterAppchain(pk, chainID, address)
-	if err != nil {
-		return err
-	}
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "LogoutService", nil, rpcx.String(chainID+":"+suite.GetServerID(pk)), rpcx.String("reason"))
-	if err != nil {
-		return err
-	}
+	res, err := client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "LogoutService", nil, rpcx.String(chainID+":"+chainID), rpcx.String("reason"))
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
-		return errors.New(string(res.Ret))
+		return fmt.Errorf(string(res.Ret))
 	}
-	err = suite.CheckServerStatus(chainID+":"+suite.GetServerID(pk), governance.GovernanceLogouting)
-	if err != nil {
-		return err
-	}
+	err = suite.CheckServerStatus(chainID+":"+chainID, governance.GovernanceLogouting)
+	suite.Require().Nil(err)
 	return nil
 }
 
+// ServerToForbidden get a forbidden server
 func (suite Model13) ServerToForbidden(pk crypto.PrivateKey, chainID, address string) error {
 	err := suite.RegisterAppchain(pk, chainID, address)
-	if err != nil {
-		return err
-	}
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
-	if err != nil {
-		return err
-	}
-	err = suite.LogoutService(pk, chainID+":"+suite.GetServerID(pk))
-	if err != nil {
-		return err
-	}
-	err = suite.CheckServerStatus(chainID+":"+suite.GetServerID(pk), governance.GovernanceForbidden)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
+	suite.Require().Nil(err)
+	err = suite.LogoutService(pk, chainID+":"+chainID)
+	suite.Require().Nil(err)
+	err = suite.CheckServerStatus(chainID+":"+chainID, governance.GovernanceForbidden)
+	suite.Require().Nil(err)
 	return nil
 }
 
+// ServerToPause get a pause server
 func (suite Model13) ServerToPause(pk crypto.PrivateKey, chainID, address string) error {
 	err := suite.RegisterAppchain(pk, chainID, address)
-	if err != nil {
-		return err
-	}
-	err = suite.RegisterServer(pk, chainID, suite.GetServerID(pk), chainID, "CallContract")
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
+	err = suite.RegisterServer(pk, chainID, chainID, chainID, "CallContract")
+	suite.Require().Nil(err)
 	err = suite.FreezeAppchain(chainID)
-	if err != nil {
-		return err
-	}
-	err = suite.CheckServerStatus(chainID+":"+suite.GetServerID(pk), governance.GovernancePause)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
+	err = suite.CheckServerStatus(chainID+":"+chainID, governance.GovernancePause)
+	suite.Require().Nil(err)
 	return nil
 }

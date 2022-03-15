@@ -1,122 +1,100 @@
 package exec
 
 import (
-	"bytes"
 	"fmt"
-	"io"
-	"os"
+	"io/ioutil"
 	"os/exec"
 	"strings"
+
+	"github.com/jiuhuche120/spin"
 )
 
-type ExecTask struct {
-	Command string
-	Args    []string
-	Env     []string
-	Repo    string
+const (
+	Red    = 31
+	Orange = 33
 
-	StreamStdio  bool
-	PrintCommand bool
-}
+	DefaultShell = "/bin/bash"
+)
 
-type ExecResult struct {
-	Stdout   string
-	Stderr   string
-	ExitCode int
-}
-
-// ExecuteShell executes the shell script that the scripts's name is the first element of args list
-func ExecuteShell(repoRoot string, args ...string) error {
-	task := ExecTask{
-		Command:      "/bin/bash",
-		Args:         args,
-		Repo:         repoRoot,
-		StreamStdio:  true,
-		PrintCommand: true,
-	}
-	result, err := task.Execute()
+func ExecuteShell(repo string, args ...string) ([]byte, error) {
+	var arg []string
+	arg = append(arg, "-c")
+	arg = append(arg, args...)
+	cmd := exec.Command(DefaultShell, arg...)
+	cmd.Dir = repo
+	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return fmt.Errorf("execute shell error:%w", err)
+		return nil, err
 	}
-	if result.ExitCode != 0 {
-		return fmt.Errorf("execute shell error:%s", result.Stderr)
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return nil, err
 	}
-	return nil
+
+	s := spin.New("\033[36mStart execute command: " + cmd.String() + "\033[m")
+	s.Start()
+	err = cmd.Start()
+	if err != nil {
+		return nil, err
+	}
+	data1, err := ioutil.ReadAll(stdout)
+	if err != nil {
+		return nil, err
+	}
+	data2, err := ioutil.ReadAll(stderr)
+	if err != nil {
+		return nil, err
+	}
+	if len(data2) != 0 {
+		s.Stop()
+		if len(data1) != 0 {
+			PrintMessage(string(data1), Orange)
+		}
+		PrintMessage(string(data2), Red)
+		return nil, fmt.Errorf(string(data2))
+	}
+	s.Stop()
+	if len(data1) != 0 {
+		PrintMessage(string(data1), Orange)
+	}
+	return data1, nil
 }
-func (et ExecTask) Execute() (ExecResult, error) {
-	argsSt := ""
-	if len(et.Args) > 0 {
-		argsSt = strings.Join(et.Args, " ")
+
+func Execute(repo string, args ...string) ([]byte, error) {
+	var arg []string
+	arg = append(arg, "-c")
+	arg = append(arg, args...)
+	cmd := exec.Command(DefaultShell, arg...)
+	cmd.Dir = repo
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, err
 	}
-
-	if et.PrintCommand {
-		fmt.Println("exec: ", et.Command, argsSt)
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return nil, err
 	}
-
-	var cmd *exec.Cmd
-
-	if strings.Index(et.Command, " ") > 0 {
-		parts := strings.Split(et.Command, " ")
-		command := parts[0]
-		args := parts[1:]
-		cmd = exec.Command(command, args...)
-
-	} else {
-		cmd = exec.Command(et.Command, et.Args...)
+	err = cmd.Start()
+	if err != nil {
+		return nil, err
 	}
-
-	cmd.Dir = et.Repo
-
-	if len(et.Env) > 0 {
-		overrides := map[string]bool{}
-		for _, env := range et.Env {
-			key := strings.Split(env, "=")[0]
-			overrides[key] = true
-			cmd.Env = append(cmd.Env, env)
-		}
-
-		for _, env := range os.Environ() {
-			key := strings.Split(env, "=")[0]
-
-			if _, ok := overrides[key]; !ok {
-				cmd.Env = append(cmd.Env, env)
-			}
-		}
+	data1, err := ioutil.ReadAll(stdout)
+	if err != nil {
+		return nil, err
 	}
-
-	stdoutBuff := bytes.Buffer{}
-	stderrBuff := bytes.Buffer{}
-
-	var stdoutWriters io.Writer
-	var stderrWriters io.Writer
-
-	if et.StreamStdio {
-		stdoutWriters = io.MultiWriter(os.Stdout, &stdoutBuff)
-		stderrWriters = io.MultiWriter(os.Stderr, &stderrBuff)
-	} else {
-		stdoutWriters = &stdoutBuff
-		stderrWriters = &stderrBuff
+	data2, err := ioutil.ReadAll(stderr)
+	if err != nil {
+		return nil, err
 	}
-
-	cmd.Stdout = stdoutWriters
-	cmd.Stderr = stderrWriters
-	startErr := cmd.Start()
-
-	if startErr != nil {
-		return ExecResult{}, startErr
+	if len(data2) != 0 {
+		return nil, fmt.Errorf(string(data2))
 	}
+	return data1, nil
+}
 
-	exitCode := 0
-	execErr := cmd.Wait()
-	if execErr != nil {
-		if exitError, ok := execErr.(*exec.ExitError); ok {
-			exitCode = exitError.ExitCode()
-		}
+func PrintMessage(str string, color uint64) {
+	strs := strings.Split(str, "\n")
+	for i := 0; i < len(strs); i++ {
+		fmt.Printf("\033[%vm%v \033[m\n", color, strs[i])
 	}
-
-	return ExecResult{
-		Stdout:   string(stdoutBuff.Bytes()),
-		Stderr:   string(stderrBuff.Bytes()),
-		ExitCode: exitCode,
-	}, nil
 }
