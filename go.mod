@@ -23,7 +23,7 @@ require (
 	github.com/meshplus/bitxhub-core v1.3.1-0.20210914064243-5668ab83d9ba
 	github.com/meshplus/bitxhub-kit v1.2.1-0.20210830031953-cf5f83f2e1dd
 	github.com/meshplus/bitxhub-model v1.2.1-0.20210909055322-3025ed2ba82f
-	github.com/meshplus/go-bitxhub-client v1.3.1-0.20210915055628-af6ac94d35ed
+	github.com/meshplus/go-bitxhub-client v1.3.1-0.20220315080224-29522586c042
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.7.2-0.20200724220135-c650ae9fa103 // indirect

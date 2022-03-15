@@ -810,8 +810,8 @@ github.com/meshplus/bitxid v0.0.0-20210412025850-e0eaf0f9063a h1:c4ESPDa60Jd4zfz
 github.com/meshplus/bitxid v0.0.0-20210412025850-e0eaf0f9063a/go.mod h1:vAldSRfDe2Qo7exsSTbchVmZWXPY7fhWQrRw18QJHho=
 github.com/meshplus/did-registry v0.0.0-20210413035015-509c6c3a0bae/go.mod h1:tNbFVcS1TX5hnn+2o42byYK/W1cMnYuLdaCPFr+9Umk=
 github.com/meshplus/eth-kit v0.0.0-20210604035214-93ca73391238/go.mod h1:ou2OLftCdJAOJx9bUcYr5w0eCzGcrdVYnSfJxbRwp5Y=
-github.com/meshplus/go-bitxhub-client v1.3.1-0.20210915055628-af6ac94d35ed h1:4LM6h/ni9Lp02Jc3MvaP8zWf+WpuFnCXL+fXVLt4nOg=
-github.com/meshplus/go-bitxhub-client v1.3.1-0.20210915055628-af6ac94d35ed/go.mod h1:etPPxsG4sQV0QWuVHLWrMPtTQbkt2LCccOa3yDyKIHo=
+github.com/meshplus/go-bitxhub-client v1.3.1-0.20220315080224-29522586c042 h1:ROkZJcHER+PhvAQ7BGZTLrHKyU7dREpoFhOY1uEYxzE=
+github.com/meshplus/go-bitxhub-client v1.3.1-0.20220315080224-29522586c042/go.mod h1:fKJ1jqznAYzoAQKtx5BGl9juHGP66Q9NISFi2uKPYDc=
 github.com/meshplus/go-libp2p-cert v0.0.0-20210120021632-1578cf63e06a/go.mod h1:rS4AYMqKypLn2IPEnHICP//V2v16SZo4CWUbwMdihl0=
 github.com/meshplus/go-libp2p-cert v0.0.0-20210125063330-7c25fd5b7a49/go.mod h1:rS4AYMqKypLn2IPEnHICP//V2v16SZo4CWUbwMdihl0=
 github.com/meshplus/go-lightp2p v0.0.0-20210120082108-df5a536a6192/go.mod h1:56+jusXmfu7IVTJtani81emdHL5zwGnoXUgJIjw3Ijo=
@@ -966,6 +966,8 @@ github.com/pkg/term v0.0.0-20180730021639-bffc007b7fd5/go.mod h1:eCbImbZ95eXtAUI
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/posener/complete v1.1.1/go.mod h1:em0nMJCgc9GFtwrmVmEMR/ZL6WyhyjMBndrE9hABlRI=
+github.com/processout/grpc-go-pool v1.2.1 h1:hbp1BOA02CIxEAoRLHGpUhhPFv77nwfBLBeO3Ya9P7I=
+github.com/processout/grpc-go-pool v1.2.1/go.mod h1:F4hiNj96O6VQ87jv4rdz8R9tkHdelQQJ/J2B1a5VSt4=
 github.com/prometheus/client_golang v0.9.3 h1:9iH4JKXLzFbOAdtqv/a+j8aewx2Y8lAjAydhbaScPF8=
 github.com/prometheus/client_golang v0.9.3/go.mod h1:/TN21ttK/J9q6uSwhBd54HahCDft0ttaMvbicHlPoso=
 github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910/go.mod h1:MbSGuTsp3dbXC40dX6PRTWyKYBIrTGTE9sqQNg2J8bo=
