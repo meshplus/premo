@@ -74,29 +74,93 @@ func (g *Server) Start() error {
 	v1.GET("sendTx", g.sendTx)
 	g.logger.Infof("start prepare client")
 
-	for i := 0; i < g.config.Concurrent; i++ {
-		adminFrom, err := g.adminKey.PublicKey().Address()
-		if err != nil {
-			return err
-		}
-		bee, err := bitxhub.NewBee(g.config.TPS, g.adminKey, adminFrom, 0, g.config, context.TODO())
-		if err != nil {
-			return err
-		}
-
-		err = g.registerAppchain(bee)
-		if err != nil {
-			return fmt.Errorf("registerAppchain err:%s", err)
-		}
-		//tx.To = bee.GetAddress()
-
-		//_, err = g.client.SendTransaction(tx, &rpcx.TransactOpts{Nonce: 0})
-		//if err != nil {
-		//	return err
-		//}
-		g.beeC <- bee
+	//query nodes nonce
+	node1, err := repo.Node1Path()
+	if err != nil {
+		return err
 	}
-	g.logger.Infof(" end prepare client%d, waiting for http request", g.config.Concurrent)
+	key, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
+	if err != nil {
+		return err
+	}
+	address, err := key.PublicKey().Address()
+	if err != nil {
+		return err
+	}
+	bitxhub.Index1, err = g.client.GetPendingNonceByAccount(address.String())
+
+	node2, err := repo.Node2Path()
+	if err != nil {
+		return err
+	}
+	key, err = asym.RestorePrivateKey(node2, repo.KeyPassword)
+	if err != nil {
+		return err
+	}
+	address, err = key.PublicKey().Address()
+	if err != nil {
+		return err
+	}
+	bitxhub.Index2, err = g.client.GetPendingNonceByAccount(address.String())
+
+	node3, err := repo.Node3Path()
+	if err != nil {
+		return err
+	}
+	key, err = asym.RestorePrivateKey(node3, repo.KeyPassword)
+	if err != nil {
+		return err
+	}
+	address, err = key.PublicKey().Address()
+	if err != nil {
+		return err
+	}
+	bitxhub.Index3, err = g.client.GetPendingNonceByAccount(address.String())
+
+	node4, err := repo.Node4Path()
+	if err != nil {
+		return err
+	}
+	key, err = asym.RestorePrivateKey(node4, repo.KeyPassword)
+	if err != nil {
+		return err
+	}
+	address, err = key.PublicKey().Address()
+	if err != nil {
+		return err
+	}
+	bitxhub.Index1 -= 1
+	bitxhub.Index2 -= 1
+	bitxhub.Index3 -= 1
+
+	var wg sync.WaitGroup
+	wg.Add(g.config.Concurrent)
+
+	for i := 0; i < g.config.Concurrent; i++ {
+		go func() {
+			defer wg.Done()
+			adminFrom, err := g.adminKey.PublicKey().Address()
+			if err != nil {
+				return
+			}
+			bee, err := bitxhub.NewBee(g.config.TPS, g.adminKey, adminFrom, 0, g.config, context.TODO())
+			if err != nil {
+				g.logger.Errorf("newBee err: %s", err)
+				return
+			}
+
+			if err := bee.PrepareChain(g.config.Appchain, "检查链", g.config.Validator, "1.4.4", "fabric for law", g.config.Rule); err != nil {
+				g.logger.Errorf("register appchain err: %s", err)
+				return
+			}
+			g.beeC <- bee
+		}()
+	}
+
+	wg.Wait()
+	g.logger.WithFields(logrus.Fields{
+		"number": g.config.Concurrent,
+	}).Info("generate all bees")
 
 	go func() {
 		err := g.router.Run(fmt.Sprintf(":%d", g.port))
@@ -226,68 +290,10 @@ func (g *Server) waitForConfirm(txHash string) {
 }
 
 func (g *Server) registerAppchain(bee *bitxhub.Bee) error {
-	//query nodes nonce
-	node1, err := repo.Node1Path()
-	if err != nil {
-		return err
-	}
-	key, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
-	if err != nil {
-		return err
-	}
-	address, err := key.PublicKey().Address()
-	if err != nil {
-		return err
-	}
-	bitxhub.Index1, err = g.client.GetPendingNonceByAccount(address.String())
-
-	node2, err := repo.Node2Path()
-	if err != nil {
-		return err
-	}
-	key, err = asym.RestorePrivateKey(node2, repo.KeyPassword)
-	if err != nil {
-		return err
-	}
-	address, err = key.PublicKey().Address()
-	if err != nil {
-		return err
-	}
-	bitxhub.Index2, err = g.client.GetPendingNonceByAccount(address.String())
-
-	node3, err := repo.Node3Path()
-	if err != nil {
-		return err
-	}
-	key, err = asym.RestorePrivateKey(node3, repo.KeyPassword)
-	if err != nil {
-		return err
-	}
-	address, err = key.PublicKey().Address()
-	if err != nil {
-		return err
-	}
-	bitxhub.Index3, err = g.client.GetPendingNonceByAccount(address.String())
-
-	node4, err := repo.Node4Path()
-	if err != nil {
-		return err
-	}
-	key, err = asym.RestorePrivateKey(node4, repo.KeyPassword)
-	if err != nil {
-		return err
-	}
-	address, err = key.PublicKey().Address()
-	if err != nil {
-		return err
-	}
-	bitxhub.Index1 -= 1
-	bitxhub.Index2 -= 1
-	bitxhub.Index3 -= 1
-
 	if err := bee.PrepareChain(g.config.Appchain, "检查链", g.config.Validator, "1.4.4", "fabric for law", g.config.Rule); err != nil {
 		g.logger.Errorf("register appchain err: %s", err)
 		return err
 	}
+
 	return nil
 }
