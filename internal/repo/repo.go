@@ -18,8 +18,6 @@ const (
 	DefaultPathRoot = "~/" + DefaultPathName
 	// KeyPassword is the password to generate privkey
 	KeyPassword = "bitxhub"
-	// APIName is api's Name
-	APIName = "api"
 )
 
 // PathRoot returns root path (default .pier)

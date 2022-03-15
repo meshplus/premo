@@ -195,7 +195,7 @@ func (suite Model14) Test1413_FreezeDappWithNoExistAddrIsFail() {
 	suite.Require().NotNil(err)
 }
 
-//tc：dapp处于Unavailable状态冻结dapp，dapp冻结成功
+//tc：dapp处于Unavailable状态冻结dapp，dapp冻结失败
 func (suite Model14) Test1414_FreezeDappWithUnavailableDappIsFail() {
 	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
@@ -265,7 +265,7 @@ func (suite Model14) Test1419_ActivateDappIsSuccess() {
 	suite.Require().Nil(err)
 }
 
-//tc：根据不存在的合约地址激活dapp，dapp激活成功
+//tc：根据不存在的合约地址激活dapp，dapp激活失败
 func (suite Model14) Test1420_ActivateDappWithNoExistAddrIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -498,21 +498,15 @@ func (suite Snake) RegisterDapp(pk crypto.PrivateKey, conAddrs string) error {
 		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.DappMgrContractAddr.Address(), "RegisterDapp", nil, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.VotePass(result.ProposalID)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
@@ -529,52 +523,36 @@ func (suite Model14) UpdateDapp(pk crypto.PrivateKey, conAddrs string) error {
 		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.DappMgrContractAddr.Address(), "UpdateDapp", nil, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.VotePass(result.ProposalID)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
 // FreezeDapp freeze dapp
 func (suite Model14) FreezeDapp(pk crypto.PrivateKey) error {
-	path, err := repo.Node1Path()
-	suite.Require().Nil(err)
-	node1pk, err := asym.RestorePrivateKey(path, repo.KeyPassword)
-	suite.Require().Nil(err)
-	from, err := node1pk.PublicKey().Address()
+	node1pk, from, err := repo.Node1Priv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(node1pk)
 	res, err := client.InvokeBVMContract(constant.DappMgrContractAddr.Address(), "FreezeDapp", &rpcx.TransactOpts{
 		From:  from.String(),
 		Nonce: atomic.AddUint64(&nonce1, 1),
 	}, rpcx.String(suite.MockDappID(pk)), rpcx.String("reason"))
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.VotePass(result.ProposalID)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
@@ -582,21 +560,15 @@ func (suite Model14) FreezeDapp(pk crypto.PrivateKey) error {
 func (suite Model14) ActivateDapp(pk crypto.PrivateKey) error {
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.DappMgrContractAddr.Address(), "ActivateDapp", nil, rpcx.String(suite.MockDappID(pk)), rpcx.String("reason"))
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.VotePass(result.ProposalID)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
@@ -604,30 +576,20 @@ func (suite Model14) ActivateDapp(pk crypto.PrivateKey) error {
 func (suite Model14) TransferDapp(pk1, pk2 crypto.PrivateKey) error {
 	client := suite.NewClient(pk1)
 	address, err := pk2.PublicKey().Address()
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	res, err := client.InvokeBVMContract(constant.DappMgrContractAddr.Address(), "TransferDapp", nil,
 		rpcx.String(suite.MockDappID(pk1)), rpcx.String(address.String()), rpcx.String("reason"))
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.VotePass(result.ProposalID)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.ConfirmTransfer(pk1, pk2)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
@@ -635,9 +597,7 @@ func (suite Model14) TransferDapp(pk1, pk2 crypto.PrivateKey) error {
 func (suite Model14) ConfirmTransfer(pk1, pk2 crypto.PrivateKey) error {
 	client := suite.NewClient(pk2)
 	res, err := client.InvokeBVMContract(constant.DappMgrContractAddr.Address(), "ConfirmTransfer", nil, rpcx.String(suite.MockDappID(pk1)))
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
 		return fmt.Errorf(string(res.Ret))
 	}
@@ -649,9 +609,7 @@ func (suite Model14) EvaluateDapp(pk crypto.PrivateKey, id, desc string, score f
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.DappMgrContractAddr.Address(), "EvaluateDapp", nil,
 		rpcx.String(id), rpcx.String(desc), rpcx.Float64(score))
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
 		return fmt.Errorf(string(res.Ret))
 	}
@@ -664,17 +622,13 @@ func (suite Snake) CheckDappStatus(id string, status governance.GovernanceStatus
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.DappMgrContractAddr.Address(), "GetDapp", nil, rpcx.String(id))
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
 		return fmt.Errorf(string(res.Ret))
 	}
 	dapp := &Dapp{}
 	err = json.Unmarshal(res.Ret, dapp)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if dapp.Status != status {
 		return fmt.Errorf("expect status is %s, but got %s", status, dapp.Status)
 	}
@@ -690,13 +644,9 @@ func (suite Snake) MockDappID(pk crypto.PrivateKey) string {
 // DappToAvailable get an available dapp
 func (suite Model14) DappToAvailable(pk crypto.PrivateKey, address string) error {
 	err := suite.RegisterDapp(pk, address)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.CheckDappStatus(suite.MockDappID(pk), governance.GovernanceAvailable)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
@@ -713,59 +663,41 @@ func (suite Model14) DappToUnavailable(pk crypto.PrivateKey, address string) err
 		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.DappMgrContractAddr.Address(), "RegisterDapp", nil, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.VoteReject(result.ProposalID)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.CheckDappStatus(suite.MockDappID(pk), governance.GovernanceUnavailable)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
 // DappToActivating get an activating dapp
 func (suite Model14) DappToActivating(pk crypto.PrivateKey, address string) error {
 	err := suite.RegisterDapp(pk, address)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.FreezeDapp(pk)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.DappMgrContractAddr.Address(), "ActivateDapp", nil, rpcx.String(suite.MockDappID(pk)), rpcx.String("reason"))
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
 		return fmt.Errorf(string(res.Ret))
 	}
 	err = suite.CheckDappStatus(suite.MockDappID(pk), governance.GovernanceActivating)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
 // DappToUpdating get an updating dapp
 func (suite Model14) DappToUpdating(pk crypto.PrivateKey, address string) error {
 	err := suite.RegisterDapp(pk, address)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
 		rpcx.String(suite.MockDappID(pk)),
@@ -777,62 +709,42 @@ func (suite Model14) DappToUpdating(pk crypto.PrivateKey, address string) error 
 		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.DappMgrContractAddr.Address(), "UpdateDapp", nil, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
 		return fmt.Errorf(string(res.Ret))
 	}
 	err = suite.CheckDappStatus(suite.MockDappID(pk), governance.GovernanceUpdating)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
 // DappToFreezing get a freezing dapp
 func (suite Model14) DappToFreezing(pk crypto.PrivateKey, address string) error {
 	err := suite.RegisterDapp(pk, address)
-	if err != nil {
-		return err
-	}
-	path, err := repo.Node1Path()
 	suite.Require().Nil(err)
-	node1pk, err := asym.RestorePrivateKey(path, repo.KeyPassword)
-	suite.Require().Nil(err)
-	from, err := node1pk.PublicKey().Address()
+	node1pk, from, err := repo.Node1Priv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(node1pk)
 	res, err := client.InvokeBVMContract(constant.DappMgrContractAddr.Address(), "FreezeDapp", &rpcx.TransactOpts{
 		From:  from.String(),
 		Nonce: atomic.AddUint64(&nonce1, 1),
 	}, rpcx.String(suite.MockDappID(pk)), rpcx.String("reason"))
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
 		return fmt.Errorf(string(res.Ret))
 	}
 	err = suite.CheckDappStatus(suite.MockDappID(pk), governance.GovernanceFreezing)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
 // DappToFrozen get a frozen dapp
 func (suite Model14) DappToFrozen(pk crypto.PrivateKey, address string) error {
 	err := suite.RegisterDapp(pk, address)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.FreezeDapp(pk)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.CheckDappStatus(suite.MockDappID(pk), governance.GovernanceFrozen)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }

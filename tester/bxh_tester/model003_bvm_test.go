@@ -17,8 +17,8 @@ func (suite *Model3) SetupTest() {
 	suite.T().Parallel()
 }
 
-//tc:调用store合约，set 10M数据，交易回执显示失败
-func (suite *Model3) Test0301_Set10MData() {
+//tc：调用store合约，set 10M数据，交易回执显示失败
+func (suite *Model3) Test0301_Set10MDataIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -30,8 +30,8 @@ func (suite *Model3) Test0301_Set10MData() {
 	suite.Require().Contains(err.Error(), "received message larger than max")
 }
 
-//tc:调用store合约，get的key为空，交易回执显示失败
-func (suite *Model3) Test0302_GetEmptyKey() {
+//tc：调用store合约，get的key为空，交易回执显示失败
+func (suite *Model3) Test0302_GetEmptyKeyIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -41,8 +41,8 @@ func (suite *Model3) Test0302_GetEmptyKey() {
 	suite.Require().Contains(string(receipt.Ret), "there is not exist key")
 }
 
-//tc:调用store合约，set的key为空，交易回执显示失败
-func (suite *Model3) Test0303_SetEmptyKey() {
+//tc：调用store合约，set的key为空，交易回执显示失败
+func (suite *Model3) Test0303_SetEmptyKeyIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -51,8 +51,8 @@ func (suite *Model3) Test0303_SetEmptyKey() {
 	suite.Require().True(receipt.IsSuccess())
 }
 
-//tc:调用store合约，set的value为空，交易回执显示失败
-func (suite *Model3) Test0304_SetEmptyValue() {
+//tc：调用store合约，set的value为空，交易回执显示失败
+func (suite *Model3) Test0304_SetEmptyValueIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -61,9 +61,9 @@ func (suite *Model3) Test0304_SetEmptyValue() {
 	suite.Require().True(receipt.IsSuccess())
 }
 
-//tc:调用store合约，set （a，b），交易回执显示成功
-//tc:调用store合约，get（a），交易回执状态显示成功并且回执数据为b
-func (suite *Model3) Test0305_SetAndGetNormal() {
+//tc：调用store合约，set （a，b），交易回执显示成功
+//tc：调用store合约，get（a），交易回执状态显示成功并且回执数据为b
+func (suite *Model3) Test0305_SetAndGetNormalIsSuccess() {
 	normalKey := "key_for_normal"
 	normalValue := "value_for_normal"
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)

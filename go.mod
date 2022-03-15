@@ -18,7 +18,7 @@ require (
 	github.com/meshplus/bitxhub-core v1.3.1-0.20211019055819-2e20288cafa4
 	github.com/meshplus/bitxhub-kit v1.2.1-0.20210902085548-07f4fa85bfc9
 	github.com/meshplus/bitxhub-model v1.2.1-0.20211228020023-9ad5546d56ec
-	github.com/meshplus/go-bitxhub-client v1.4.1-0.20220124095039-ff153afcd850
+	github.com/meshplus/go-bitxhub-client v1.4.1-0.20220309062318-59a335757596
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/sirupsen/logrus v1.8.1

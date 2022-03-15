@@ -7,7 +7,6 @@ import (
 
 	"github.com/meshplus/bitxhub-core/governance"
 
-	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
@@ -564,7 +563,7 @@ func (suite Model11) Test1141_VoteWithAvailableAdminIsSuccess() {
 }
 
 //tc：治理管理员处于registing，管理员参与提案，参与失败
-func (suite Model11) Test1142_VoteWithRegistingAdminIsSuccess() {
+func (suite Model11) Test1142_VoteWithRegistingAdminIsFail() {
 	pk, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	proposal1, err := suite.RoleToRegisting(from.String(), GovernanceAdmin, "")
@@ -1124,7 +1123,7 @@ func (suite Model11) Test1171_LogoutAuditAdminWithLogoutingAdminIsFail() {
 }
 
 //tc：注销审计管理员，管理员处于forbidden，注销失败
-func (suite Model11) Test1172_LogoutAuditAdminWithForbiddenAdminIsSuccess() {
+func (suite Model11) Test1172_LogoutAuditAdminWithForbiddenAdminIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -1399,7 +1398,7 @@ func (suite Model11) Test1181_BindRoleWithUnavailableRoleIsFail() {
 }
 
 //tc：审计管理员重新绑定审计节点，审计节点处于available，绑定成功
-func (suite Model11) Test1182_BindRoleWithAvailableRoleIsFail() {
+func (suite Model11) Test1182_BindRoleWithAvailableRoleIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid1, err := suite.MockPid()
@@ -1618,8 +1617,6 @@ func (suite Model11) Test1188_BindRoleThenLogoutNodeIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.RegisterNode(from4.String(), "nvpNode", pid2, 0, from4.String(), from5)
 	suite.Require().Nil(err)
-	err = suite.BindRole(from3.String(), from4.String())
-	suite.Require().NotNil(err)
 	args := []*pb.Arg{
 		rpcx.String(from3.String()),
 		rpcx.String(from4.String()),
@@ -1659,8 +1656,6 @@ func (suite Model11) Test1189_BindRoleThenLogoutRoleIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.RegisterNode(from4.String(), "nvpNode", pid2, 0, from4.String(), from5)
 	suite.Require().Nil(err)
-	err = suite.BindRole(from3.String(), from4.String())
-	suite.Require().NotNil(err)
 	args := []*pb.Arg{
 		rpcx.String(from3.String()),
 		rpcx.String(from4.String()),
@@ -1699,24 +1694,18 @@ func (suite Model11) Test1190_AuditAdminVoteIsFail() {
 // InvokeRoleContract invoke role contract by methodName and args
 func (suite Snake) InvokeRoleContract(method string, args ...*pb.Arg) (string, error) {
 	pk, _, err := repo.Node2Priv()
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), method, &rpcx.TransactOpts{
 		Nonce: atomic.AddUint64(&nonce2, 1),
 	}, args...)
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	if res.Status == pb.Receipt_FAILED {
 		return "", fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	return result.ProposalID, nil
 }
 
@@ -1729,9 +1718,7 @@ func (suite Snake) RegisterRole(id, typ, account string) error {
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(RegisterRole, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return suite.VotePass(proposal)
 }
 
@@ -1742,9 +1729,7 @@ func (suite Snake) FreezeRole(id string) error {
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(FreezeRole, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return suite.VotePass(proposal)
 }
 
@@ -1755,9 +1740,7 @@ func (suite Snake) ActivateRole(id string) error {
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(ActivateRole, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return suite.VotePass(proposal)
 }
 
@@ -1768,9 +1751,7 @@ func (suite Snake) LogoutRole(id string) error {
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(LogoutRole, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return suite.VotePass(proposal)
 }
 
@@ -1782,9 +1763,7 @@ func (suite Snake) BindRole(roleId, nodeAccount string) error {
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(BindRole, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return suite.VotePass(proposal)
 }
 
@@ -1797,13 +1776,9 @@ func (suite Snake) RoleToRegisting(id, typ, account string) (string, error) {
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(RegisterRole, args...)
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	err = suite.CheckRoleStatus(id, governance.GovernanceRegisting)
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	return proposal, nil
 }
 
@@ -1816,173 +1791,115 @@ func (suite Snake) RoleToUnavailable(id, typ, account string) error {
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(RegisterRole, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.VoteReject(proposal)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.CheckRoleStatus(id, governance.GovernanceUnavailable)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
 // RoleToFreezing get a freezing role
 func (suite Snake) RoleToFreezing(id, typ, account string) (string, error) {
 	err := suite.RegisterRole(id, typ, account)
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(FreezeRole, args...)
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	err = suite.CheckRoleStatus(id, governance.GovernanceFreezing)
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	return proposal, nil
 }
 
 // RoleToFrozen get a frozen role
 func (suite Snake) RoleToFrozen(id, typ, account string) error {
 	err := suite.RegisterRole(id, typ, account)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.FreezeRole(id)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.CheckRoleStatus(id, governance.GovernanceFrozen)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
 // RoleToActivating get an activating role
 func (suite Snake) RoleToActivating(id, typ, account string) (string, error) {
 	err := suite.RegisterRole(id, typ, account)
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	err = suite.FreezeRole(id)
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(ActivateRole, args...)
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	err = suite.CheckRoleStatus(id, governance.GovernanceActivating)
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	return proposal, nil
 }
 
 // RoleToLogouting get a logouting role
 func (suite Snake) RoleToLogouting(id, typ, account string) (string, error) {
 	err := suite.RegisterRole(id, typ, account)
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(LogoutRole, args...)
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	err = suite.CheckRoleStatus(id, governance.GovernanceLogouting)
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	return proposal, nil
 }
 
 // RoleToForbidden get a forbidden role
 func (suite Snake) RoleToForbidden(id, typ, account string) error {
 	err := suite.RegisterRole(id, typ, account)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.LogoutRole(id)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.CheckRoleStatus(id, governance.GovernanceForbidden)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
 // RoleToBinding get a binding role
 func (suite Snake) RoleToBinding(id, typ, account string) error {
 	err := suite.RegisterRole(id, typ, account)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.LogoutNode(account)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	_, from1, err := repo.KeyPriv()
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	pk2, from2, address2, err := suite.DeployRule()
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk2, from2, address2)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.RegisterNode(from1.String(), "nvpNode", pid, 0, from1.String(), from2)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String(from1.String()),
 		rpcx.String("reason"),
 	}
 	_, err = suite.InvokeRoleContract(BindRole, args...)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	err = suite.CheckRoleStatus(id, governance.GovernanceBinding)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	return nil
 }
 
 // CheckRoleStatus check role status by id
 func (suite *Snake) CheckRoleStatus(id string, expectStatus governance.GovernanceStatus) error {
 	status, err := suite.GetRoleStatus(id)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if expectStatus != status {
 		return fmt.Errorf("expect status is %s ,but get status %s", expectStatus, status)
 	}
@@ -1994,26 +1911,16 @@ func (suite Snake) GetRoleStatus(id string) (governance.GovernanceStatus, error)
 	args := []*pb.Arg{
 		rpcx.String(id),
 	}
-	node2, err := repo.Node2Path()
-	if err != nil {
-		return "", err
-	}
-	privateKey, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
-	if err != nil {
-		return "", err
-	}
-	client := suite.NewClient(privateKey)
+	pk, _, err := repo.Node2Priv()
+	suite.Require().Nil(err)
+	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), "GetRoleInfoById", &rpcx.TransactOpts{
 		Nonce: atomic.AddUint64(&nonce2, 1),
 	}, args...)
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	role := &Role{}
 	err = json.Unmarshal(res.Ret, role)
-	if err != nil {
-		return "", err
-	}
+	suite.Require().Nil(err)
 	return role.Status, nil
 }
 

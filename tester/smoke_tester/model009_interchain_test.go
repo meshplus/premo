@@ -482,43 +482,30 @@ func (suite Model9) Test0912_GetAllReceiptTimeOutWithStatusTransactionStatus_ROL
 // PrepareServer prepare a server and return privateKey
 func (suite Snake) PrepareServer() (crypto.PrivateKey, error) {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	if err != nil {
-		return nil, err
-	}
+	suite.Require().Nil(err)
 	from, err := pk.PublicKey().Address()
-	if err != nil {
-		return nil, err
-	}
+	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Fabric V1.4.3", HappyRuleAddr, "{\"channel_id\":\"mychannel\",\"chaincode_id\":\"broker\",\"broker_version\":\"1\"}")
-	if err != nil {
-		return nil, err
-	}
+	suite.Require().Nil(err)
 	err = suite.RegisterServer(pk, from.String(), "mychannel&transfer", from.String(), "CallContract")
-	if err != nil {
-		return nil, err
-	}
+	suite.Require().Nil(err)
 	return pk, nil
 }
 
 // GetStatus get tx status
 func (suite Model9) GetStatus(txId string) (pb.TransactionStatus, error) {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	if err != nil {
-		return -1, err
-	}
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	tx, err := client.GenerateContractTx(pb.TransactionData_BVM, constant.TransactionMgrContractAddr.Address(), "GetStatus", rpcx.String(txId))
-	if err != nil {
-		return -1, err
-	}
+	suite.Require().Nil(err)
 	res, err := client.SendView(tx)
-	if err != nil {
-		return -1, err
-	}
+	suite.Require().Nil(err)
 	if res.Status != pb.Receipt_SUCCESS {
 		return -1, fmt.Errorf(string(res.Ret))
 	}
 	status, err := strconv.ParseInt(string(res.Ret), 10, 64)
+	suite.Require().Nil(err)
 	return pb.TransactionStatus(status), nil
 }
 
@@ -526,9 +513,7 @@ func (suite Model9) GetStatus(txId string) (pb.TransactionStatus, error) {
 func (suite Snake) SendInterchainTx(pk crypto.PrivateKey, ibtp *pb.IBTP, payload, proof []byte) error {
 	ibtp.Payload = payload
 	from, err := pk.PublicKey().Address()
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	tx := &pb.BxhTransaction{
 		From:      from,
 		To:        constant.InterchainContractAddr.Address(),
@@ -538,9 +523,7 @@ func (suite Snake) SendInterchainTx(pk crypto.PrivateKey, ibtp *pb.IBTP, payload
 	}
 	client := suite.NewClient(pk)
 	res, err := client.SendTransactionWithReceipt(tx, nil)
-	if err != nil {
-		return err
-	}
+	suite.Require().Nil(err)
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}

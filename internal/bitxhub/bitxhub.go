@@ -25,17 +25,6 @@ var index3 uint64
 var adminNonce uint64
 var log = logrus.New()
 var To string
-var cfg = &config{
-	addrs: []string{
-		"localhost:60011",
-	},
-	logger: log,
-}
-
-type config struct {
-	addrs  []string
-	logger rpcx.Logger
-}
 
 type Broker struct {
 	config     *Config
@@ -53,7 +42,6 @@ type Config struct {
 	Type        string
 	Validator   string
 	Proof       []byte
-	Rule        []byte
 	KeyPath     string
 	BitxhubAddr []string
 	Appchain    string
@@ -79,7 +67,7 @@ func New(config *Config) (*Broker, error) {
 	node0 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[0]}
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(node0),
-		rpcx.WithLogger(cfg.logger),
+		rpcx.WithLogger(log),
 		rpcx.WithPrivateKey(adminPk),
 	)
 	if err != nil {
@@ -87,56 +75,33 @@ func New(config *Config) (*Broker, error) {
 	}
 
 	//query nodes nonce
-	node1, err := repo.Node1Path()
+	_, node1Address, err := repo.Node1Priv()
 	if err != nil {
 		return nil, err
 	}
-	key, err := asym.RestorePrivateKey(node1, repo.KeyPassword)
-	if err != nil {
-		return nil, err
-	}
-	address, err := key.PublicKey().Address()
-	if err != nil {
-		return nil, err
-	}
-	index1, err = client.GetPendingNonceByAccount(address.String())
+	index1, err = client.GetPendingNonceByAccount(node1Address.String())
 	if err != nil {
 		return nil, err
 	}
 
-	node2, err := repo.Node2Path()
+	_, node2Address, err := repo.Node2Priv()
 	if err != nil {
 		return nil, err
 	}
-	key, err = asym.RestorePrivateKey(node2, repo.KeyPassword)
-	if err != nil {
-		return nil, err
-	}
-	address, err = key.PublicKey().Address()
-	if err != nil {
-		return nil, err
-	}
-	index2, err = client.GetPendingNonceByAccount(address.String())
+	index2, err = client.GetPendingNonceByAccount(node2Address.String())
 	if err != nil {
 		return nil, err
 	}
 
-	node3, err := repo.Node3Path()
+	_, node3Address, err := repo.Node3Priv()
 	if err != nil {
 		return nil, err
 	}
-	key, err = asym.RestorePrivateKey(node3, repo.KeyPassword)
+	index3, err = client.GetPendingNonceByAccount(node3Address.String())
 	if err != nil {
 		return nil, err
 	}
-	address, err = key.PublicKey().Address()
-	if err != nil {
-		return nil, err
-	}
-	index3, err = client.GetPendingNonceByAccount(address.String())
-	if err != nil {
-		return nil, err
-	}
+
 	index1 -= 1
 	index2 -= 1
 	index3 -= 1
@@ -327,17 +292,13 @@ func (broker *Broker) Stop(current time.Time) error {
 
 func PrepareTo(config *Config, adminPk crypto.PrivateKey, adminFrom *types.Address) (string, error) {
 	node0 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[0]}
-	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	if err != nil {
-		log.Error(err)
-	}
-	from, err := pk.PublicKey().Address()
+	pk, from, err := repo.KeyPriv()
 	if err != nil {
 		log.Error(err)
 	}
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(node0),
-		rpcx.WithLogger(cfg.logger),
+		rpcx.WithLogger(log),
 		rpcx.WithPrivateKey(pk),
 	)
 	if err != nil {
@@ -375,7 +336,7 @@ func PrepareTo(config *Config, adminPk crypto.PrivateKey, adminFrom *types.Addre
 	if err != nil {
 		return "", fmt.Errorf("vote chain error: %w", err)
 	}
-	res, err = b.GetChainStatusById(from.String())
+	res, err = b.GetChainStatusById(pk, from.String())
 	if err != nil {
 		return "", fmt.Errorf("getChainStatus error: %w", err)
 	}
