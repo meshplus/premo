@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/coreos/etcd/pkg/stringutil"
 	"github.com/meshplus/bitxhub-kit/hexutil"
@@ -619,15 +618,13 @@ func TransferFromAdmin(config *Config, adminPrivKey crypto.PrivateKey, adminFrom
 		Payload:   payload,
 	}
 
-	ret, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
+	_, err = client.SendTransaction(tx, &rpcx.TransactOpts{
 		From:  adminFrom.String(),
 		Nonce: nonce,
 	})
 	if err != nil {
 		return err
 	}
-	if ret.Status != pb.Receipt_SUCCESS {
-		return errors.New(string(ret.Ret))
-	}
+
 	return nil
 }
