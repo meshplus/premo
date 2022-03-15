@@ -5,11 +5,12 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"github.com/coreos/etcd/pkg/stringutil"
-	"github.com/meshplus/bitxhub-kit/hexutil"
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"github.com/coreos/etcd/pkg/stringutil"
+	"github.com/meshplus/bitxhub-kit/hexutil"
 
 	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"github.com/meshplus/bitxhub-core/governance"
@@ -38,7 +39,6 @@ type Bee struct {
 	client        rpcx.Client
 	tps           int
 	count         uint64
-	adminNonce    uint64
 	nonce         uint64
 	ctx           context.Context
 	config        *Config
@@ -49,7 +49,7 @@ type RegisterResult struct {
 	ProposalID string `json:"proposal_id"`
 }
 
-func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expectedNonce uint64, config *Config, ctx context.Context) (*Bee, error) {
+func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, config *Config, ctx context.Context) (*Bee, error) {
 	normalPk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expect
 	if err != nil {
 		return nil, err
 	}
-	err = TransferFromAdmin(config, adminPk, adminFrom, normalFrom, "100", expectedNonce)
+	err = TransferFromAdmin(config, adminPk, adminFrom, normalFrom, "100")
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,6 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expect
 		tps:           tps,
 		ctx:           ctx,
 		config:        config,
-		adminNonce:    expectedNonce,
 		nonce:         0,
 	}, nil
 }
@@ -125,8 +124,7 @@ func (bee *Bee) SendTx(typ string, count uint64, key string, isGet bool) (string
 		hash string
 		err  error
 	)
-	nonce := atomic.LoadUint64(&bee.nonce)
-	atomic.AddUint64(&bee.nonce, 1)
+	nonce := atomic.AddUint64(&bee.nonce, 1) - 1
 	switch typ {
 	case "interchain":
 		if hash, err = bee.sendInterchainTx(count, nonce); err != nil {
@@ -356,7 +354,7 @@ func (bee *Bee) sendTransferTx(to *types.Address, normalNo uint64) (string, erro
 	})
 
 	tx.TransactionHash = types.NewHashByStr(txHash)
-	go bee.counterReceipt(tx)
+	//go bee.counterReceipt(tx)
 	atomic.AddInt64(&sender, 1)
 	return tx.TransactionHash.String(), nil
 }
@@ -499,6 +497,9 @@ func (bee *Bee) vote(key crypto.PrivateKey, index uint64, args ...*pb.Arg) (*pb.
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(key),
 	)
+	if err != nil {
+		return nil, err
+	}
 	address, err := key.PublicKey().Address()
 	if err != nil {
 		return nil, err
@@ -593,7 +594,7 @@ func (bee *Bee) GetChainStatusById(id string) (*pb.Receipt, error) {
 	return receipt, nil
 }
 
-func TransferFromAdmin(config *Config, adminPrivKey crypto.PrivateKey, adminFrom *types.Address, address *types.Address, amount string, nonce uint64) error {
+func TransferFromAdmin(config *Config, adminPrivKey crypto.PrivateKey, adminFrom *types.Address, address *types.Address, amount string) error {
 	node0 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[0]}
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(node0),
@@ -618,12 +619,15 @@ func TransferFromAdmin(config *Config, adminPrivKey crypto.PrivateKey, adminFrom
 		Payload:   payload,
 	}
 
-	_, err = client.SendTransaction(tx, &rpcx.TransactOpts{
+	ret, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
 		From:  adminFrom.String(),
-		Nonce: nonce,
+		Nonce: atomic.AddUint64(&AdminNonce, 1) - 1,
 	})
 	if err != nil {
 		return err
+	}
+	if ret.Status != pb.Receipt_SUCCESS {
+		return fmt.Errorf(string(ret.Ret))
 	}
 
 	return nil

@@ -74,6 +74,15 @@ func (g *Server) Start() error {
 	v1.GET("sendTx", g.sendTx)
 	g.logger.Infof("start prepare client")
 
+	adminAdress, err := g.adminKey.PublicKey().Address()
+	if err != nil {
+		return err
+	}
+	bitxhub.AdminNonce, err = g.client.GetPendingNonceByAccount(adminAdress.String())
+	if err != nil {
+		return err
+	}
+
 	//query nodes nonce
 	node1, err := repo.Node1Path()
 	if err != nil {
@@ -117,21 +126,12 @@ func (g *Server) Start() error {
 	}
 	bitxhub.Index3, err = g.client.GetPendingNonceByAccount(address.String())
 
-	node4, err := repo.Node4Path()
-	if err != nil {
-		return err
-	}
-	key, err = asym.RestorePrivateKey(node4, repo.KeyPassword)
-	if err != nil {
-		return err
-	}
-	address, err = key.PublicKey().Address()
-	if err != nil {
-		return err
-	}
 	bitxhub.Index1 -= 1
 	bitxhub.Index2 -= 1
 	bitxhub.Index3 -= 1
+
+	// query pending nonce for adminKey
+	bitxhub.AdminNonce, err = g.client.GetPendingNonceByAccount(adminAdress.String())
 
 	var wg sync.WaitGroup
 	wg.Add(g.config.Concurrent)
@@ -139,11 +139,8 @@ func (g *Server) Start() error {
 	for i := 0; i < g.config.Concurrent; i++ {
 		go func() {
 			defer wg.Done()
-			adminFrom, err := g.adminKey.PublicKey().Address()
-			if err != nil {
-				return
-			}
-			bee, err := bitxhub.NewBee(g.config.TPS, g.adminKey, adminFrom, 0, g.config, context.TODO())
+
+			bee, err := bitxhub.NewBee(g.config.TPS, g.adminKey, adminAdress, g.config, context.TODO())
 			if err != nil {
 				g.logger.Errorf("newBee err: %s", err)
 				return
@@ -244,32 +241,6 @@ func (g *Server) sendTx(c *gin.Context) {
 
 	bee := <-g.beeC
 
-	//if strings.Compare(typ, "doubleSpend") == 0 {
-	//	receipts, err := bee.SendDoubleSpendTxs()
-	//	g.beeC <- bee
-	//	if err != nil {
-	//		g.logger.Errorf("doubleSpend get error: %v", err)
-	//		_ = c.AbortWithError(http.StatusInternalServerError, err)
-	//		return
-	//	}
-	//	if len(receipts) != 2 {
-	//		g.logger.Errorf("doubleSpend get receipt size: %v", len(receipts))
-	//		c.AbortWithStatus(http.StatusInternalServerError)
-	//		return
-	//	}
-	//	if receipts[0].Status == receipts[1].Status {
-	//		g.logger.Errorf("doubleSpend get receipt: %v, %v", receipts[0].Status, receipts[1].Status)
-	//		c.AbortWithStatus(http.StatusInternalServerError)
-	//		return
-	//	}
-	//	c.Status(http.StatusOK)
-	//} else {
-
-	//if typ == "interchain" {
-	//	if err := bee.PrepareChain(g.config.Appchain, "检查链", g.config.Validator, "1.4.4", "fabric for law", g.config.Rule); err != nil {
-	//		g.logger.Errorf("register appchain err: %s", err)
-	//	}
-	//}
 	hash, err := bee.SendTx(typ, 1, key, isGet)
 	if err != nil {
 		g.logger.Errorf("sendTx err: %s", err)
@@ -287,13 +258,4 @@ func (g *Server) waitForConfirm(txHash string) {
 	g.txMap.Store(txHash, ch)
 
 	<-ch
-}
-
-func (g *Server) registerAppchain(bee *bitxhub.Bee) error {
-	if err := bee.PrepareChain(g.config.Appchain, "检查链", g.config.Validator, "1.4.4", "fabric for law", g.config.Rule); err != nil {
-		g.logger.Errorf("register appchain err: %s", err)
-		return err
-	}
-
-	return nil
 }

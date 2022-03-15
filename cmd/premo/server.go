@@ -1,8 +1,6 @@
 package main
 
 import (
-	"path/filepath"
-
 	"github.com/gobuffalo/packr"
 	"github.com/meshplus/bitxhub-kit/log"
 	"github.com/meshplus/premo/internal/api"
@@ -67,11 +65,10 @@ func server(ctx *cli.Context) error {
 
 	keyPath := ctx.String("key_path")
 	if keyPath == "" {
-		rootPath, err := repo.PathRoot()
+		keyPath, err = repo.Node4Path()
 		if err != nil {
 			return err
 		}
-		keyPath = filepath.Join(rootPath, "key.json")
 	}
 
 	port := ctx.Uint64("port")

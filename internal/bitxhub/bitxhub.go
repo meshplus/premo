@@ -2,10 +2,10 @@ package bitxhub
 
 import (
 	"context"
-	"github.com/meshplus/bitxhub-model/pb"
 	"sync"
-	"sync/atomic"
 	"time"
+
+	"github.com/meshplus/bitxhub-model/pb"
 
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	rpcx "github.com/meshplus/go-bitxhub-client"
@@ -21,6 +21,7 @@ const (
 var Index1 uint64
 var Index2 uint64
 var Index3 uint64
+var AdminNonce uint64
 var log = logrus.New()
 var cfg = &config{
 	addrs: []string{
@@ -159,8 +160,7 @@ func New(config *Config) (*Broker, error) {
 		go func() {
 			defer wg.Done()
 
-			expectedNonce := atomic.AddUint64(&adminNonce, 1) - 1
-			bee, err := NewBee(config.TPS/config.Concurrent, adminPk, adminFrom, expectedNonce, config, ctx)
+			bee, err := NewBee(config.TPS/config.Concurrent, adminPk, adminFrom, config, ctx)
 			if err != nil {
 				logger.Error("New Bee: ", err.Error())
 				return
