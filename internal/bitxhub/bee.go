@@ -205,7 +205,7 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 	} else {
 		ct = chainType
 	}
-	ruleAddr := "0x00000000000000000000000000000000000000a0"
+	ruleAddr := "0x00000000000000000000000000000000000000a2"
 	// deploy rule
 	if chainType == "hyperchain" {
 		contractAddr, err := bee.client.DeployContract(contract, nil)
@@ -224,7 +224,7 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 		}
 		atomic.AddUint64(&bee.nonce, 1)
 	} else if chainType == "fabric:simple" {
-		ruleAddr = "0x00000000000000000000000000000000000000a1"
+		ruleAddr = "0x00000000000000000000000000000000000000a2"
 	}
 	args := []*pb.Arg{
 		rpcx.String("appchain" + bee.normalFrom.String()),                   //ownerDID

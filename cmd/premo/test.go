@@ -54,7 +54,7 @@ var testCMD = &cli.Command{
 		},
 		&cli.StringFlag{
 			Name:  "appchain",
-			Usage: "Specify appchain type: fabric:simple, fabric:complex, hpc",
+			Usage: "Specify appchain type: fabric:simple, fabric:complex, hyperchain",
 			Value: "fabric:simple",
 		},
 	},
@@ -85,6 +85,10 @@ func benchmark(ctx *cli.Context) error {
 		}
 	} else if appchain != "fabric:simple" && appchain != "hyperchain" {
 		return fmt.Errorf("unsupported appchain type")
+	}
+
+	if appchain == "hyperchain" {
+		appchain = "fabric:simple"
 	}
 
 	contract, err := box.Find("rule.wasm")
