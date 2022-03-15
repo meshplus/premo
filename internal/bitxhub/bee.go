@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/coreos/etcd/pkg/stringutil"
+	"github.com/meshplus/bitxhub-kit/hexutil"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -25,9 +27,11 @@ import (
 var counter int64
 var sender int64
 var delayer int64
+var maxDelay int64
 var ibtppd []byte
+var proofHash [32]byte
 
-type bee struct {
+type Bee struct {
 	adminPrivKey  crypto.PrivateKey
 	adminFrom     *types.Address
 	normalPrivKey crypto.PrivateKey
@@ -46,7 +50,7 @@ type RegisterResult struct {
 	ProposalID string `json:"proposal_id"`
 }
 
-func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expectedNonce uint64, config *Config, ctx context.Context) (*bee, error) {
+func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expectedNonce uint64, config *Config, ctx context.Context) (*Bee, error) {
 	normalPk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	if err != nil {
 		return nil, err
@@ -70,7 +74,7 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expect
 		return nil, err
 	}
 
-	return &bee{
+	return &Bee{
 		client:        client,
 		adminPrivKey:  adminPk,
 		adminFrom:     adminFrom,
@@ -84,7 +88,11 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, expect
 	}, nil
 }
 
-func (bee *bee) start(typ string) error {
+func (bee *Bee) GetAddress() *types.Address {
+	return bee.normalFrom
+}
+
+func (bee *Bee) start(typ string) error {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
@@ -95,55 +103,62 @@ func (bee *bee) start(typ string) error {
 		case <-ticker.C:
 			for i := 0; i < bee.tps; i++ {
 				bee.count++
-				nonce := atomic.LoadUint64(&bee.nonce)
-				atomic.AddUint64(&bee.nonce, 1)
-				go func(count, nonce uint64) {
+				//nonce := atomic.LoadUint64(&bee.nonce)
+				//atomic.AddUint64(&bee.nonce, 1)
+				go func(count uint64) {
 					select {
 					case <-bee.ctx.Done():
 						return
 					default:
-						err := bee.sendTx(typ, count, nonce)
+						_, err := bee.SendTx(typ, count, "", false)
 						if err != nil {
 							logger.Error(err)
 						}
 					}
-				}(bee.count, nonce)
+				}(bee.count)
 			}
 		}
 	}
 }
 
-func (bee *bee) sendTx(typ string, count, nonce uint64) error {
+func (bee *Bee) SendTx(typ string, count uint64, key string, isGet bool) (string, error) {
+	var (
+		hash string
+		err  error
+	)
+	nonce := atomic.LoadUint64(&bee.nonce)
+	atomic.AddUint64(&bee.nonce, 1)
 	switch typ {
 	case "interchain":
-		if err := bee.sendInterchainTx(count, nonce); err != nil {
-			return err
+		if hash, err = bee.sendInterchainTx(count, nonce); err != nil {
+			return "", err
 		}
 	case "data":
-		if err := bee.sendBVMTx(nonce); err != nil {
-			return err
+		if hash, err = bee.sendBVMTx(key, isGet, nonce); err != nil {
+			return "", err
 		}
 	case "transfer":
 		fallthrough
 	default:
 		privkey, err := asym.GenerateKeyPair(crypto.Secp256k1)
 		if err != nil {
-			return err
+			return "", err
 		}
 
 		to, err := privkey.PublicKey().Address()
 		if err != nil {
-			return err
+			return "", err
 		}
 
-		if err := bee.sendTransferTx(to, nonce); err != nil {
-			return err
+		if hash, err = bee.sendTransferTx(to, nonce); err != nil {
+			return "", err
 		}
 	}
-	return nil
+	return hash, nil
+
 }
 
-func (bee *bee) stop() error {
+func (bee *Bee) stop() error {
 	err := bee.client.Stop()
 	if err != nil {
 		return err
@@ -151,19 +166,36 @@ func (bee *bee) stop() error {
 	return nil
 }
 
-func (bee *bee) sendBVMTx(normalNo uint64) error {
+func (bee *Bee) sendBVMTx(key string, isGet bool, normalNo uint64) (string, error) {
 	atomic.AddInt64(&sender, 1)
 	args := make([]*pb.Arg, 0)
-	args = append(args, rpcx.String("a"), rpcx.String("10"))
+	var pl *pb.InvokePayload
+	var payload []byte
+	//args = append(args, rpcx.String("a"), rpcx.String("10"))
 
-	pl := &pb.InvokePayload{
-		Method: "Set",
-		Args:   args,
+	if key == "" {
+		keys := stringutil.RandomStrings(20, 1)
+		key = keys[0]
+	}
+
+	if isGet {
+		args = append(args, rpcx.String(key))
+		pl = &pb.InvokePayload{
+			Method: "Get",
+			Args:   args,
+		}
+	} else {
+		hash := sha256.Sum256([]byte(key))
+		args = append(args, rpcx.String(key), rpcx.String(hexutil.Encode(hash[:])))
+		pl = &pb.InvokePayload{
+			Method: "Set",
+			Args:   args,
+		}
 	}
 
 	data, err := pl.Marshal()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	td := &pb.TransactionData{
@@ -171,9 +203,9 @@ func (bee *bee) sendBVMTx(normalNo uint64) error {
 		VmType:  pb.TransactionData_BVM,
 		Payload: data,
 	}
-	payload, err := td.Marshal()
+	payload, err = td.Marshal()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	tx := &pb.BxhTransaction{
@@ -188,15 +220,15 @@ func (bee *bee) sendBVMTx(normalNo uint64) error {
 		Nonce: normalNo,
 	})
 	if err != nil {
-		return err
+		return "", err
 	}
 	tx.TransactionHash = types.NewHashByStr(txHash)
 
-	go bee.counterReceipt(tx)
-	return nil
+	//go bee.counterReceipt(tx)
+	return txHash, err
 }
 
-func (bee *bee) prepareChain(chainType, name, validators, version, desc string, contract []byte) error {
+func (bee *Bee) PrepareChain(chainType, name, validators, version, desc string, contract []byte) error {
 	bee.client.SetPrivateKey(bee.normalPrivKey)
 	// register chain
 	var ct = ""
@@ -271,7 +303,7 @@ func (bee *bee) prepareChain(chainType, name, validators, version, desc string, 
 	return nil
 }
 
-func (bee *bee) invokeContract(from, to *types.Address, nonce uint64, method string, args ...*pb.Arg) (*pb.Receipt, error) {
+func (bee *Bee) invokeContract(from, to *types.Address, nonce uint64, method string, args ...*pb.Arg) (*pb.Receipt, error) {
 	pl := &pb.InvokePayload{
 		Method: method,
 		Args:   args[:],
@@ -302,7 +334,7 @@ func (bee *bee) invokeContract(from, to *types.Address, nonce uint64, method str
 	})
 }
 
-func (bee *bee) sendTransferTx(to *types.Address, normalNo uint64) error {
+func (bee *Bee) sendTransferTx(to *types.Address, normalNo uint64) (string, error) {
 	data := &pb.TransactionData{
 		Type:   pb.TransactionData_NORMAL,
 		VmType: pb.TransactionData_XVM,
@@ -310,7 +342,7 @@ func (bee *bee) sendTransferTx(to *types.Address, normalNo uint64) error {
 	}
 	payload, err := data.Marshal()
 	if err != nil {
-		return err
+		return "", err
 	}
 	tx := &pb.BxhTransaction{
 		From:      bee.normalFrom,
@@ -323,19 +355,14 @@ func (bee *bee) sendTransferTx(to *types.Address, normalNo uint64) error {
 		From:  bee.normalFrom.String(),
 		Nonce: normalNo,
 	})
-	if err != nil {
-		if strings.Contains(err.Error(), rpcx.ErrBrokenNetwork.Error()) {
-			err = bee.sendTransferTx(to, normalNo)
-		}
-		return err
-	}
+
 	tx.TransactionHash = types.NewHashByStr(txHash)
 	go bee.counterReceipt(tx)
 	atomic.AddInt64(&sender, 1)
-	return nil
+	return tx.TransactionHash.String(), nil
 }
 
-func (bee *bee) sendInterchainTx(i uint64, nonce uint64) error {
+func (bee *Bee) sendInterchainTx(i uint64, nonce uint64) (string, error) {
 	atomic.AddInt64(&sender, 1)
 	ibtp := mockIBTP(i, "did:bitxhub:appchain"+bee.normalFrom.String()+":.", "did:bitxhub:appchain"+bee.normalFrom.String()+":.", bee.config.Proof)
 
@@ -352,12 +379,12 @@ func (bee *bee) sendInterchainTx(i uint64, nonce uint64) error {
 		Nonce: nonce,
 	})
 	if err != nil {
-		return err
+		return "", err
 	}
 	tx.TransactionHash = types.NewHashByStr(txHash)
-	go bee.counterReceipt(tx)
+	//go bee.counterReceipt(tx)
 
-	return nil
+	return txHash, nil
 }
 
 func prepareInterchainTx() {
@@ -398,7 +425,7 @@ func mockIBTP(index uint64, from, to string, proof []byte) *pb.IBTP {
 	}
 }
 
-func (bee *bee) counterReceipt(tx *pb.BxhTransaction) {
+func (bee *Bee) counterReceipt(tx *pb.BxhTransaction) {
 	for {
 		receipt, err := bee.client.GetReceipt(tx.Hash().String())
 		if err != nil {
@@ -419,7 +446,7 @@ func (bee *bee) counterReceipt(tx *pb.BxhTransaction) {
 	atomic.AddInt64(&counter, 1)
 }
 
-func (bee *bee) VotePass(id string) error {
+func (bee *Bee) VotePass(id string) error {
 	node1, err := repo.Node1Path()
 	if err != nil {
 		return err
@@ -430,7 +457,7 @@ func (bee *bee) VotePass(id string) error {
 		return err
 	}
 
-	_, err = bee.vote(key, atomic.AddUint64(&index1, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
+	_, err = bee.vote(key, atomic.AddUint64(&Index1, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
 	if err != nil {
 		return err
 	}
@@ -445,7 +472,7 @@ func (bee *bee) VotePass(id string) error {
 		return err
 	}
 
-	_, err = bee.vote(key, atomic.AddUint64(&index2, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
+	_, err = bee.vote(key, atomic.AddUint64(&Index2, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
 	if err != nil {
 		return err
 	}
@@ -460,14 +487,14 @@ func (bee *bee) VotePass(id string) error {
 		return err
 	}
 
-	_, err = bee.vote(key, atomic.AddUint64(&index3, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
+	_, err = bee.vote(key, atomic.AddUint64(&Index3, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (bee *bee) vote(key crypto.PrivateKey, index uint64, args ...*pb.Arg) (*pb.Receipt, error) {
+func (bee *Bee) vote(key crypto.PrivateKey, index uint64, args ...*pb.Arg) (*pb.Receipt, error) {
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(&rpcx.NodeInfo{Addr: bee.config.BitxhubAddr[0]}),
 		rpcx.WithLogger(cfg.logger),
@@ -513,7 +540,7 @@ func (bee *bee) vote(key crypto.PrivateKey, index uint64, args ...*pb.Arg) (*pb.
 	return receipt, nil
 }
 
-func (bee *bee) GetChainStatusById(id string) (*pb.Receipt, error) {
+func (bee *Bee) GetChainStatusById(id string) (*pb.Receipt, error) {
 	node, err := repo.Node2Path()
 	key, err := asym.RestorePrivateKey(node, repo.KeyPassword)
 	if err != nil {
@@ -559,7 +586,7 @@ func (bee *bee) GetChainStatusById(id string) (*pb.Receipt, error) {
 	}
 	receipt, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
 		From:  bee.adminFrom.String(),
-		Nonce: atomic.AddUint64(&index2, 1),
+		Nonce: atomic.AddUint64(&Index2, 1),
 	})
 	if err != nil {
 		return nil, err

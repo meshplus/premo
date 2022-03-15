@@ -2,6 +2,7 @@ package bitxhub
 
 import (
 	"context"
+	"github.com/meshplus/bitxhub-model/pb"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -13,9 +14,13 @@ import (
 	"github.com/wonderivan/logger"
 )
 
-var index1 uint64
-var index2 uint64
-var index3 uint64
+const (
+	DefaultTo = "000000000000000000000000000000000000000a"
+)
+
+var Index1 uint64
+var Index2 uint64
+var Index3 uint64
 var log = logrus.New()
 var cfg = &config{
 	addrs: []string{
@@ -31,7 +36,7 @@ type config struct {
 
 type Broker struct {
 	config     *Config
-	bees       []*bee
+	bees       []*Bee
 	client     rpcx.Client
 	adminNonce uint64
 	ctx        context.Context
@@ -92,7 +97,7 @@ func New(config *Config) (*Broker, error) {
 	if err != nil {
 		return nil, err
 	}
-	index1, err = client.GetPendingNonceByAccount(address.String())
+	Index1, err = client.GetPendingNonceByAccount(address.String())
 
 	node2, err := repo.Node2Path()
 	if err != nil {
@@ -106,7 +111,7 @@ func New(config *Config) (*Broker, error) {
 	if err != nil {
 		return nil, err
 	}
-	index2, err = client.GetPendingNonceByAccount(address.String())
+	Index2, err = client.GetPendingNonceByAccount(address.String())
 
 	node3, err := repo.Node3Path()
 	if err != nil {
@@ -120,7 +125,7 @@ func New(config *Config) (*Broker, error) {
 	if err != nil {
 		return nil, err
 	}
-	index3, err = client.GetPendingNonceByAccount(address.String())
+	Index3, err = client.GetPendingNonceByAccount(address.String())
 
 	node4, err := repo.Node4Path()
 	if err != nil {
@@ -134,9 +139,9 @@ func New(config *Config) (*Broker, error) {
 	if err != nil {
 		return nil, err
 	}
-	index1 -= 1
-	index2 -= 1
-	index3 -= 1
+	Index1 -= 1
+	Index2 -= 1
+	Index3 -= 1
 
 	// query pending nonce for adminKey
 	adminNonce, err := client.GetPendingNonceByAccount(adminFrom.String())
@@ -144,7 +149,7 @@ func New(config *Config) (*Broker, error) {
 		return nil, err
 	}
 
-	bees := make([]*bee, 0, config.Concurrent)
+	bees := make([]*Bee, 0, config.Concurrent)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg sync.WaitGroup
@@ -157,12 +162,12 @@ func New(config *Config) (*Broker, error) {
 			expectedNonce := atomic.AddUint64(&adminNonce, 1) - 1
 			bee, err := NewBee(config.TPS/config.Concurrent, adminPk, adminFrom, expectedNonce, config, ctx)
 			if err != nil {
-				logger.Error("New bee: ", err.Error())
+				logger.Error("New Bee: ", err.Error())
 				return
 			}
 
 			if config.Type == "interchain" {
-				if err := bee.prepareChain(config.Appchain, "检查链", config.Validator, "1.4.4", "fabric for law", config.Rule); err != nil {
+				if err := bee.PrepareChain(config.Appchain, "检查链", config.Validator, "1.4.4", "fabric for law", config.Rule); err != nil {
 					logger.Error(err)
 					return
 				}
@@ -193,8 +198,8 @@ func (broker *Broker) Start(typ string) error {
 	wg.Add(len(broker.bees))
 
 	current := time.Now()
-	lastCounter := atomic.LoadInt64(&counter)
-	lastDelayer := atomic.LoadInt64(&delayer)
+	//lastCounter := atomic.LoadInt64(&counter)
+	//lastDelayer := atomic.LoadInt64(&delayer)
 
 	meta0, err := broker.client.GetChainMeta()
 	if err != nil {
@@ -211,7 +216,7 @@ func (broker *Broker) Start(typ string) error {
 			}
 			log.WithFields(logrus.Fields{
 				"index": i + 1,
-			}).Debug("start bee")
+			}).Debug("start Bee")
 		}(i)
 	}
 	log.WithFields(logrus.Fields{
@@ -219,20 +224,57 @@ func (broker *Broker) Start(typ string) error {
 	}).Info("start all bees")
 
 	go func() {
+		var (
+			cnt  = int64(0)
+			dly  = int64(0)
+			mDly = int64(0)
+		)
+		ch, err := broker.client.Subscribe(context.TODO(), pb.SubscriptionRequest_BLOCK, nil)
+		if err != nil {
+			log.WithField("error", err).Error("subscribe block")
+			return
+		}
 		ticker := time.NewTicker(time.Second)
+		defer ticker.Stop()
+
 		for {
 			select {
 			case <-broker.ctx.Done():
 				return
 			case <-ticker.C:
-				currentCounter := atomic.LoadInt64(&counter)
-				c := float64(currentCounter - lastCounter)
-				lastCounter = currentCounter
+				c := float64(cnt)
+				d := float64(dly) / float64(time.Millisecond)
+				md := float64(mDly) / float64(time.Millisecond)
+				log.Infof("current tps is %d, average tx delay is %fms, max tx delay is %fms", cnt, d/c, md)
 
-				currentDelayer := atomic.LoadInt64(&delayer)
-				d := float64(currentDelayer-lastDelayer) / float64(time.Millisecond)
-				lastDelayer = currentDelayer
-				log.Infof("current tps is %f, tx_delay is %fms", c, d/c)
+				if maxDelay < mDly {
+					maxDelay = mDly
+				}
+
+				cnt = 0
+				dly = 0
+				mDly = 0
+
+			case data, ok := <-ch:
+				if !ok {
+					log.Warn("block subscription channel is closed")
+					return
+				}
+
+				block := data.(*pb.Block)
+				now := time.Now().UnixNano()
+				for _, tx := range block.Transactions.Transactions {
+					cnt++
+					counter++
+
+					txDelay := now - tx.GetTimeStamp()
+					dly += txDelay
+					delayer += txDelay
+
+					if mDly < txDelay {
+						mDly = txDelay
+					}
+				}
 			}
 		}
 	}()
@@ -268,21 +310,20 @@ func (broker *Broker) Stop(current time.Time) error {
 
 	logger.Info("Bees are quiting, please wait...")
 	for i := 0; i < len(broker.bees); i++ {
-		err := broker.bees[i].stop()
-		if err != nil {
-			return err
-		}
+		broker.bees[i].stop()
 	}
 	err := broker.client.Stop()
 	if err != nil {
 		panic(err)
 	}
-	delayerAvg := float64(delayer) / float64(counter)
+	avgDelay := float64(delayer) / float64(counter)
+	duration := time.Since(current).Seconds()
 	log.WithFields(logrus.Fields{
-		"number":   counter,
-		"duration": time.Since(current).Seconds(),
-		"tps":      float64(counter) / time.Since(current).Seconds(),
-		"tx_delay": delayerAvg / float64(time.Millisecond),
+		"number":    counter,
+		"duration":  duration,
+		"tps":       float64(counter) / duration,
+		"avg delay": avgDelay / float64(time.Millisecond),
+		"max delay": float64(maxDelay) / float64(time.Millisecond),
 	}).Info("finish testing")
 	return nil
 }

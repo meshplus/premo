@@ -3,7 +3,6 @@ module github.com/meshplus/premo
 go 1.13
 
 require (
-	github.com/Knetic/govaluate v3.0.0+incompatible // indirect
 	github.com/Rican7/retry v0.1.0
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/cheynewallace/tabby v1.1.1
@@ -11,22 +10,20 @@ require (
 	github.com/coreos/etcd v3.3.18+incompatible
 	github.com/ethereum/go-ethereum v1.10.4
 	github.com/gballet/go-libpcsclite v0.0.0-20191108122812-4678299bea08 // indirect
+	github.com/gin-gonic/gin v1.7.7
 	github.com/gobuffalo/packd v1.0.0
 	github.com/gobuffalo/packr v1.30.1
 	github.com/google/certificate-transparency-go v1.1.0 // indirect
 	github.com/hyperledger/fabric-lib-go v1.0.0 // indirect
 	github.com/hyperledger/fabric-sdk-go v1.0.0-alpha5
-	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
 	github.com/libp2p/go-libp2p-core v0.6.1
 	github.com/looplab/fsm v0.2.0
-	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/meshplus/bitxhub-core v1.3.1-0.20210914064243-5668ab83d9ba
 	github.com/meshplus/bitxhub-kit v1.2.1-0.20210830031953-cf5f83f2e1dd
 	github.com/meshplus/bitxhub-model v1.2.1-0.20210909055322-3025ed2ba82f
 	github.com/meshplus/go-bitxhub-client v1.3.1-0.20210915055628-af6ac94d35ed
-	github.com/meshplus/go-libp2p-cert v0.0.0-20210125114242-7d9ed2eaaccd
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.7.2-0.20200724220135-c650ae9fa103 // indirect

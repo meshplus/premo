@@ -35,6 +35,7 @@ func main() {
 		appchainCMD,
 		interchainCMD,
 		statusCMD,
+		serverCMD,
 	}
 
 	err := app.Run(os.Args)
