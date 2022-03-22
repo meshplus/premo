@@ -43,13 +43,11 @@ test-coverage:
 
 ## make bitxhub-tester: Run bitxhub test
 bitxhub-tester:
-ifeq ("${REPORT}", "Y")
-	$(GO) get github.com/ilyubin/gotest2allure/cmd/gotest2allure
-	-cd tester/bxh_tester && $(GO) test -v -run TestTester -json > json-report.txt
-	cd tester/bxh_tester && gotest2allure -f json-report.txt
-else
-	cd tester/bxh_tester && $(GO) test -v -run TestTester
-endif
+	cd tester/bxh_tester && $(GO) test -v -timeout 60m -run TestTester
+
+## make smoke-tester: Run smoke test
+smoke-tester:
+	cd tester/smoke_tester && $(GO) test -v -timeout 40m --run TestTester
 
 ## make install: Go install the project
 install:
