@@ -47,7 +47,7 @@ bitxhub-tester:
 
 ## make smoke-tester: Run smoke test
 smoke-tester:
-	cd tester/smoke-tester && $(GO) test -v -timeout 40m --run TestTester
+	cd tester/smoke_tester && $(GO) test -v -timeout 40m --run TestTester
 
 ## make install: Go install the project
 install:
