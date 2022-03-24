@@ -1116,19 +1116,25 @@ func (suite Model12) Test1268_LogoutNvpNodeWithForbiddenNodeIsFail() {
 // InvokeNodeContract invoke node contract by method and args
 func (suite Snake) InvokeNodeContract(method string, args ...*pb.Arg) (string, error) {
 	pk, from, err := repo.Node1Priv()
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.NodeManagerContractAddr.Address(), method, &rpcx.TransactOpts{
 		From:  from.String(),
 		Nonce: atomic.AddUint64(&nonce1, 1),
 	}, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	if res.Status != pb.Receipt_SUCCESS {
 		return "", fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	return result.ProposalID, nil
 }
 
@@ -1144,11 +1150,17 @@ func (suite Snake) RegisterNode(nodeAccount, nodeType, nodePid string, nodeVpId 
 		rpcx.String("reason"),    //reason
 	}
 	proposal, err := suite.InvokeNodeContract(RegisterNode, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.VotePass(proposal)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.CheckNodeStatus(nodeAccount, governance.GovernanceAvailable)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -1161,9 +1173,13 @@ func (suite Snake) UpdateNode(nodeAccount, nodeName, permit string) error {
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeNodeContract(UpdateNode, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.VotePass(proposal)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -1174,11 +1190,17 @@ func (suite Snake) LogoutNode(account string) error {
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeNodeContract(LogoutNode, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.VotePass(proposal)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.CheckNodeStatus(account, governance.GovernanceForbidden)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -1194,9 +1216,13 @@ func (suite Snake) NodeToRegisting(nodeAccount, nodeType, nodePid string, nodeVp
 		rpcx.String("reason"),    //reason
 	}
 	proposal, err := suite.InvokeNodeContract(RegisterNode, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	err = suite.CheckNodeStatus(nodeAccount, governance.GovernanceRegisting)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	return proposal, nil
 }
 
@@ -1212,46 +1238,68 @@ func (suite Snake) NodeToUnavailable(nodeAccount, nodeType, nodePid string, node
 		rpcx.String("reason"),    //reason
 	}
 	proposal, err := suite.InvokeNodeContract(RegisterNode, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.VoteReject(proposal)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.CheckNodeStatus(nodeAccount, governance.GovernanceUnavailable)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // NodeToLogouting get a logouting node
 func (suite Snake) NodeToLogouting(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) (string, error) {
 	err := suite.RegisterNode(nodeAccount, nodeType, nodePid, nodeVpId, nodeName, permit)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	args := []*pb.Arg{
 		rpcx.String(nodeAccount),
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeNodeContract(LogoutNode, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	err = suite.CheckNodeStatus(nodeAccount, governance.GovernanceLogouting)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	return proposal, nil
 }
 
 // NodeToForbidden get a forbidden node
 func (suite Snake) NodeToForbidden(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) error {
 	err := suite.RegisterNode(nodeAccount, nodeType, nodePid, nodeVpId, nodeName, permit)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.LogoutNode(nodeAccount)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.CheckNodeStatus(nodeAccount, governance.GovernanceForbidden)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // NodeToBinding get a binding nvp node
 func (suite Snake) NodeToBinding(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) (string, error) {
 	err := suite.RegisterNode(nodeAccount, nodeType, nodePid, nodeVpId, nodeName, permit)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	_, from, err := repo.KeyPriv()
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	args := []*pb.Arg{
 		rpcx.String(from.String()),
 		rpcx.String(AuditAdmin),
@@ -1259,29 +1307,43 @@ func (suite Snake) NodeToBinding(nodeAccount, nodeType, nodePid string, nodeVpId
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(RegisterRole, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	err = suite.CheckNodeStatus(nodeAccount, governance.GovernanceBinding)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	return proposal, nil
 }
 
 // NodeToBinded get a binded node
 func (suite Snake) NodeToBinded(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) error {
 	err := suite.RegisterNode(nodeAccount, nodeType, nodePid, nodeVpId, nodeName, permit)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	_, from, err := repo.KeyPriv()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.RegisterRole(from.String(), AuditAdmin, nodeAccount)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.CheckNodeStatus(nodeAccount, "binded")
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // NodeToUpdating get a updating node
 func (suite Snake) NodeToUpdating(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) (string, error) {
 	err := suite.RegisterNode(nodeAccount, nodeType, nodePid, nodeVpId, nodeName, permit)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	args := []*pb.Arg{
 		rpcx.String(nodeAccount),
 		rpcx.String(nodeName + "123"),
@@ -1289,25 +1351,35 @@ func (suite Snake) NodeToUpdating(nodeAccount, nodeType, nodePid string, nodeVpI
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeNodeContract(UpdateNode, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	err = suite.CheckNodeStatus(nodeAccount, governance.GovernanceUpdating)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	return proposal, nil
 }
 
 // CheckNodeStatus check node status
 func (suite Snake) CheckNodeStatus(account string, status governance.GovernanceStatus) error {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.NodeManagerContractAddr.Address(), "GetNode", nil, rpcx.String(account))
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if res.Status != pb.Receipt_SUCCESS {
 		return fmt.Errorf(string(res.Ret))
 	}
 	node := &Node{}
 	err = json.Unmarshal(res.Ret, node)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if node.Status != status {
 		return fmt.Errorf("expect status is %s, but got %s", status, node.Status)
 	}
