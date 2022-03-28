@@ -34,6 +34,14 @@ type Server struct {
 	cancel context.CancelFunc
 }
 
+type message struct {
+	TxHash string `json:"tx_hash"`
+}
+
+type interchianMessage struct {
+	InterchainTxHash string `json:"interchain_tx_hash"`
+}
+
 func NewServer(port uint64, config *bitxhub.Config, logger logrus.FieldLogger) (*Server, error) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
@@ -249,8 +257,19 @@ func (g *Server) sendTx(c *gin.Context) {
 
 	g.waitForConfirm(hash)
 
-	c.Status(http.StatusOK)
-	g.logger.Infof("send tx and get receipt costs %d", time.Since(start).Milliseconds())
+	if typ == "interchain" {
+		data := interchianMessage{
+			InterchainTxHash: hash,
+		}
+		c.JSON(http.StatusOK, data)
+		g.logger.Infof("send interchain tx and get receipt costs %d", time.Since(start).Milliseconds())
+	} else {
+		data := message{
+			TxHash: hash,
+		}
+		c.JSON(http.StatusOK, data)
+		g.logger.Infof("send tx and get receipt costs %d", time.Since(start).Milliseconds())
+	}
 }
 
 func (g *Server) waitForConfirm(txHash string) {
