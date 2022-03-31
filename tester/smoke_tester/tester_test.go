@@ -3,6 +3,8 @@ package bxh_tester
 import (
 	"testing"
 
+	"github.com/onrik/ethrpc"
+
 	"github.com/stretchr/testify/suite"
 )
 
@@ -24,4 +26,5 @@ func TestTester(t *testing.T) {
 	//suite.Run(t, &Model15{&Snake{}})
 	suite.Run(t, &Model16{&Snake{}})
 	suite.Run(t, &Model17{&Snake{}})
+	suite.Run(t, &Model18{&Snake{}, ethrpc.New(cfg.evmAddrs[0])})
 }

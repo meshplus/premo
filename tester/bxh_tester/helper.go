@@ -29,12 +29,19 @@ var cfg = &config{
 		"localhost:60013",
 		"localhost:60014",
 	},
+	evmAddrs: []string{
+		"http://localhost:8881",
+		"http://localhost:8881",
+		"http://localhost:8881",
+		"http://localhost:8881",
+	},
 	logger: logrus.New(),
 }
 
 type config struct {
-	addrs  []string
-	logger rpcx.Logger
+	addrs    []string
+	evmAddrs []string
+	logger   rpcx.Logger
 }
 type Snake struct {
 	suite.Suite
@@ -75,10 +82,14 @@ func (suite *Snake) SetupSuite() {
 	suite.Require().Nil(err)
 	key4, node4Addr, err := repo.Node4Priv()
 	suite.Require().Nil(err)
-	suite.SendTransaction(key1)
-	suite.SendTransaction(key2)
-	suite.SendTransaction(key3)
-	suite.SendTransaction(key4)
+	_, err = suite.SendTransaction(key1)
+	suite.Require().Nil(err)
+	_, err = suite.SendTransaction(key2)
+	suite.Require().Nil(err)
+	_, err = suite.SendTransaction(key3)
+	suite.Require().Nil(err)
+	_, err = suite.SendTransaction(key4)
+	suite.Require().Nil(err)
 	pk, _, err := repo.KeyPriv()
 	node0 := &rpcx.NodeInfo{Addr: cfg.addrs[0]}
 	client, err := rpcx.New(
@@ -204,31 +215,42 @@ func (suite *Snake) vote(key crypto.PrivateKey, nonce uint64, args ...*pb.Arg) (
 }
 
 // SendTransaction send a normal tx to bitxhub
-func (suite *Snake) SendTransaction(pk crypto.PrivateKey) {
+func (suite *Snake) SendTransaction(pk crypto.PrivateKey) (string, error) {
 	node0 := &rpcx.NodeInfo{Addr: cfg.addrs[0]}
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(node0),
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(pk),
 	)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", nil
+	}
 	from, err := pk.PublicKey().Address()
+	if err != nil {
+		return "", err
+	}
 	data := &pb.TransactionData{
 		Amount: "1",
 	}
 	payload, err := data.Marshal()
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	_, to, err := repo.KeyPriv()
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	tx := &pb.BxhTransaction{
 		From:      from,
 		To:        to,
 		Timestamp: time.Now().UnixNano(),
 		Payload:   payload,
 	}
-	res, err := client.SendTransactionWithReceipt(tx, nil)
-	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+	hash, err := client.SendTransaction(tx, nil)
+	if err != nil {
+		return "", err
+	}
+	return hash, nil
 }
 
 // TransferFromAdmin transfer amount from admin

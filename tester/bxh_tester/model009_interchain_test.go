@@ -62,7 +62,8 @@ func (suite Model9) Test0902_GetNoReceiptBeforeTimeOutWithStatusTransactionStatu
 	err = suite.SendInterchainTx(pk1, ibtp, payload, proof)
 	suite.Require().Nil(err)
 	for i := 0; i < 15; i++ {
-		suite.SendTransaction(pk1)
+		_, err := suite.SendTransaction(pk1)
+		suite.Require().Nil(err)
 	}
 	status, err := suite.GetStatus(ibtp.ID())
 	suite.Require().Nil(err)
@@ -169,7 +170,8 @@ func (suite Model9) Test0906_GetReceiptAfterTimeOutWithStatusTransactionStatus_R
 	err = suite.SendInterchainTx(pk1, ibtp, payload, proof)
 	suite.Require().Nil(err)
 	for i := 0; i < 15; i++ {
-		suite.SendTransaction(pk1)
+		_, err := suite.SendTransaction(pk1)
+		suite.Require().Nil(err)
 	}
 	status, err := suite.GetStatus(ibtp.ID())
 	suite.Require().Nil(err)
@@ -310,7 +312,8 @@ func (suite Model9) Test0909_GetNoAllReceiptBeforeTimeOutWithStatusTransactionSt
 	err = suite.SendInterchainTx(pk1, ibtp1, payload, proof)
 	suite.Require().Nil(err)
 	for i := 0; i < 15; i++ {
-		suite.SendTransaction(pk1)
+		_, err := suite.SendTransaction(pk1)
+		suite.Require().Nil(err)
 	}
 	status, err = suite.GetStatus(ibtp1.ID())
 	suite.Require().Nil(err)
@@ -461,7 +464,8 @@ func (suite Model9) Test0912_GetAllReceiptTimeOutWithStatusTransactionStatus_ROL
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.TransactionStatus_BEGIN, status)
 	for i := 0; i < 15; i++ {
-		suite.SendTransaction(pk1)
+		_, err := suite.SendTransaction(pk1)
+		suite.Require().Nil(err)
 	}
 	ibtp1 = suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_RECEIPT_ROLLBACK, proof)
 	payload = suite.MockResult([][]byte(nil))
