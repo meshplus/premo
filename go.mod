@@ -4,11 +4,10 @@ go 1.15
 
 require (
 	github.com/Rican7/retry v0.3.1
-	github.com/blend/go-sdk v1.20220411.3 // indirect
 	github.com/cheynewallace/tabby v1.1.1
 	github.com/cloudflare/cfssl v1.6.1 // indirect
 	github.com/coreos/etcd v3.3.27+incompatible
-	github.com/ethereum/go-ethereum v1.10.4
+	github.com/ethereum/go-ethereum v1.10.8
 	github.com/gobuffalo/packd v1.0.1
 	github.com/gobuffalo/packr v1.30.1
 	github.com/hyperledger/fabric-lib-go v1.0.0 // indirect
@@ -18,17 +17,17 @@ require (
 	github.com/looplab/fsm v0.3.0
 	github.com/meshplus/bitxhub-core v1.3.1-0.20211019055819-2e20288cafa4
 	github.com/meshplus/bitxhub-kit v1.2.1-0.20210902085548-07f4fa85bfc9
-	github.com/meshplus/bitxhub-model v1.2.1-0.20220322064600-b3c51f7ec06e
-	github.com/meshplus/go-bitxhub-client v1.4.1-0.20220401111444-7a5263c4087f
+	github.com/meshplus/bitxhub-model v1.2.1-0.20211228020023-9ad5546d56ec
+	github.com/meshplus/go-bitxhub-client v1.4.1-0.20220309062318-59a335757596
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/onrik/ethrpc v1.0.0
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/viper v1.10.1
 	github.com/stretchr/testify v1.7.0
 	github.com/urfave/cli/v2 v2.3.0
-	github.com/wcharczuk/go-chart/v2 v2.1.0
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	golang.org/x/image v0.0.0-20220413100746-70e8d0d3baa9 // indirect
+	github.com/meshplus/eth-kit v0.0.0-20220105081940-c90e9f2aa162
 )
 
 replace github.com/golang/protobuf => github.com/golang/protobuf v1.4.0
