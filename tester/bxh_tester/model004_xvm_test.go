@@ -179,7 +179,9 @@ func (suite Model4) Test0412_GetCurrentHeightIsSuccess() {
 	suite.Require().Nil(err)
 	meta, err := client.GetChainMeta()
 	suite.Require().Nil(err)
-	suite.Require().LessOrEqual(string(res.Ret), strconv.FormatUint(meta.Height-1, 10))
+	height, err := strconv.ParseUint(string(res.Ret), 10, 64)
+	suite.Require().Nil(err)
+	suite.Require().LessOrEqual(height, meta.Height-1)
 }
 
 //tc：部署结果合约，获取当前交易的交易hash，合约调用成功
