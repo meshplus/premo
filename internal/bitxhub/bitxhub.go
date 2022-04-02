@@ -33,6 +33,7 @@ type Broker struct {
 	adminNonce uint64
 	ctx        context.Context
 	cancel     context.CancelFunc
+	lock       sync.Mutex
 }
 
 type Config struct {
@@ -269,6 +270,8 @@ func (broker *Broker) Start(typ string) error {
 }
 
 func (broker *Broker) Stop(current time.Time) error {
+	// prevent stop function is repeatedly called
+	broker.lock.Lock()
 	broker.cancel()
 	// wait for goroutines inside bees to stop
 	time.Sleep(10 * time.Second)
