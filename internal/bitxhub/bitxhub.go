@@ -33,6 +33,7 @@ type Broker struct {
 	adminNonce uint64
 	ctx        context.Context
 	cancel     context.CancelFunc
+	lock       sync.Mutex
 }
 
 type Config struct {
@@ -112,7 +113,7 @@ func New(config *Config) (*Broker, error) {
 		return nil, err
 	}
 	// prepare to
-	to, err := PrepareTo(config, adminPk, adminFrom)
+	to, err := PrepareTo(client, config, adminPk, adminFrom)
 	if err != nil {
 		return nil, err
 	}
@@ -261,13 +262,19 @@ func (broker *Broker) Start(typ string) error {
 	}
 	log.Infof("the TPS from block %d to %d is %d", begin, end, tps)
 
+	err = broker.client.Stop()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (broker *Broker) Stop(current time.Time) error {
+	// prevent stop function is repeatedly called
+	broker.lock.Lock()
 	broker.cancel()
 	// wait for goroutines inside bees to stop
-	time.Sleep(3 * time.Second)
+	time.Sleep(10 * time.Second)
 
 	log.Info("Bees are quiting, please wait...")
 	for i := 0; i < len(broker.bees); i++ {
@@ -276,10 +283,10 @@ func (broker *Broker) Stop(current time.Time) error {
 			return err
 		}
 	}
-	err := broker.client.Stop()
-	if err != nil {
-		log.Warn(err)
-	}
+	//err := broker.client.Stop()
+	//if err != nil {
+	//	log.Warn(err)
+	//}
 	delayerAvg := float64(delayer) / float64(counter)
 	log.WithFields(logrus.Fields{
 		"number":   counter,
@@ -290,21 +297,12 @@ func (broker *Broker) Stop(current time.Time) error {
 	return nil
 }
 
-func PrepareTo(config *Config, adminPk crypto.PrivateKey, adminFrom *types.Address) (string, error) {
-	node0 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[0]}
+func PrepareTo(client *rpcx.ChainClient, config *Config, adminPk crypto.PrivateKey, adminFrom *types.Address) (string, error) {
 	pk, from, err := repo.KeyPriv()
 	if err != nil {
 		log.Error(err)
 	}
-	client, err := rpcx.New(
-		rpcx.WithNodesInfo(node0),
-		rpcx.WithLogger(log),
-		rpcx.WithPrivateKey(pk),
-	)
-	if err != nil {
-		return "", err
-	}
-	err = TransferFromAdmin(config, adminPk, adminFrom, from, "100")
+	err = TransferFromAdmin(client, adminPk, adminFrom, from, "100")
 	if err != nil {
 		return "", err
 	}
@@ -320,7 +318,12 @@ func PrepareTo(config *Config, adminPk crypto.PrivateKey, adminFrom *types.Addre
 		rpcx.String(from.String()),                                //adminAddrs
 		rpcx.String("reason"),                                     //reason
 	}
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "RegisterAppchain", nil, args...)
+
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "RegisterAppchain", &rpcx.TransactOpts{
+		From:    from.String(),
+		Nonce:   0,
+		PrivKey: pk,
+	}, args...)
 	if err != nil {
 		return "", err
 	}
@@ -332,11 +335,11 @@ func PrepareTo(config *Config, adminPk crypto.PrivateKey, adminFrom *types.Addre
 	}
 	b := bee{}
 	b.config = config
-	err = b.VotePass(result.ProposalID)
+	err = b.VotePass(client, result.ProposalID)
 	if err != nil {
 		return "", fmt.Errorf("vote chain error: %w", err)
 	}
-	res, err = b.GetChainStatusById(pk, from.String())
+	res, err = b.GetChainStatusById(client, pk, from.String())
 	if err != nil {
 		return "", fmt.Errorf("getChainStatus error: %w", err)
 	}
@@ -357,9 +360,12 @@ func PrepareTo(config *Config, adminPk crypto.PrivateKey, adminFrom *types.Addre
 		rpcx.String("test"),
 		rpcx.String("reason"),
 	}
-	res, err = client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "RegisterService", nil, args...)
+	res, err = client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "RegisterService", &rpcx.TransactOpts{
+		From:    from.String(),
+		PrivKey: pk,
+	}, args...)
 	if err != nil {
-		return "", fmt.Errorf("register server error %w", err)
+		return "", fmt.Errorf("register service error %w", err)
 	}
 	//vote server
 	result = &RegisterResult{}
@@ -367,7 +373,7 @@ func PrepareTo(config *Config, adminPk crypto.PrivateKey, adminFrom *types.Addre
 	if err != nil || result.ProposalID == "" {
 		return "", fmt.Errorf("vote server unmarshal error: %w", err)
 	}
-	err = b.VotePass(result.ProposalID)
+	err = b.VotePass(client, result.ProposalID)
 	if err != nil {
 		return "", fmt.Errorf("vote server error: %w", err)
 	}
