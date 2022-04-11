@@ -231,136 +231,189 @@ func (suite Model17) Test1717_UpdateStrategyBeforeAdminAdded() {
 // UpdateStrategy update strategy
 func (suite Model17) UpdateStrategy(model, typ, extra string) error {
 	pk, from, err := repo.Node1Priv()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.ProposalStrategyMgrContractAddr.Address(), "UpdateProposalStrategy", &rpcx.TransactOpts{
 		From:  from.String(),
 		Nonce: atomic.AddUint64(&nonce1, 1),
 	}, rpcx.String(model), rpcx.String(typ), rpcx.String(extra), rpcx.String("reason"))
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if pb.Receipt_SUCCESS != res.Status {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, &result)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.VotePass(result.ProposalID)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // GetStrategyByType get strategy by model type
-func (suite Model17) GetStrategyByType(typ string) (ProposalStrategy, error) {
+func (suite Model17) GetStrategyByType(typ string) (*ProposalStrategy, error) {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, err
+	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.ProposalStrategyMgrContractAddr.Address(), "GetProposalStrategy", nil, rpcx.String(typ))
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, err
+	}
 	strategy := ProposalStrategy{}
 	err = json.Unmarshal(res.Ret, &strategy)
-	suite.Require().Nil(err)
-	return strategy, nil
+	if err != nil {
+		return nil, err
+	}
+	return &strategy, nil
 }
 
 // StrategyToZero update strategy to ZeroPermission
 func (suite Model17) StrategyToZero(model string) error {
 	strategy, err := suite.GetStrategyByType(model)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if strategy.Typ == ZeroPermission {
 		return nil
 	}
 	pk, from, err := repo.Node1Priv()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.ProposalStrategyMgrContractAddr.Address(), "UpdateProposalStrategy", &rpcx.TransactOpts{
 		From:  from.String(),
 		Nonce: atomic.AddUint64(&nonce1, 1),
 	}, rpcx.String(model), rpcx.String(ZeroPermission), rpcx.String(""), rpcx.String("reason"))
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if pb.Receipt_FAILED == res.Status {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, &result)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.VotePass(result.ProposalID)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // StrategyToSimple update strategy to SimpleMajority
 func (suite Model17) StrategyToSimple(model string) error {
 	strategy, err := suite.GetStrategyByType(model)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if strategy.Typ == SimpleMajority {
 		return nil
 	}
 	pk, from, err := repo.Node1Priv()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.ProposalStrategyMgrContractAddr.Address(), "UpdateProposalStrategy", &rpcx.TransactOpts{
 		From:  from.String(),
 		Nonce: atomic.AddUint64(&nonce1, 1),
 	}, rpcx.String(model), rpcx.String(SimpleMajority), rpcx.String("a > 0.5 * t"), rpcx.String("reason"))
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if pb.Receipt_FAILED == res.Status {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, &result)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.VotePass(result.ProposalID)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // StrategyToUpdating update strategy to updating status
 func (suite Model17) StrategyToUpdating(model string) (*RegisterResult, error) {
 	err := suite.StrategyToSimple(StrategyMgr)
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, err
+	}
 	err = suite.StrategyToSimple(model)
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, err
+	}
 	pk, from, err := repo.Node1Priv()
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, err
+	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.ProposalStrategyMgrContractAddr.Address(), "UpdateProposalStrategy", &rpcx.TransactOpts{
 		From:  from.String(),
 		Nonce: atomic.AddUint64(&nonce1, 1),
 	}, rpcx.String(model), rpcx.String(ZeroPermission), rpcx.String(""), rpcx.String("reason"))
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, err
+	}
 	if pb.Receipt_SUCCESS != res.Status {
 		return nil, fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, &result)
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, err
+	}
 	strategy, err := suite.GetStrategyByType(model)
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, err
+	}
 	if governance.GovernanceUpdating != strategy.Status {
 		return nil, fmt.Errorf("%v is %v", strategy.Module, strategy.Status)
 	}
-	suite.Require().Equal(governance.GovernanceUpdating, strategy.Status)
 	return result, nil
 }
 
 // UpdateAllStrategy update all model strategy
 func (suite Model17) UpdateAllStrategy(typ, extra string) error {
 	pk, from, err := repo.Node1Priv()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.ProposalStrategyMgrContractAddr.Address(), "UpdateAllProposalStrategy", &rpcx.TransactOpts{
 		From:  from.String(),
 		Nonce: atomic.AddUint64(&nonce1, 1),
 	}, rpcx.String(typ), rpcx.String(extra), rpcx.String("reason"))
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if pb.Receipt_SUCCESS != res.Status {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, &result)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.VotePass(result.ProposalID)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -371,18 +424,24 @@ func (suite Model17) AllStrategyToUpdating() (*RegisterResult, error) {
 		return nil, err
 	}
 	pk, from, err := repo.Node1Priv()
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, err
+	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.ProposalStrategyMgrContractAddr.Address(), "UpdateAllProposalStrategy", &rpcx.TransactOpts{
 		From:  from.String(),
 		Nonce: atomic.AddUint64(&nonce1, 1),
 	}, rpcx.String(ZeroPermission), rpcx.String(""), rpcx.String("reason"))
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, err
+	}
 	if pb.Receipt_SUCCESS != res.Status {
 		return nil, fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, &result)
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, err
+	}
 	return result, nil
 }

@@ -546,18 +546,24 @@ func (suite Model11) Test1124_BindRoleThenLogoutRoleIsSuccess() {
 // InvokeRoleContract invoke role contract by methodName and args
 func (suite Snake) InvokeRoleContract(method string, args ...*pb.Arg) (string, error) {
 	pk, _, err := repo.Node2Priv()
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), method, &rpcx.TransactOpts{
 		Nonce: atomic.AddUint64(&nonce2, 1),
 	}, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	if res.Status == pb.Receipt_FAILED {
 		return "", fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	return result.ProposalID, nil
 }
 
@@ -570,7 +576,9 @@ func (suite Snake) RegisterRole(id, typ, account string) error {
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(RegisterRole, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return suite.VotePass(proposal)
 }
 
@@ -581,7 +589,9 @@ func (suite Snake) FreezeRole(id string) error {
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(FreezeRole, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return suite.VotePass(proposal)
 }
 
@@ -592,7 +602,9 @@ func (suite Snake) ActivateRole(id string) error {
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(ActivateRole, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return suite.VotePass(proposal)
 }
 
@@ -603,7 +615,9 @@ func (suite Snake) LogoutRole(id string) error {
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(LogoutRole, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return suite.VotePass(proposal)
 }
 
@@ -615,7 +629,9 @@ func (suite Snake) BindRole(roleId, nodeAccount string) error {
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(BindRole, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return suite.VotePass(proposal)
 }
 
@@ -628,9 +644,13 @@ func (suite Snake) RoleToRegisting(id, typ, account string) (string, error) {
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(RegisterRole, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	err = suite.CheckRoleStatus(id, governance.GovernanceRegisting)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	return proposal, nil
 }
 
@@ -643,115 +663,173 @@ func (suite Snake) RoleToUnavailable(id, typ, account string) error {
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(RegisterRole, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.VoteReject(proposal)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.CheckRoleStatus(id, governance.GovernanceUnavailable)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // RoleToFreezing get a freezing role
 func (suite Snake) RoleToFreezing(id, typ, account string) (string, error) {
 	err := suite.RegisterRole(id, typ, account)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(FreezeRole, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	err = suite.CheckRoleStatus(id, governance.GovernanceFreezing)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	return proposal, nil
 }
 
 // RoleToFrozen get a frozen role
 func (suite Snake) RoleToFrozen(id, typ, account string) error {
 	err := suite.RegisterRole(id, typ, account)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.FreezeRole(id)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.CheckRoleStatus(id, governance.GovernanceFrozen)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // RoleToActivating get an activating role
 func (suite Snake) RoleToActivating(id, typ, account string) (string, error) {
 	err := suite.RegisterRole(id, typ, account)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	err = suite.FreezeRole(id)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(ActivateRole, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	err = suite.CheckRoleStatus(id, governance.GovernanceActivating)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	return proposal, nil
 }
 
 // RoleToLogouting get a logouting role
 func (suite Snake) RoleToLogouting(id, typ, account string) (string, error) {
 	err := suite.RegisterRole(id, typ, account)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeRoleContract(LogoutRole, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	err = suite.CheckRoleStatus(id, governance.GovernanceLogouting)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	return proposal, nil
 }
 
 // RoleToForbidden get a forbidden role
 func (suite Snake) RoleToForbidden(id, typ, account string) error {
 	err := suite.RegisterRole(id, typ, account)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.LogoutRole(id)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.CheckRoleStatus(id, governance.GovernanceForbidden)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // RoleToBinding get a binding role
 func (suite Snake) RoleToBinding(id, typ, account string) error {
 	err := suite.RegisterRole(id, typ, account)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.LogoutNode(account)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	_, from1, err := repo.KeyPriv()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	pid, err := suite.MockPid()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	pk2, from2, address2, err := suite.DeployRule()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.RegisterAppchain(pk2, from2, address2)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.RegisterNode(from1.String(), "nvpNode", pid, 0, from1.String(), from2)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String(from1.String()),
 		rpcx.String("reason"),
 	}
 	_, err = suite.InvokeRoleContract(BindRole, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.CheckRoleStatus(id, governance.GovernanceBinding)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // CheckRoleStatus check role status by id
 func (suite *Snake) CheckRoleStatus(id string, expectStatus governance.GovernanceStatus) error {
 	status, err := suite.GetRoleStatus(id)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if expectStatus != status {
 		return fmt.Errorf("expect status is %s ,but get status %s", expectStatus, status)
 	}
@@ -764,15 +842,21 @@ func (suite Snake) GetRoleStatus(id string) (governance.GovernanceStatus, error)
 		rpcx.String(id),
 	}
 	pk, _, err := repo.Node2Priv()
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.RoleContractAddr.Address(), "GetRoleInfoById", &rpcx.TransactOpts{
 		Nonce: atomic.AddUint64(&nonce2, 1),
 	}, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	role := &Role{}
 	err = json.Unmarshal(res.Ret, role)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	return role.Status, nil
 }
 

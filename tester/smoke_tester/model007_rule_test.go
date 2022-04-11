@@ -326,23 +326,35 @@ func (suite Model7) Test0726_LogoutRuleWithBindableRuleIsSuccess() {
 // DeploySimpleRule deploy simple rule
 func (suite Snake) DeploySimpleRule() (string, error) {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	client := suite.NewClient(pk)
 	contract, err := ioutil.ReadFile("testdata/simple_rule.wasm")
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	address, err := client.DeployContract(contract, nil)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	return address.String(), nil
 }
 
 // DeployRule deploy rule and return address
 func (suite Snake) DeployRule() (crypto.PrivateKey, string, string, error) {
 	address, err := suite.DeploySimpleRule()
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, "", "", err
+	}
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, "", "", err
+	}
 	from, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, "", "", err
+	}
 	return pk, from.String(), address, nil
 }
 
@@ -355,17 +367,24 @@ func (suite Snake) RegisterRule(pk crypto.PrivateKey, ChainID, contractAddr stri
 		rpcx.String("https://github.com/meshplus/bitxhub"),
 	}
 	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), RegisterRule, nil, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
+	if err != nil {
+		return err
+	}
 	if result.ProposalID == "" {
 		return nil
 	}
 	err = suite.VotePass(result.ProposalID)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -378,18 +397,24 @@ func (suite Snake) UpdateMasterRule(pk crypto.PrivateKey, ChainID, contractAddr 
 		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), UpdateMasterRule, nil, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if result.ProposalID == "" {
 		return nil
 	}
 	err = suite.VotePass(result.ProposalID)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -401,34 +426,46 @@ func (suite Snake) LogoutRule(pk crypto.PrivateKey, ChainID, contractAddr string
 		rpcx.String(contractAddr),
 	}
 	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), LogoutRule, nil, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if result.ProposalID == "" {
 		return nil
 	}
 	err = suite.VotePass(result.ProposalID)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // Rules return all rules
 func (suite Snake) Rules(chainID string) ([]Rule, error) {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, err
+	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "Rules", nil, rpcx.String(chainID))
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, err
+	}
 	if res.Status != pb.Receipt_SUCCESS {
 		return nil, fmt.Errorf(string(res.Ret))
 	}
 	var rules []Rule
 	err = json.Unmarshal(res.Ret, &rules)
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, err
+	}
 	return rules, nil
 }
 
@@ -449,7 +486,9 @@ func (suite Snake) RuleContains(chainID, address string) bool {
 // CheckRuleStatus check rule status
 func (suite *Snake) CheckRuleStatus(pk crypto.PrivateKey, chainID, address string, expectStatus governance.GovernanceStatus) error {
 	status, err := suite.GetRuleStatus(pk, chainID, address)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if expectStatus != status {
 		return fmt.Errorf("expect status is %s ,but get status %s", expectStatus, status)
 	}
@@ -464,12 +503,16 @@ func (suite *Snake) GetRuleStatus(pk crypto.PrivateKey, ChainID string, contract
 		rpcx.String(contractAddr),
 	}
 	res, err := client.InvokeBVMContract(constant.RuleManagerContractAddr.Address(), "GetRuleByAddr", nil, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	if res.Status == pb.Receipt_FAILED {
 		return "", fmt.Errorf(string(res.Ret))
 	}
 	rule := &Rule{}
 	err = json.Unmarshal(res.Ret, rule)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	return rule.Status, nil
 }
