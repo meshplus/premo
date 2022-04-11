@@ -27,3 +27,27 @@ function x_replace() {
     sed -i '' "$@"
   fi
 }
+
+function check_goduck() {
+  if ! type goduck >/dev/null 2>&1; then
+    print_blue "===> Install goduck"
+    go get github.com/meshplus/goduck/cmd/goduck
+    goduck init
+  fi
+}
+
+function check_pier() {
+  if ! type pier >/dev/null 2>&1; then
+    print_blue "===> Compiling pier"
+    cd "$PIER_PROJECT_PATH" || exit
+    make install
+  fi
+}
+
+function check_bitxhub() {
+  if ! type bitxhub >/dev/null 2>&1; then
+    print_blue "===> Compileing bitxhub"
+    cd "$BITXHUB_PROJECT_PATH" || exit
+    make install
+  fi
+}

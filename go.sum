@@ -920,6 +920,7 @@ github.com/meshplus/go-bitxhub-client v1.4.1-0.20211228025029-2156610004da h1:Iu
 github.com/meshplus/go-bitxhub-client v1.4.1-0.20211228025029-2156610004da/go.mod h1:6vznr0HA9g+6CVdv5Z7592bjPk80gA8mEiIcY+f9cks=
 github.com/meshplus/go-bitxhub-client v1.4.1-0.20220124095039-ff153afcd850 h1:ZohrSfJXjTWfbTRwT6RIPKvm9mMP9ebCYvKsOxx43M0=
 github.com/meshplus/go-bitxhub-client v1.4.1-0.20220124095039-ff153afcd850/go.mod h1:LKgsLaZzdJpYJrvdm9/TJA7ue2dOlDXZNSKmT4Kgvjo=
+github.com/meshplus/go-bitxhub-client v1.4.1-0.20220309062318-59a335757596 h1:8g5ops0Suobr3VNBvK/wg3BRI9vw9UJErk43d7RcwTQ=
 github.com/meshplus/go-bitxhub-client v1.4.1-0.20220309062318-59a335757596/go.mod h1:eFAf8bSt2JupyuEE/b7hY/Q1CbY9YCqWJ4q/6ybArpc=
 github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b/go.mod h1:01TrycV0kFyexm33Z7vhZRXopbI8J3TDReVlkTgMUxE=
 github.com/miekg/dns v1.0.14/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
