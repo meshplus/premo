@@ -131,16 +131,24 @@ func (suite *Snake) VoteReject(id string) error {
 //Vote `vote` proposal by id and info with four admin
 func (suite *Snake) Vote(id, info string) error {
 	key1, _, err := repo.Node1Priv()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	_, err = suite.vote(key1, atomic.AddUint64(&nonce1, 1), rpcx.String(id), rpcx.String(info), rpcx.String("Vote"))
 	key2, _, err := repo.Node2Priv()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	_, err = suite.vote(key2, atomic.AddUint64(&nonce2, 1), rpcx.String(id), rpcx.String(info), rpcx.String("Vote"))
 	key3, _, err := repo.Node3Priv()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	_, err = suite.vote(key3, atomic.AddUint64(&nonce3, 1), rpcx.String(id), rpcx.String(info), rpcx.String("Vote"))
 	key4, _, err := repo.Node4Priv()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	_, err = suite.vote(key4, atomic.AddUint64(&nonce4, 1), rpcx.String(id), rpcx.String(info), rpcx.String("Vote"))
 	return nil
 }
@@ -152,32 +160,43 @@ func (suite *Snake) vote(key crypto.PrivateKey, nonce uint64, args ...*pb.Arg) (
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(key),
 	)
+	if err != nil {
+		return nil, err
+	}
 	address, err := key.PublicKey().Address()
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, err
+	}
 	invokePayload := &pb.InvokePayload{
 		Method: "Vote",
 		Args:   args,
 	}
 	payload, err := invokePayload.Marshal()
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, err
+	}
 	data := &pb.TransactionData{
 		Type:    pb.TransactionData_INVOKE,
 		VmType:  pb.TransactionData_BVM,
 		Payload: payload,
 	}
 	payload, err = data.Marshal()
+	if err != nil {
+		return nil, err
+	}
 	tx := &pb.BxhTransaction{
 		From:      address,
 		To:        constant.GovernanceContractAddr.Address(),
 		Timestamp: time.Now().UnixNano(),
 		Payload:   payload,
 	}
-	suite.Require().Nil(err)
 	res, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
 		From:  address.String(),
 		Nonce: nonce,
 	})
-	suite.Require().Nil(err)
+	if err != nil {
+		return nil, err
+	}
 	if res.Status == pb.Receipt_FAILED {
 		return nil, fmt.Errorf(string(res.Ret))
 	}
@@ -215,18 +234,25 @@ func (suite *Snake) SendTransaction(pk crypto.PrivateKey) {
 // TransferFromAdmin transfer amount from admin
 func (suite Snake) TransferFromAdmin(address string, amount string) error {
 	pk, node4Addr, err := repo.Node4Priv()
+	if err != nil {
+		return err
+	}
 	node0 := &rpcx.NodeInfo{Addr: cfg.addrs[0]}
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(node0),
 		rpcx.WithLogger(cfg.logger),
 		rpcx.WithPrivateKey(pk),
 	)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	data := &pb.TransactionData{
 		Amount: amount + "000000000000000000",
 	}
 	payload, err := data.Marshal()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	tx := &pb.BxhTransaction{
 		From:      node4Addr,
 		To:        types.NewAddressByStr(address),
@@ -237,7 +263,9 @@ func (suite Snake) TransferFromAdmin(address string, amount string) error {
 		From:  node4Addr.String(),
 		Nonce: atomic.AddUint64(&nonce4, 1),
 	})
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if ret.Status != pb.Receipt_SUCCESS {
 		return fmt.Errorf(string(ret.Ret))
 	}
@@ -287,14 +315,24 @@ func (suite Snake) MockResult(data [][]byte) []byte {
 // MockPid mock a pid
 func (suite Snake) MockPid() (string, error) {
 	pk, err := asym.GenerateKeyPair(crypto.ECDSA_P256)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	data, err := pk.Bytes()
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	key, err := ecdsa.UnmarshalPrivateKey(data, crypto.ECDSA_P256)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	_, k, err := crypto2.KeyPairFromStdKey(key.K)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	pid, err := peer.IDFromPublicKey(k)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	return pid.String(), nil
 }

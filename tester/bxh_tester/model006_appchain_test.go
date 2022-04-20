@@ -988,7 +988,9 @@ func (suite Model6) Test0667_LogoutAppchainWithUpdateMasterRuleIsSuccess() {
 func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, name, address string) error {
 	client := suite.NewClient(pk)
 	from, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	args := []*pb.Arg{
 		rpcx.String(from.String()),  //chainID
 		rpcx.String(name),           //chainName
@@ -1002,15 +1004,21 @@ func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, name, address string)
 		rpcx.String("reason"),             //reason
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "RegisterAppchain", nil, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if res.Status != pb.Receipt_SUCCESS {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.VotePass(result.ProposalID)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -1018,7 +1026,9 @@ func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, name, address string)
 func (suite Snake) RegisterAppchainWithType(pk crypto.PrivateKey, typ, address, broker string) error {
 	client := suite.NewClient(pk)
 	from, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	args := []*pb.Arg{
 		rpcx.String(from.String()),        //chainID
 		rpcx.String(from.String()),        //chainName
@@ -1032,25 +1042,35 @@ func (suite Snake) RegisterAppchainWithType(pk crypto.PrivateKey, typ, address, 
 		rpcx.String("reason"),             //reason
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "RegisterAppchain", nil, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if res.Status != pb.Receipt_SUCCESS {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.VotePass(result.ProposalID)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // FreezeAppchain freeze appchain
 func (suite *Snake) FreezeAppchain(chainID string) error {
 	node1Key, _, err := repo.Node1Priv()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	client := suite.NewClient(node1Key)
 	from, err := node1Key.PublicKey().Address()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	nonce := atomic.AddUint64(&nonce1, 1)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
 		&rpcx.TransactOpts{
@@ -1059,15 +1079,21 @@ func (suite *Snake) FreezeAppchain(chainID string) error {
 		},
 		rpcx.String(chainID), rpcx.String("reason"),
 	)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.VotePass(result.ProposalID)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -1083,16 +1109,22 @@ func (suite *Snake) UpdateAppchain(pk crypto.PrivateKey, id, name, desc string, 
 		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if result.ProposalID != "" {
 		err = suite.VotePass(result.ProposalID)
-		suite.Require().Nil(err)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1101,16 +1133,22 @@ func (suite *Snake) UpdateAppchain(pk crypto.PrivateKey, id, name, desc string, 
 func (suite *Snake) ActivateAppchain(pk crypto.PrivateKey, chainID string) error {
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil, rpcx.String(chainID), rpcx.String("reason"))
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if result.ProposalID != "" {
 		err = suite.VotePass(result.ProposalID)
-		suite.Require().Nil(err)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1119,16 +1157,22 @@ func (suite *Snake) ActivateAppchain(pk crypto.PrivateKey, chainID string) error
 func (suite *Snake) LogoutAppchain(pk crypto.PrivateKey, chainID string) error {
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(chainID), rpcx.String("reason"))
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if result.ProposalID != "" {
 		err = suite.VotePass(result.ProposalID)
-		suite.Require().Nil(err)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1136,24 +1180,34 @@ func (suite *Snake) LogoutAppchain(pk crypto.PrivateKey, chainID string) error {
 // ChainToActivating get an activating appchain
 func (suite Snake) ChainToActivating(pk crypto.PrivateKey, name, address string) error {
 	err := suite.RegisterAppchain(pk, name, address)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.FreezeAppchain(name)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "ActivateAppchain", nil, rpcx.String(name), rpcx.String("reason"))
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}
 	err = suite.CheckChainStatus(name, governance.GovernanceActivating)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // ChainToUpdating get a updating appchain
 func (suite Snake) ChainToUpdating(pk crypto.PrivateKey, name, address string) error {
 	err := suite.RegisterAppchain(pk, name, address)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
 		rpcx.String(name),
@@ -1164,21 +1218,29 @@ func (suite Snake) ChainToUpdating(pk crypto.PrivateKey, name, address string) e
 		rpcx.String("reason"),
 	}
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}
 	err = suite.CheckChainStatus(name, governance.GovernanceUpdating)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // ChainToFreezing get a freezing appchain
 func (suite Snake) ChainToFreezing(pk crypto.PrivateKey, name, address string) error {
 	err := suite.RegisterAppchain(pk, name, address)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	node1, node1Addr, err := repo.Node1Priv()
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	client := suite.NewClient(node1)
 	nonce := atomic.AddUint64(&nonce1, 1)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "FreezeAppchain",
@@ -1188,56 +1250,80 @@ func (suite Snake) ChainToFreezing(pk crypto.PrivateKey, name, address string) e
 		},
 		rpcx.String(name), rpcx.String("reason"),
 	)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}
 	err = suite.CheckChainStatus(name, governance.GovernanceFreezing)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // ChainToFrozen get a frozen appchain
 func (suite Snake) ChainToFrozen(pk crypto.PrivateKey, name, address string) error {
 	err := suite.RegisterAppchain(pk, name, address)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.FreezeAppchain(name)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.CheckChainStatus(name, governance.GovernanceFrozen)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // ChainToLogouting get a logouting appchain
 func (suite Snake) ChainToLogouting(pk crypto.PrivateKey, name, address string) error {
 	err := suite.RegisterAppchain(pk, name, address)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "LogoutAppchain", nil, rpcx.String(name), rpcx.String("reason"))
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if res.Status == pb.Receipt_FAILED {
 		return fmt.Errorf(string(res.Ret))
 	}
 	err = suite.CheckChainStatus(name, governance.GovernanceLogouting)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // ChainToForbidden get a forbidden appchain
 func (suite Snake) ChainToForbidden(pk crypto.PrivateKey, name, address string) error {
 	err := suite.RegisterAppchain(pk, name, address)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.LogoutAppchain(pk, name)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	err = suite.CheckChainStatus(name, governance.GovernanceForbidden)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // CheckChainStatus check chain status
 func (suite *Snake) CheckChainStatus(name string, expectStatus governance.GovernanceStatus) error {
 	status, err := suite.GetChainStatusByName(name)
-	suite.Require().Nil(err)
+	if err != nil {
+		return err
+	}
 	if expectStatus != status {
 		return fmt.Errorf("expect status is %s ,but get status %s", expectStatus, status)
 	}
@@ -1247,10 +1333,14 @@ func (suite *Snake) CheckChainStatus(name string, expectStatus governance.Govern
 // GetChainStatusByName return chain status by name
 func (suite *Snake) GetChainStatusByName(name string) (governance.GovernanceStatus, error) {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	client := suite.NewClient(pk)
 	from, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	args := []*pb.Arg{
 		rpcx.String(name),
 	}
@@ -1259,27 +1349,35 @@ func (suite *Snake) GetChainStatusByName(name string) (governance.GovernanceStat
 		Args:   args,
 	}
 	payload, err := invokePayload.Marshal()
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	data := &pb.TransactionData{
 		Type:    pb.TransactionData_INVOKE,
 		VmType:  pb.TransactionData_BVM,
 		Payload: payload,
 	}
 	payload, err = data.Marshal()
+	if err != nil {
+		return "", err
+	}
 	tx := &pb.BxhTransaction{
 		From:      from,
 		To:        constant.AppchainMgrContractAddr.Address(),
 		Timestamp: time.Now().UnixNano(),
 		Payload:   payload,
 	}
-	suite.Require().Nil(err)
 	res, err := client.SendTransactionWithReceipt(tx, nil)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	if res.Status == pb.Receipt_FAILED {
 		return "", fmt.Errorf(string(res.Ret))
 	}
 	appchain := appchainmgr.Appchain{}
 	err = json.Unmarshal(res.Ret, &appchain)
-	suite.Require().Nil(err)
+	if err != nil {
+		return "", err
+	}
 	return appchain.Status, nil
 }
