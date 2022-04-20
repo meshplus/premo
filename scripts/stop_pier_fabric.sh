@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-
 source x.sh
-
-process_count=$(ps aux | grep pier-fabric | grep -v grep | wc -l)
-if [ $process_count == 0 ]; then
-  print_green "No pier running"
+process_count=$(ps aux | grep "pier-fabric" | grep -v "grep" | wc -l)
+if [ "$process_count" == 0 ]; then
+  print_green "No bitxhub node running"
 else
-  print_red "Pier running, kill it"
-  kill -9 $(ps aux | grep pier-fabric | grep -v grep | awk '{print $2}')
+  print_red "Bitxhub nodes running, kill it"
+  ps aux | grep "pier-fabric" | grep -v "grep" | awk '{print $2}' | xargs kill -9
 fi
+

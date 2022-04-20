@@ -2,7 +2,7 @@
 set -e
 
 CURRENT_PATH=$(pwd)
-source x.sh
+source ../x.sh
 
 dst_appchain="$Ether_ChainID"
 print_green "dst_appchain: $dst_appchain"
