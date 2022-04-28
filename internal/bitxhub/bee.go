@@ -139,7 +139,7 @@ func (bee *bee) prepareTx(typ string) {
 func (bee *bee) genTx(typ string, nonce, count uint64) (*pb.BxhTransaction, error) {
 	switch typ {
 	case "interchain":
-		return bee.genInterchainTx(count, nonce), nil
+		return bee.genInterchainTx(count, nonce)
 	case "data":
 		return bee.genBVMTx(nonce)
 	case "transfer":
@@ -203,7 +203,9 @@ func (bee *bee) genBVMTx(nonce uint64) (*pb.BxhTransaction, error) {
 		Timestamp: time.Now().UnixNano(),
 		Nonce:     nonce,
 	}
-
+	if err = tx.Sign(bee.normalPrivKey); err != nil {
+		return nil, err
+	}
 	return tx, nil
 }
 
@@ -318,10 +320,13 @@ func (bee *bee) genTransferTx(to *types.Address, normalNo uint64) (*pb.BxhTransa
 		Payload:   payload,
 		Nonce:     normalNo,
 	}
+	if err = tx.Sign(bee.normalPrivKey); err != nil {
+		return nil, err
+	}
 	return tx, nil
 }
 
-func (bee *bee) genInterchainTx(i, nonce uint64) *pb.BxhTransaction {
+func (bee *bee) genInterchainTx(i, nonce uint64) (*pb.BxhTransaction, error) {
 	atomic.AddInt64(&sender, 1)
 	ibtp := mockIBTP(i, "1356:"+bee.normalFrom.String()+":mychannel&transfer", bee.config.Proof)
 
@@ -333,8 +338,11 @@ func (bee *bee) genInterchainTx(i, nonce uint64) *pb.BxhTransaction {
 		IBTP:      ibtp,
 		Nonce:     nonce,
 	}
-	tx.Sign(bee.normalPrivKey)
-	return tx
+	if err := tx.Sign(bee.normalPrivKey); err != nil {
+		log.Error("genInterchainTx sign err: %s", err)
+		return nil, err
+	}
+	return tx, nil
 }
 
 func prepareInterchainTx() {
@@ -362,13 +370,12 @@ func prepareInterchainTx() {
 func mockIBTP(index uint64, from string, proof []byte) *pb.IBTP {
 	proofHash := sha256.Sum256(proof)
 	return &pb.IBTP{
-		From:          from,
-		To:            "1356:" + To + ":mychannel&transfer",
-		Payload:       ibtppd,
-		Index:         index,
-		Type:          pb.IBTP_INTERCHAIN,
-		TimeoutHeight: 10,
-		Proof:         proofHash[:],
+		From:    from,
+		To:      "1356:" + To + ":mychannel&transfer",
+		Payload: ibtppd,
+		Index:   index,
+		Type:    pb.IBTP_INTERCHAIN,
+		Proof:   proofHash[:],
 	}
 }
 

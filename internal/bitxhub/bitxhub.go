@@ -2,9 +2,9 @@ package bitxhub
 
 import (
 	"context"
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -18,6 +18,7 @@ import (
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	"github.com/meshplus/premo/internal/repo"
 	"github.com/sirupsen/logrus"
+	"github.com/wcharczuk/go-chart/v2"
 )
 
 var index1 uint64
@@ -46,6 +47,7 @@ type Config struct {
 	KeyPath     string
 	BitxhubAddr []string
 	Appchain    string
+	Graph       bool
 }
 
 func New(config *Config) (*Broker, error) {
@@ -182,9 +184,16 @@ func (broker *Broker) Start(typ string) error {
 			}).Debug("start bee")
 		}(i)
 	}
+	wg.Wait()
 	log.WithFields(logrus.Fields{
 		"number": len(broker.bees),
 	}).Info("start all bees")
+	// 64*3600*24*7/8/1024/1024<= 5MB
+	var x []time.Time
+	var tpsY []float64
+	var latencyY []float64
+	maxTps := 0.0
+	maxLatency := 0.0
 
 	go func() {
 		var (
@@ -208,7 +217,18 @@ func (broker *Broker) Start(typ string) error {
 				d := float64(dly) / float64(time.Millisecond)
 				md := float64(mDly) / float64(time.Millisecond)
 				log.Infof("current tps is %d, average tx delay is %fms, max tx delay is %fms", cnt, d/c, md)
-
+				if c == 0 {
+					continue
+				}
+				x = append(x, time.Now())
+				tpsY = append(tpsY, float64(cnt))
+				if maxTps < float64(cnt) {
+					maxTps = float64(cnt)
+				}
+				latencyY = append(latencyY, d/c)
+				if maxLatency < d/c {
+					maxLatency = d / c
+				}
 				if maxDelay < mDly {
 					maxDelay = mDly
 				}
@@ -229,7 +249,12 @@ func (broker *Broker) Start(typ string) error {
 					cnt++
 					counter++
 
-					txDelay := now - int64(binary.LittleEndian.Uint64(tx.GetExtra()))
+					//extraWrapper := &pb.ExtraWrapper{}
+					//err := extraWrapper.Unmarshal(tx.GetExtra())
+					//if err != nil {
+					//	return
+					//}
+					txDelay := now - tx.(*pb.BxhTransaction).ReceiveTimestamp
 					dly += txDelay
 					delayer += txDelay
 
@@ -261,10 +286,12 @@ func (broker *Broker) Start(typ string) error {
 		return err
 	}
 	log.Infof("the TPS from block %d to %d is %d", begin, end, tps)
-
 	err = broker.client.Stop()
 	if err != nil {
 		return err
+	}
+	if broker.config.Graph {
+		Graph(x, tpsY, latencyY, maxTps, maxLatency)
 	}
 	return nil
 }
@@ -376,4 +403,53 @@ func PrepareTo(client *rpcx.ChainClient, config *Config, adminPk crypto.PrivateK
 		return "", fmt.Errorf("vote server error: %w", err)
 	}
 	return from.String(), nil
+}
+
+func Graph(x []time.Time, tpsY []float64, latencyY []float64, maxTps, maxLatency float64) {
+	graph := chart.Chart{
+		XAxis: chart.XAxis{
+			Name: "Time",
+		},
+		YAxis: chart.YAxis{
+			Range: &chart.ContinuousRange{Min: 0, Max: maxTps},
+		},
+		YAxisSecondary: chart.YAxis{
+			Range: &chart.ContinuousRange{Min: 0, Max: maxLatency},
+		},
+		Series: []chart.Series{
+			chart.TimeSeries{
+				Name:    "TPS",
+				XValues: x,
+				YValues: tpsY,
+				Style: chart.Style{
+					StrokeColor: chart.GetDefaultColor(0).WithAlpha(64),
+					FillColor:   chart.GetDefaultColor(0).WithAlpha(64),
+				},
+			},
+			chart.TimeSeries{
+				Name:    "Latency",
+				XValues: x,
+				YValues: latencyY,
+				YAxis:   chart.YAxisSecondary,
+				Style: chart.Style{
+					StrokeColor: chart.GetDefaultColor(1).WithAlpha(64),
+					FillColor:   chart.GetDefaultColor(1).WithAlpha(64),
+				},
+			},
+			chart.AnnotationSeries{
+				Annotations: []chart.Value2{
+					{XValue: chart.TimeToFloat64(x[len(x)-1]), YValue: tpsY[len(tpsY)-1], Label: "TPS", Style: chart.Style{StrokeColor: chart.ColorBlue}},
+				},
+			},
+			chart.AnnotationSeries{
+				YAxis: chart.YAxisSecondary,
+				Annotations: []chart.Value2{
+					{XValue: chart.TimeToFloat64(x[len(x)-1]), YValue: latencyY[len(latencyY)-1], Label: "Latency", Style: chart.Style{StrokeColor: chart.ColorGreen}},
+				},
+			},
+		},
+	}
+	f, _ := os.Create("graph.png")
+	defer f.Close()
+	graph.Render(chart.PNG, f)
 }
