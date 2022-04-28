@@ -57,6 +57,12 @@ var testCMD = &cli.Command{
 			Usage: "Specify appchain type: fabric, flato, eth",
 			Value: "flato",
 		},
+		&cli.BoolFlag{
+			Name:    "graph",
+			Usage:   "Graph tps and latency",
+			Aliases: []string{"g"},
+			Value:   false,
+		},
 	},
 	Action: benchmark,
 }
@@ -109,6 +115,7 @@ func benchmark(ctx *cli.Context) error {
 		Validator:   string(val),
 		Proof:       proof,
 		Appchain:    typ,
+		Graph:       ctx.Bool("graph"),
 	}
 
 	if config.Concurrent > config.TPS {
