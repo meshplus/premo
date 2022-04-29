@@ -324,12 +324,18 @@ func (bee *bee) genTransferTx(to *types.Address, normalNo uint64) (*pb.BxhTransa
 func (bee *bee) genInterchainTx(i, nonce uint64) *pb.BxhTransaction {
 	atomic.AddInt64(&sender, 1)
 	ibtp := mockIBTP(i, "1356:"+bee.normalFrom.String()+":mychannel&transfer", bee.config.Proof)
-
+	extraWrapper := &pb.ExtraWrapper{
+		Proof: bee.config.Proof,
+	}
+	extra, err := extraWrapper.Marshal()
+	if err != nil {
+		return nil
+	}
 	tx := &pb.BxhTransaction{
 		From:      bee.normalFrom,
 		To:        constant.InterchainContractAddr.Address(),
 		Timestamp: time.Now().UnixNano(),
-		Extra:     bee.config.Proof,
+		Extra:     extra,
 		IBTP:      ibtp,
 		Nonce:     nonce,
 	}

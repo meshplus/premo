@@ -2,7 +2,6 @@ package bitxhub
 
 import (
 	"context"
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -250,7 +249,12 @@ func (broker *Broker) Start(typ string) error {
 					cnt++
 					counter++
 
-					txDelay := now - int64(binary.LittleEndian.Uint64(tx.GetExtra()))
+					extraWrapper := &pb.ExtraWrapper{}
+					err := extraWrapper.Unmarshal(tx.GetExtra())
+					if err != nil {
+						return
+					}
+					txDelay := now - extraWrapper.GetApiTimestamp()
 					dly += txDelay
 					delayer += txDelay
 

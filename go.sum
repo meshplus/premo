@@ -986,6 +986,8 @@ github.com/meshplus/bitxhub-model v1.2.1-0.20211228020023-9ad5546d56ec h1:WKYRFG
 github.com/meshplus/bitxhub-model v1.2.1-0.20211228020023-9ad5546d56ec/go.mod h1:sPko8fD+G3MYOnH/44Ju4T4jD/tlEU3IJDIJ4hjrzxg=
 github.com/meshplus/bitxhub-model v1.2.1-0.20220322064600-b3c51f7ec06e h1:Gwznt5YAPSchVB5mBYBBO3Uq7lgsYJsYNRjHhImYDaM=
 github.com/meshplus/bitxhub-model v1.2.1-0.20220322064600-b3c51f7ec06e/go.mod h1:sPko8fD+G3MYOnH/44Ju4T4jD/tlEU3IJDIJ4hjrzxg=
+github.com/meshplus/bitxhub-model v1.2.1-0.20220429081455-362b3df9a01a h1:Ql/+1mp63UzqBS0EVAfZeLusSKBxssafN0HFh8nWM/4=
+github.com/meshplus/bitxhub-model v1.2.1-0.20220429081455-362b3df9a01a/go.mod h1:sPko8fD+G3MYOnH/44Ju4T4jD/tlEU3IJDIJ4hjrzxg=
 github.com/meshplus/go-bitxhub-client v1.4.1-0.20211228025029-2156610004da h1:IujSLpT1RB2MsHzCejGPU26aaT+1zqYxJDBGV5i+Hpw=
 github.com/meshplus/go-bitxhub-client v1.4.1-0.20211228025029-2156610004da/go.mod h1:6vznr0HA9g+6CVdv5Z7592bjPk80gA8mEiIcY+f9cks=
 github.com/meshplus/go-bitxhub-client v1.4.1-0.20220124095039-ff153afcd850 h1:ZohrSfJXjTWfbTRwT6RIPKvm9mMP9ebCYvKsOxx43M0=
