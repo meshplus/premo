@@ -249,12 +249,12 @@ func (broker *Broker) Start(typ string) error {
 					cnt++
 					counter++
 
-					extraWrapper := &pb.ExtraWrapper{}
-					err := extraWrapper.Unmarshal(tx.GetExtra())
-					if err != nil {
-						return
-					}
-					txDelay := now - extraWrapper.GetApiTimestamp()
+					//extraWrapper := &pb.ExtraWrapper{}
+					//err := extraWrapper.Unmarshal(tx.GetExtra())
+					//if err != nil {
+					//	return
+					//}
+					txDelay := now - tx.(*pb.BxhTransaction).ReceiveTimestamp
 					dly += txDelay
 					delayer += txDelay
 
