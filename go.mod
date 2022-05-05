@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/Rican7/retry v0.3.1
+	github.com/blend/go-sdk v1.20220411.3 // indirect
 	github.com/cheynewallace/tabby v1.1.1
 	github.com/cloudflare/cfssl v1.6.1 // indirect
 	github.com/coreos/etcd v3.3.27+incompatible
@@ -25,7 +26,9 @@ require (
 	github.com/spf13/viper v1.10.1
 	github.com/stretchr/testify v1.7.0
 	github.com/urfave/cli/v2 v2.3.0
+	github.com/wcharczuk/go-chart/v2 v2.1.0
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
+	golang.org/x/image v0.0.0-20220413100746-70e8d0d3baa9 // indirect
 )
 
 replace github.com/golang/protobuf => github.com/golang/protobuf v1.4.0
