@@ -40,6 +40,7 @@ type bee struct {
 	ctx           context.Context
 	config        *Config
 	txs           chan *pb.MultiTransaction
+	ch            chan bool
 }
 
 type RegisterResult struct {
@@ -79,6 +80,7 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, config
 		config:        config,
 		nonce:         nonce,
 		txs:           make(chan *pb.MultiTransaction, 1024),
+		ch:            make(chan bool, 1),
 	}, nil
 }
 
@@ -114,6 +116,8 @@ func (bee *bee) prepareTx(typ string) {
 		select {
 		case <-bee.ctx.Done():
 			return
+		case <-bee.ch:
+			time.Sleep(time.Second * 60)
 		case <-ticker.C:
 			txs := make([]*pb.BxhTransaction, 0)
 			for i := 0; i < bee.tps; i++ {

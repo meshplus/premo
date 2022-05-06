@@ -220,6 +220,17 @@ func (broker *Broker) Start(typ string) error {
 				if c == 0 {
 					continue
 				}
+				if d/c >= 5000.0 {
+					for i := 0; i < len(broker.bees); i++ {
+						broker.bees[i].ch <- true
+					}
+					log.Warnf("current bitxhub node may in view change, sleep 60s")
+					time.Sleep(time.Second * 60)
+					cnt = 0
+					dly = 0
+					mDly = 0
+					continue
+				}
 				x = append(x, time.Now())
 				tpsY = append(tpsY, float64(cnt))
 				if maxTps < float64(cnt) {
