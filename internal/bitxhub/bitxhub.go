@@ -185,6 +185,7 @@ func (broker *Broker) Start(typ string) error {
 			}).Debug("start bee")
 		}(i)
 	}
+	wg.Wait()
 	log.WithFields(logrus.Fields{
 		"number": len(broker.bees),
 	}).Info("start all bees")
@@ -224,8 +225,7 @@ func (broker *Broker) Start(typ string) error {
 					for i := 0; i < len(broker.bees); i++ {
 						broker.bees[i].ch <- true
 					}
-					log.Warnf("current bitxhub node may in view change, sleep 60s")
-					time.Sleep(time.Second * 60)
+					log.Warnf("current bitxhub node may in view change, sleep 30s")
 					cnt = 0
 					dly = 0
 					mDly = 0
@@ -278,7 +278,6 @@ func (broker *Broker) Start(typ string) error {
 	}()
 
 	time.Sleep(time.Duration(broker.config.Duration) * time.Second)
-	wg.Wait()
 
 	_ = broker.Stop(current)
 

@@ -117,7 +117,7 @@ func (bee *bee) prepareTx(typ string) {
 		case <-bee.ctx.Done():
 			return
 		case <-bee.ch:
-			time.Sleep(time.Second * 60)
+			time.Sleep(time.Second * 30)
 		case <-ticker.C:
 			txs := make([]*pb.BxhTransaction, 0)
 			for i := 0; i < bee.tps; i++ {
