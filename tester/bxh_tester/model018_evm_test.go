@@ -2,12 +2,12 @@ package bxh_tester
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/big"
 	"strconv"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/meshplus/bitxhub-model/pb"
@@ -29,9 +29,12 @@ func (suite Model18) Test1801_GetProtocolVersionIsSuccess() {
 
 //tc：获取bitxhub chainID，获取成功
 func (suite Model18) Test1802_GetChainIDIsSuccess() {
-	res, err := suite.client.Call("eth_chainId")
+	resp, err := suite.client.Call("eth_chainId")
 	suite.Require().Nil(err)
-	suite.Require().Equal("0x54c", string(res))
+	var res string
+	err = json.Unmarshal(resp, &res)
+	suite.Require().Nil(err)
+	suite.Require().Equal(hexutil.EncodeUint64(1356), res)
 }
 
 //tc：获取当前节点是否在挖矿，获取成功
@@ -57,9 +60,12 @@ func (suite Model18) Test1805_GetGasPriceIsSuccess() {
 
 //tc：获取gas上限的建议，获取成功
 func (suite Model18) Test1806_GetMaxPriorityFeePerGasIsSuccess() {
-	res, err := suite.client.Call("eth_maxPriorityFeePerGas")
+	resp, err := suite.client.Call("eth_maxPriorityFeePerGas")
 	suite.Require().Nil(err)
-	suite.Require().Equal("0x0", string(res))
+	var res string
+	err = json.Unmarshal(resp, &res)
+	suite.Require().Nil(err)
+	suite.Require().Equal("0x0", res)
 }
 
 //tc：获取当前的区块高度，获取成功
@@ -148,17 +154,16 @@ func (suite Model18) Test1814_GetBlockTransactionCountByNumberWithNoExistHeightI
 func (suite Model18) Test1815_GetCodeIsSuccess() {
 	address, err := suite.DeploySimpleRule()
 	suite.Require().Nil(err)
-	fmt.Println(address)
 	code, err := suite.client.EthGetCode(address, "latest")
 	suite.Require().Nil(err)
-	fmt.Println(code)
+	suite.Require().NotNil(code)
 }
 
-//tc：根据不存在的的合约地址获取合约，获取成功
+//tc：根据不存在的的合约地址获取合约，获取失败
 func (suite Model18) Test1816_GetCodeWithNoExistAddrIsFail() {
 	code, err := suite.client.EthGetCode("0x0000000000000000000000000000000000000000", "latest")
 	suite.Require().Nil(err)
-	fmt.Println(code)
+	suite.Require().Equal("0x", code)
 }
 
 //tc：根据正确的交易hash获取日志，获取成功
@@ -203,7 +208,7 @@ func (suite Model18) Test1819_SendRawTransactionIsSuccess() {
 	signTx, err := types.SignTx(tx, types.NewEIP155Signer(big.NewInt(1356)), privateKey)
 	suite.Require().Nil(err)
 	data, err := signTx.MarshalBinary()
-	rawTx := common.Bytes2Hex(data)
+	rawTx := hexutil.Bytes(data).String()
 
 	hash, err := suite.client.EthSendRawTransaction(rawTx)
 	suite.Require().Nil(err)
@@ -246,7 +251,7 @@ func (suite Model18) Test1820_SendRawTransactionWithEmptyToIsFail() {
 	signTx, err := types.SignTx(tx, types.NewEIP155Signer(big.NewInt(1356)), privateKey)
 	suite.Require().Nil(err)
 	data, err := signTx.MarshalBinary()
-	rawTx := common.Bytes2Hex(data)
+	rawTx := hexutil.Bytes(data).String()
 
 	_, err = suite.client.EthSendRawTransaction(rawTx)
 	suite.Require().NotNil(err)
@@ -276,7 +281,7 @@ func (suite Model18) Test1821_SendRawTransactionWithEmptySignatureIsFail() {
 		Data:     []byte{},
 	})
 	data, err := tx.MarshalBinary()
-	rawTx := common.Bytes2Hex(data)
+	rawTx := hexutil.Bytes(data).String()
 
 	_, err = suite.client.EthSendRawTransaction(rawTx)
 	suite.Require().NotNil(err)
@@ -312,7 +317,7 @@ func (suite Model18) Test1822_SendRawTransactionWithErrorSignatureIsFail() {
 	signTx, err := types.SignTx(tx, types.NewEIP155Signer(big.NewInt(1356)), privateKey)
 	suite.Require().Nil(err)
 	data, err := signTx.MarshalBinary()
-	rawTx := common.Bytes2Hex(data)
+	rawTx := hexutil.Bytes(data).String()
 
 	_, err = suite.client.EthSendRawTransaction(rawTx)
 	suite.Require().NotNil(err)
@@ -348,7 +353,7 @@ func (suite Model18) Test1823_SendRawTransactionWithLessPriceIsFail() {
 	signTx, err := types.SignTx(tx, types.NewEIP155Signer(big.NewInt(1356)), privateKey)
 	suite.Require().Nil(err)
 	data, err := signTx.MarshalBinary()
-	rawTx := common.Bytes2Hex(data)
+	rawTx := hexutil.Bytes(data).String()
 
 	_, err = suite.client.EthSendRawTransaction(rawTx)
 	suite.Require().NotNil(err)
@@ -487,10 +492,11 @@ func (suite Model18) Test1836_GetTransactionByHashIsSuccess() {
 	signTx, err := types.SignTx(tx, types.NewEIP155Signer(big.NewInt(1356)), privateKey)
 	suite.Require().Nil(err)
 	data, err := signTx.MarshalBinary()
-	rawTx := common.Bytes2Hex(data)
+	rawTx := hexutil.Bytes(data).String()
 
 	hash, err := suite.client.EthSendRawTransaction(rawTx)
 	suite.Require().Nil(err)
+	time.Sleep(1 * time.Second)
 	res, err := suite.client.EthGetTransactionByHash(hash)
 	suite.Require().Nil(err)
 	suite.Require().NotNil(res)
@@ -533,10 +539,11 @@ func (suite Model18) Test1838_GetTransactionByBlockHashAndIndexIsSuccess() {
 	signTx, err := types.SignTx(tx, types.NewEIP155Signer(big.NewInt(1356)), privateKey)
 	suite.Require().Nil(err)
 	data, err := signTx.MarshalBinary()
-	rawTx := common.Bytes2Hex(data)
+	rawTx := hexutil.Bytes(data).String()
 
 	hash, err := suite.client.EthSendRawTransaction(rawTx)
 	suite.Require().Nil(err)
+	time.Sleep(1 * time.Second)
 	res1, err := suite.client.EthGetTransactionByHash(hash)
 	suite.Require().Nil(err)
 	res2, err := suite.client.EthGetTransactionByBlockHashAndIndex(res1.BlockHash, *res1.TransactionIndex)
@@ -581,10 +588,11 @@ func (suite Model18) Test1840_GetTransactionByBlockHashAndIndexWithErrorIndexIsF
 	signTx, err := types.SignTx(tx, types.NewEIP155Signer(big.NewInt(1356)), privateKey)
 	suite.Require().Nil(err)
 	data, err := signTx.MarshalBinary()
-	rawTx := common.Bytes2Hex(data)
+	rawTx := hexutil.Bytes(data).String()
 
 	hash, err := suite.client.EthSendRawTransaction(rawTx)
 	suite.Require().Nil(err)
+	time.Sleep(1 * time.Second)
 	res1, err := suite.client.EthGetTransactionByHash(hash)
 	suite.Require().Nil(err)
 	_, err = suite.client.EthGetTransactionByBlockHashAndIndex(res1.BlockHash, 2001)
@@ -628,10 +636,11 @@ func (suite Model18) Test1842_GetTransactionByBlockNumberAndIndexIsSuccess() {
 	signTx, err := types.SignTx(tx, types.NewEIP155Signer(big.NewInt(1356)), privateKey)
 	suite.Require().Nil(err)
 	data, err := signTx.MarshalBinary()
-	rawTx := common.Bytes2Hex(data)
+	rawTx := hexutil.Bytes(data).String()
 
 	hash, err := suite.client.EthSendRawTransaction(rawTx)
 	suite.Require().Nil(err)
+	time.Sleep(1 * time.Second)
 	res1, err := suite.client.EthGetTransactionByHash(hash)
 	suite.Require().Nil(err)
 	res2, err := suite.client.EthGetTransactionByBlockNumberAndIndex(*res1.BlockNumber, *res1.TransactionIndex)
@@ -681,10 +690,11 @@ func (suite Model18) Test1844_GetTransactionByBlockNumberAndIndexWithErrorIndexI
 	signTx, err := types.SignTx(tx, types.NewEIP155Signer(big.NewInt(1356)), privateKey)
 	suite.Require().Nil(err)
 	data, err := signTx.MarshalBinary()
-	rawTx := common.Bytes2Hex(data)
+	rawTx := hexutil.Bytes(data).String()
 
 	hash, err := suite.client.EthSendRawTransaction(rawTx)
 	suite.Require().Nil(err)
+	time.Sleep(1 * time.Second)
 	res1, err := suite.client.EthGetTransactionByHash(hash)
 	suite.Require().Nil(err)
 	_, err = suite.client.EthGetTransactionByBlockNumberAndIndex(*res1.BlockNumber, 2001)
@@ -733,7 +743,7 @@ func (suite Model18) Test1846_GetTransactionReceiptIsSuccess() {
 	signTx, err := types.SignTx(tx, types.NewEIP155Signer(big.NewInt(1356)), privateKey)
 	suite.Require().Nil(err)
 	data, err := signTx.MarshalBinary()
-	rawTx := common.Bytes2Hex(data)
+	rawTx := hexutil.Bytes(data).String()
 
 	hash, err := suite.client.EthSendRawTransaction(rawTx)
 	suite.Require().Nil(err)
