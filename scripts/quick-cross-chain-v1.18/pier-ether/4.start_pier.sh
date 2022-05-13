@@ -1,18 +1,17 @@
 #!/usr/bin/env bash
 set -e
-#set -x
+source ../../x.sh
+source ../config.sh
 CURRENT_PATH=$(pwd)
-PROJECT_PATH=$(dirname "${CURRENT_PATH}")
-source "$PROJECT_PATH"/x.sh
 
 function check_before() {
   print_blue "===> Check pier process after start"
-  process_count=$(ps -ef | grep "pier-ether" | grep -v grep | wc -l)
-  if [ $process_count -eq 0 ]; then
+  process_count=$(ps aux | grep "pier-ether" | grep -v "grep" | wc -l)
+  if [ "$process_count" -eq 0 ]; then
     print_green "No pier-ether running"
   else
     print_red "pier-ether running, kill it"
-    kill -9 $(ps aux | grep "pier-ether" | grep -v grep | awk '{print $2}')
+    ps aux | grep "pier-ether" | grep -v "grep" | awk '{print $2}' | xargs kill -9
   fi
 }
 
@@ -23,9 +22,9 @@ function start() {
 
 function check_after() {
   print_blue "===> Check pier process after start"
-  process_count=$(ps -ef | grep "pier-ether" | grep -v grep | wc -l)
-  if [ $process_count -gt 1 ]; then
-    print_green "Start pier-ether successed"
+  process_count=$(ps aux | grep "pier-ether" | grep -v "grep" | wc -l)
+  if [ "$process_count" -gt 1 ]; then
+    print_green "Start pier-ether successful"
   else
     print_red "Start pier-ether failed"
     exit 2

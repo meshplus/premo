@@ -1,16 +1,12 @@
 #!/usr/bin/env bash
 set -e
-
+source ../x.sh
+source ./config.sh
 CURRENT_PATH=$(pwd)
-source x.sh
 
-check_pier
-cd "$Pier_Project_Path" && make install
+cd "$PIER_PROJECT_PATH" && make install
 cd "$CURRENT_PATH"/pier-flato
 bash 1.generate_flato_config.sh
-sleep 2
 bash 2.init_contracts.sh
-sleep 2
 bash 3.register_appchain_and_service.sh
-sleep 2
 bash 4.start_pier.sh

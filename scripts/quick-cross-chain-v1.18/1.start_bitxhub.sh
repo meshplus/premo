@@ -1,15 +1,12 @@
 #!/usr/bin/env bash
-
 set -e
-
+source ../x.sh
+source ./config.sh
 CURRENT_PATH=$(pwd)
-source x.sh
 
-BitXHub_Type="$(cat x.sh | grep BitXHub_Type | awk -F '\"' {'print $2'})"
-check_bitxhub
-cd "${BitXHub_Project_Path}" && make install
+cd "${BITXHUB_PROJECT_PATH}" && make install
 cd "$CURRENT_PATH"/bitxhub
-if [ "$BitXHub_Type" == solo ]; then
+if [ "$BITXHUB_TYPE" == "solo" ]; then
   bash start_solo.sh
 else
   bash start_raft.sh

@@ -1,17 +1,12 @@
 #!/usr/bin/env bash
-#set -x
 set -e
-
+source ../x.sh
+source ./config.sh
 CURRENT_PATH=$(pwd)
-source x.sh
 
-check_pier
-cd "$Pier_Project_Path" && make install
+cd "$PIER_PROJECT_PATH" && make install
 cd "$CURRENT_PATH"/pier-ether
 bash 1.generate_ether_config.sh
-sleep 1
 bash 2.init_contracts.sh
-sleep 1
 bash 3.register_appchain_and_service.sh
-sleep 1
 bash 4.start_pier.sh
