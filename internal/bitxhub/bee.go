@@ -57,7 +57,7 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, config
 		rpcx.WithNodesInfo(node0),
 		rpcx.WithLogger(log),
 		rpcx.WithPrivateKey(normalPk),
-		rpcx.WithPoolSize(16),
+		rpcx.WithPoolSize(4),
 	)
 	if err != nil {
 		return nil, err
