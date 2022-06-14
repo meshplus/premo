@@ -21,6 +21,12 @@ import (
 	"github.com/wcharczuk/go-chart/v2"
 )
 
+const (
+	loadFactor     = 10
+	ClientPoolSize = 4
+	MaxPoolSize    = 64
+)
+
 var index1 uint64
 var index2 uint64
 var index3 uint64
@@ -57,6 +63,15 @@ type Config struct {
 	Graph       bool
 }
 
+func calculateClientPoolSize(tps int) int {
+	poolSize := tps / loadFactor
+	if poolSize <= ClientPoolSize {
+		poolSize = ClientPoolSize
+	} else if poolSize > MaxPoolSize {
+		poolSize = MaxPoolSize
+	}
+	return poolSize
+}
 func New(config *Config) (*Broker, error) {
 	log.WithFields(logrus.Fields{
 		"concurrent": config.Concurrent,
@@ -75,10 +90,14 @@ func New(config *Config) (*Broker, error) {
 	}
 
 	node0 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[0]}
+
+	poolSize := calculateClientPoolSize(config.TPS)
+
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(node0),
 		rpcx.WithLogger(log),
 		rpcx.WithPrivateKey(adminPk),
+		rpcx.WithPoolSize(poolSize),
 	)
 	if err != nil {
 		return nil, err
@@ -128,6 +147,7 @@ func New(config *Config) (*Broker, error) {
 	}
 	To = to
 
+	var lock sync.Mutex
 	bees := make([]*bee, 0, config.Concurrent)
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg sync.WaitGroup
@@ -135,7 +155,7 @@ func New(config *Config) (*Broker, error) {
 	for i := 0; i < config.Concurrent; i++ {
 		go func() {
 			defer wg.Done()
-			bee, err := NewBee(config.TPS/config.Concurrent, adminPk, adminFrom, config, ctx)
+			bee, err := NewBee(config.TPS/config.Concurrent, adminPk, adminFrom, config)
 			if err != nil {
 				log.Error("New bee: ", err.Error())
 				return
@@ -146,8 +166,9 @@ func New(config *Config) (*Broker, error) {
 					return
 				}
 			}
-
+			lock.Lock()
 			bees = append(bees, bee)
+			lock.Unlock()
 		}()
 	}
 
@@ -202,11 +223,18 @@ func (b *Broker) Start() error {
 	go b.listenBlock()
 
 	time.Sleep(100 * time.Millisecond)
+	ticker := time.NewTicker(time.Duration(b.config.Duration) * time.Second)
 	select {
 	case <-b.ctx.Done():
 		if time.Since(current) < time.Duration(b.config.Duration) {
+			err = b.client.Stop()
+			if err != nil {
+				return err
+			}
 			return nil
 		}
+		return nil
+	case <-ticker.C:
 		err = b.calTps(current, meta0)
 		if err != nil {
 			return err
@@ -313,7 +341,7 @@ func (b *Broker) calTps(current time.Time, meta0 *pb.ChainMeta) error {
 func (b *Broker) Stop(current time.Time) error {
 	// prevent stop function is repeatedly called
 	b.lock.Lock()
-	b.cancel()
+	defer b.cancel()
 	// wait for goroutines inside bees to stop
 	time.Sleep(1 * time.Second)
 

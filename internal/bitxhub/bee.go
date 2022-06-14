@@ -38,6 +38,7 @@ type bee struct {
 	count         uint64
 	nonce         uint64
 	ctx           context.Context
+	cancel        context.CancelFunc
 	config        *Config
 	txs           chan *pb.MultiTransaction
 }
@@ -47,18 +48,19 @@ type RegisterResult struct {
 	ProposalID string `json:"proposal_id"`
 }
 
-func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, config *Config, ctx context.Context) (*bee, error) {
+func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, config *Config) (*bee, error) {
 	normalPk, normalFrom, err := repo.KeyPriv()
 	if err != nil {
 		return nil, err
 	}
 	node0 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[0]}
-	client, err := rpcx.NewWithNoGlobalPool(
+
+	client, err := rpcx.New(
 		rpcx.WithNodesInfo(node0),
 		rpcx.WithLogger(log),
 		rpcx.WithPrivateKey(normalPk),
-		rpcx.WithPoolSize(16),
 	)
+
 	if err != nil {
 		return nil, err
 	}
@@ -70,12 +72,15 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, config
 	if err != nil {
 		return nil, err
 	}
+
+	ctx, cancel := context.WithCancel(context.Background())
 	return &bee{
 		client:        client,
 		normalPrivKey: normalPk,
 		normalFrom:    normalFrom,
 		tps:           tps,
 		ctx:           ctx,
+		cancel:        cancel,
 		config:        config,
 		nonce:         nonce,
 		txs:           make(chan *pb.MultiTransaction, 1024),
@@ -164,10 +169,7 @@ func (bee *bee) genTx(typ string, nonce, count uint64) (*pb.BxhTransaction, erro
 }
 
 func (bee *bee) stop() error {
-	err := bee.client.Stop()
-	if err != nil {
-		return err
-	}
+	bee.cancel()
 	return nil
 }
 
@@ -375,7 +377,7 @@ func mockIBTP(index uint64, from string, proof []byte) *pb.IBTP {
 		Payload:       ibtppd,
 		Index:         index,
 		Type:          pb.IBTP_INTERCHAIN,
-		TimeoutHeight: 10,
+		TimeoutHeight: 1000000,
 		Proof:         proofHash[:],
 	}
 }
