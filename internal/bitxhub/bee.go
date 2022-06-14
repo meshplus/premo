@@ -82,7 +82,7 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, config
 	}, nil
 }
 
-func (bee *bee) start(typ string) error {
+func (bee *bee) start() error {
 	go bee.prepareTx(bee.config.Type)
 	for {
 		select {

@@ -129,7 +129,7 @@ func benchmark(ctx *cli.Context) error {
 
 	handleShutdown(broker)
 
-	err = broker.Start(config.Type)
+	err = broker.Start()
 	if err != nil {
 		return err
 	}
