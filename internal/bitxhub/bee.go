@@ -82,6 +82,7 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, config
 		ctx:           ctx,
 		cancel:        cancel,
 		config:        config,
+		count:         1,
 		nonce:         nonce,
 		txs:           make(chan *pb.MultiTransaction, 1024),
 	}, nil
@@ -126,7 +127,6 @@ func (bee *bee) prepareTx(typ string) {
 				if typ == "interchain" {
 					count = atomic.AddUint64(&bee.count, 1) - 1
 				}
-
 				tx, err := bee.genTx(typ, nonce, count)
 				if err != nil {
 					panic(err)
@@ -371,6 +371,8 @@ func prepareInterchainTx() {
 
 func mockIBTP(index uint64, from string, proof []byte) *pb.IBTP {
 	proofHash := sha256.Sum256(proof)
+	log.Infof("ibtp index is %d", index)
+
 	return &pb.IBTP{
 		From:          from,
 		To:            "1356:" + To + ":mychannel&transfer",
