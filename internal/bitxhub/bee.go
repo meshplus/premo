@@ -82,6 +82,7 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, config
 		ctx:           ctx,
 		cancel:        cancel,
 		config:        config,
+		count:         1,
 		nonce:         nonce,
 		txs:           make(chan *pb.MultiTransaction, 1024),
 	}, nil
