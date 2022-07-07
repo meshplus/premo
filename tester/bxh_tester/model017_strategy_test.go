@@ -19,6 +19,7 @@ import (
 type Model17 struct {
 	*Snake
 }
+
 type ProposalStrategy struct {
 	Module string                      `json:"module"`
 	Typ    string                      `json:"typ"`

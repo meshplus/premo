@@ -369,7 +369,11 @@ func (b *Broker) Stop(current time.Time) error {
 func PrepareTo(client *rpcx.ChainClient, config *Config, adminPk crypto.PrivateKey, adminFrom *types.Address) (string, error) {
 	pk, from, err := repo.KeyPriv()
 	if err != nil {
-		log.Error(err)
+		return "", err
+	}
+	bytes, err := pk.PublicKey().Bytes()
+	if err != nil {
+		return "", err
 	}
 	err = TransferFromAdmin(client, adminPk, adminFrom, from, "100")
 	if err != nil {
@@ -378,6 +382,7 @@ func PrepareTo(client *rpcx.ChainClient, config *Config, adminPk crypto.PrivateK
 	args := []*pb.Arg{
 		rpcx.String(from.String()),                                //chainID
 		rpcx.String(from.String()),                                //chainName
+		rpcx.Bytes(bytes),                                         //pubKey
 		rpcx.String("Flato v1.0.3"),                               //chainType
 		rpcx.Bytes([]byte("")),                                    //trustRoot
 		rpcx.String("0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"), //broker
