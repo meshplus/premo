@@ -8,8 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/wcharczuk/go-chart/v2"
-
 	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
 	"github.com/meshplus/bitxhub-core/governance"
 	"github.com/meshplus/bitxhub-kit/crypto"
@@ -20,6 +18,13 @@ import (
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	"github.com/meshplus/premo/internal/repo"
 	"github.com/sirupsen/logrus"
+	"github.com/wcharczuk/go-chart/v2"
+)
+
+const (
+	loadFactor     = 10
+	ClientPoolSize = 4
+	MaxPoolSize    = 64
 )
 
 var index1 uint64
@@ -37,6 +42,12 @@ type Broker struct {
 	ctx        context.Context
 	cancel     context.CancelFunc
 	lock       sync.Mutex
+
+	x          []time.Time
+	tpsY       []float64
+	latencyY   []float64
+	maxTps     float64
+	maxLatency float64
 }
 
 type Config struct {
@@ -52,6 +63,15 @@ type Config struct {
 	Graph       bool
 }
 
+func calculateClientPoolSize(tps int) int {
+	poolSize := tps / loadFactor
+	if poolSize <= ClientPoolSize {
+		poolSize = ClientPoolSize
+	} else if poolSize > MaxPoolSize {
+		poolSize = MaxPoolSize
+	}
+	return poolSize
+}
 func New(config *Config) (*Broker, error) {
 	log.WithFields(logrus.Fields{
 		"concurrent": config.Concurrent,
@@ -70,10 +90,14 @@ func New(config *Config) (*Broker, error) {
 	}
 
 	node0 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[0]}
+
+	poolSize := calculateClientPoolSize(config.TPS)
+
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(node0),
 		rpcx.WithLogger(log),
 		rpcx.WithPrivateKey(adminPk),
+		rpcx.WithPoolSize(poolSize),
 	)
 	if err != nil {
 		return nil, err
@@ -123,6 +147,7 @@ func New(config *Config) (*Broker, error) {
 	}
 	To = to
 
+	var lock sync.Mutex
 	bees := make([]*bee, 0, config.Concurrent)
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg sync.WaitGroup
@@ -130,7 +155,7 @@ func New(config *Config) (*Broker, error) {
 	for i := 0; i < config.Concurrent; i++ {
 		go func() {
 			defer wg.Done()
-			bee, err := NewBee(config.TPS/config.Concurrent, adminPk, adminFrom, config, ctx)
+			bee, err := NewBee(config.TPS/config.Concurrent, adminPk, adminFrom, config)
 			if err != nil {
 				log.Error("New bee: ", err.Error())
 				return
@@ -141,8 +166,9 @@ func New(config *Config) (*Broker, error) {
 					return
 				}
 			}
-
+			lock.Lock()
 			bees = append(bees, bee)
+			lock.Unlock()
 		}()
 	}
 
@@ -161,22 +187,23 @@ func New(config *Config) (*Broker, error) {
 	}, nil
 }
 
-func (broker *Broker) Start(typ string) error {
+func (b *Broker) Start() error {
 	log.Info("starting broker")
 	var wg sync.WaitGroup
-	wg.Add(len(broker.bees))
+	wg.Add(len(b.bees))
 
 	current := time.Now()
 
-	meta0, err := broker.client.GetChainMeta()
+	meta0, err := b.client.GetChainMeta()
 	if err != nil {
 		return err
 	}
 
-	for i := 0; i < len(broker.bees); i++ {
+	// start all bees
+	for i := 0; i < len(b.bees); i++ {
 		go func(i int) {
 			wg.Done()
-			err := broker.bees[i].start(typ)
+			err := b.bees[i].start()
 			if err != nil {
 				log.Error(err)
 				return
@@ -186,88 +213,107 @@ func (broker *Broker) Start(typ string) error {
 			}).Debug("start bee")
 		}(i)
 	}
+	wg.Wait()
 	log.WithFields(logrus.Fields{
-		"number": len(broker.bees),
+		"number": len(b.bees),
 	}).Info("start all bees")
 	// 64*3600*24*7/8/1024/1024<= 5MB
-	var x []time.Time
-	var tpsY []float64
-	var latencyY []float64
-	maxTps := 0.0
-	maxLatency := 0.0
 
-	go func() {
-		var (
-			cnt  = int64(0)
-			dly  = int64(0)
-			mDly = int64(0)
-		)
-		ch, err := broker.client.Subscribe(context.TODO(), pb.SubscriptionRequest_BLOCK, nil)
-		if err != nil {
-			log.WithField("error", err).Error("subscribe block")
-			return
+	// listen from bitxhub block
+	go b.listenBlock()
+
+	time.Sleep(100 * time.Millisecond)
+	ticker := time.NewTicker(time.Duration(b.config.Duration) * time.Second)
+	select {
+	case <-b.ctx.Done():
+		if time.Since(current) < time.Duration(b.config.Duration) {
+			err = b.client.Stop()
+			if err != nil {
+				return err
+			}
+			return nil
 		}
-		ticker := time.NewTicker(time.Second)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-broker.ctx.Done():
+		return nil
+	case <-ticker.C:
+		err = b.calTps(current, meta0)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (b *Broker) listenBlock() {
+	var (
+		cnt  = int64(0)
+		dly  = int64(0)
+		mDly = int64(0)
+	)
+	ch, err := b.client.Subscribe(context.TODO(), pb.SubscriptionRequest_BLOCK, nil)
+	if err != nil {
+		log.WithField("error", err).Error("subscribe block")
+		return
+	}
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-b.ctx.Done():
+			return
+		case <-ticker.C:
+			c := float64(cnt)
+			d := float64(dly) / float64(time.Millisecond)
+			md := float64(mDly) / float64(time.Millisecond)
+			log.Infof("current tps is %d, average tx delay is %fms, max tx delay is %fms", cnt, d/c, md)
+			if c == 0 {
+				continue
+			}
+			b.x = append(b.x, time.Now())
+			b.tpsY = append(b.tpsY, float64(cnt))
+			if b.maxTps < float64(cnt) {
+				b.maxTps = float64(cnt)
+			}
+			b.latencyY = append(b.latencyY, d/c)
+			if b.maxLatency < d/c {
+				b.maxLatency = d / c
+			}
+			if maxDelay < mDly {
+				maxDelay = mDly
+			}
+
+			cnt = 0
+			dly = 0
+			mDly = 0
+
+		case data, ok := <-ch:
+			if !ok {
+				log.Warn("block subscription channel is closed")
 				return
-			case <-ticker.C:
-				c := float64(cnt)
-				d := float64(dly) / float64(time.Millisecond)
-				md := float64(mDly) / float64(time.Millisecond)
-				log.Infof("current tps is %d, average tx delay is %fms, max tx delay is %fms", cnt, d/c, md)
-				if c == 0 {
-					continue
-				}
-				x = append(x, time.Now())
-				tpsY = append(tpsY, float64(cnt))
-				if maxTps < float64(cnt) {
-					maxTps = float64(cnt)
-				}
-				latencyY = append(latencyY, d/c)
-				if maxLatency < d/c {
-					maxLatency = d / c
-				}
-				if maxDelay < mDly {
-					maxDelay = mDly
-				}
+			}
 
-				cnt = 0
-				dly = 0
-				mDly = 0
+			block := data.(*pb.Block)
+			now := time.Now().UnixNano()
+			for _, tx := range block.Transactions.Transactions {
+				cnt++
+				counter++
 
-			case data, ok := <-ch:
-				if !ok {
-					log.Warn("block subscription channel is closed")
-					return
-				}
+				txDelay := now - tx.GetTimeStamp()
+				dly += txDelay
+				delayer += txDelay
 
-				block := data.(*pb.Block)
-				now := time.Now().UnixNano()
-				for _, tx := range block.Transactions.Transactions {
-					cnt++
-					counter++
-
-					txDelay := now - tx.GetTimeStamp()
-					dly += txDelay
-					delayer += txDelay
-
-					if mDly < txDelay {
-						mDly = txDelay
-					}
+				if mDly < txDelay {
+					mDly = txDelay
 				}
 			}
 		}
-	}()
+	}
+}
 
-	time.Sleep(time.Duration(broker.config.Duration) * time.Second)
-	wg.Wait()
+func (b *Broker) calTps(current time.Time, meta0 *pb.ChainMeta) error {
+	_ = b.Stop(current)
 
-	_ = broker.Stop(current)
-
-	meta1, err := broker.client.GetChainMeta()
+	meta1, err := b.client.GetChainMeta()
 	if err != nil {
 		return err
 	}
@@ -277,36 +323,36 @@ func (broker *Broker) Start(typ string) error {
 	skip := (meta1.Height - meta0.Height) / 8
 	begin := meta0.Height + skip
 	end := meta1.Height - skip
-	tps, err := broker.client.GetTPS(begin, end)
+	tps, err := b.client.GetTPS(begin, end)
 	if err != nil {
 		return err
 	}
 	log.Infof("the TPS from block %d to %d is %d", begin, end, tps)
-	err = broker.client.Stop()
+	err = b.client.Stop()
 	if err != nil {
 		return err
 	}
-	if broker.config.Graph {
-		Graph(x, tpsY, latencyY, maxTps, maxLatency)
+	if b.config.Graph {
+		Graph(b.x, b.tpsY, b.latencyY, b.maxTps, b.maxLatency)
 	}
 	return nil
 }
 
-func (broker *Broker) Stop(current time.Time) error {
+func (b *Broker) Stop(current time.Time) error {
 	// prevent stop function is repeatedly called
-	broker.lock.Lock()
-	broker.cancel()
+	b.lock.Lock()
+	defer b.cancel()
 	// wait for goroutines inside bees to stop
-	time.Sleep(10 * time.Second)
+	time.Sleep(1 * time.Second)
 
 	log.Info("Bees are quiting, please wait...")
-	for i := 0; i < len(broker.bees); i++ {
-		err := broker.bees[i].stop()
+	for i := 0; i < len(b.bees); i++ {
+		err := b.bees[i].stop()
 		if err != nil {
 			return err
 		}
 	}
-	//err := broker.client.Stop()
+	//err := b.client.Stop()
 	//if err != nil {
 	//	log.Warn(err)
 	//}
