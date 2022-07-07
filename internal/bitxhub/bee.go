@@ -230,9 +230,14 @@ func (bee *bee) prepareChain(typ, desc string) error {
 		atomic.AddUint64(&bee.nonce, 1)
 		address = addr.String()
 	}
+	bytes, err := bee.normalPrivKey.PublicKey().Bytes()
+	if err != nil {
+		return err
+	}
 	args := []*pb.Arg{
 		rpcx.String(bee.normalFrom.String()),     //chainID
 		rpcx.String(bee.normalFrom.String()),     //chainName
+		rpcx.Bytes(bytes),                        //pubKey
 		rpcx.String(typ),                         //chainType
 		rpcx.Bytes([]byte(bee.config.Validator)), //trustRoot
 		rpcx.String(broker),                      //broker

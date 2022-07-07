@@ -864,10 +864,13 @@ func (suite Snake) GetRoleStatus(id string) (governance.GovernanceStatus, error)
 func (suite Snake) GetProposal() string {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
 		rpcx.String(from),           //chainID
 		rpcx.String(from),           //chainName
+		rpcx.Bytes(bytes),           //pubKey
 		rpcx.String("Flato V1.0.3"), //chainType
 		rpcx.Bytes([]byte("")),      //trustRoot
 		rpcx.String("0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"), //broker

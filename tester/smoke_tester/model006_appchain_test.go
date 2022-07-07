@@ -46,44 +46,55 @@ func (suite Model6) Test0602_RegisterAppchainWithFreeNameIsSuccess() {
 func (suite Model6) Test0603_RegisterAppchainWithFreeAdminIsSuccess() {
 	pk1, from1, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	pk2, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	_, from2, _, err := suite.DeployRule()
 	suite.Require().Nil(err)
-	from2, err := pk2.PublicKey().Address()
+	bytes, err := pk1.PublicKey().Bytes()
 	suite.Require().Nil(err)
-	client := suite.NewClient(pk1)
 	args := []*pb.Arg{
-		rpcx.String(from1),
+		rpcx.String(from1),          //chainId
 		rpcx.String(from1),          //chainName
-		rpcx.String("Flato V1.0.3"), //chainType
-		rpcx.Bytes([]byte("")),      //trustRoot
-		rpcx.String("0x857133ce6Ce66F7AD46F200B9B3573e77582"), //broker
-		rpcx.String("desc"),                       //desc
-		rpcx.String(address1),                     //masterRuleAddr
-		rpcx.String("https://github.com"),         //masterRuleUrl
-		rpcx.String(from1 + "," + from2.String()), //adminAddrs
-		rpcx.String("reason"),                     //reason
-	}
-	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "RegisterAppchain", nil, args...)
-	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
-	pk3, from3, address3, err := suite.DeployRule()
-	suite.Require().Nil(err)
-	client = suite.NewClient(pk3)
-	args = []*pb.Arg{
-		rpcx.String(from3),
-		rpcx.String(from3),          //chainName
+		rpcx.Bytes(bytes),           //pubKey
 		rpcx.String("Flato V1.0.3"), //chainType
 		rpcx.Bytes([]byte("")),      //trustRoot
 		rpcx.String("0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"), //broker
-		rpcx.String("desc"),                       //desc
-		rpcx.String(address3),                     //masterRuleAddr
-		rpcx.String("https://github.com"),         //masterRuleUrl
-		rpcx.String(from3 + "," + from2.String()), //adminAddrs
-		rpcx.String("reason"),                     //reason
+		rpcx.String("desc"),               //desc
+		rpcx.String(address1),             //masterRuleAddr
+		rpcx.String("https://github.com"), //masterRuleUrl
+		rpcx.String(from1 + "," + from2),  //adminAddrs
+		rpcx.String("reason"),             //reason
+	}
+	client := suite.NewClient(pk1)
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "RegisterAppchain", nil, args...)
+	suite.Require().Nil(err)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	suite.Require().Nil(err)
+	err = suite.VotePass(result.ProposalID)
+	suite.Require().Nil(err)
+	err = suite.UpdateAppchain(pk1, from1, from1, "desc", []byte(""), from1)
+	suite.Require().Nil(err)
+	pk3, from3, address3, err := suite.DeployRule()
+	suite.Require().Nil(err)
+	bytes, err = pk3.PublicKey().Bytes()
+	suite.Require().Nil(err)
+	client = suite.NewClient(pk3)
+	args = []*pb.Arg{
+		rpcx.String(from3),          //chainId
+		rpcx.String(from3),          //chainName
+		rpcx.Bytes(bytes),           //pubKey
+		rpcx.String("Flato V1.0.3"), //chainType
+		rpcx.Bytes([]byte("")),      //trustRoot
+		rpcx.String("0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"), //broker
+		rpcx.String("desc"),               //desc
+		rpcx.String(address3),             //masterRuleAddr
+		rpcx.String("https://github.com"), //masterRuleUrl
+		rpcx.String(from2 + "," + from3),  //adminAddrs
+		rpcx.String("reason"),             //reason
 	}
 	res, err = client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "RegisterAppchain", nil, args...)
 	suite.Require().Nil(err)
-	suite.Require().Equal(pb.Receipt_FAILED, res.Status)
+	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 }
 
 //tc：通过正确的参数更新应用链，应用链更新成功
@@ -116,14 +127,17 @@ func (suite Model6) Test0605_UpdateAppchainWithFreeNameIsSuccess() {
 func (suite Model6) Test0606_UpdateAppchainWithFreeAdminIsSuccess() {
 	pk1, from1, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
+	bytes, err := pk1.PublicKey().Bytes()
+	suite.Require().Nil(err)
 	pk2, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	from2, err := pk2.PublicKey().Address()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk1)
 	args := []*pb.Arg{
-		rpcx.String(from1),
+		rpcx.String(from1),          //chainId
 		rpcx.String(from1),          //chainName
+		rpcx.Bytes(bytes),           //pubKey
 		rpcx.String("Flato V1.0.3"), //chainType
 		rpcx.Bytes([]byte("")),      //trustRoot
 		rpcx.String("0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"), //broker
@@ -377,9 +391,14 @@ func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, name, address string)
 	if err != nil {
 		return err
 	}
+	bytes, err := pk.PublicKey().Bytes()
+	if err != nil {
+		return err
+	}
 	args := []*pb.Arg{
 		rpcx.String(from.String()),  //chainID
 		rpcx.String(name),           //chainName
+		rpcx.Bytes(bytes),           //pubKey
 		rpcx.String("Flato V1.0.3"), //chainType
 		rpcx.Bytes([]byte("")),      //trustRoot
 		rpcx.String("0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"), //broker
@@ -415,9 +434,14 @@ func (suite Snake) RegisterAppchainWithType(pk crypto.PrivateKey, typ, address, 
 	if err != nil {
 		return err
 	}
+	bytes, err := pk.PublicKey().Bytes()
+	if err != nil {
+		return err
+	}
 	args := []*pb.Arg{
 		rpcx.String(from.String()),        //chainID
 		rpcx.String(from.String()),        //chainName
+		rpcx.Bytes(bytes),                 //pubKey
 		rpcx.String(typ),                  //chainType
 		rpcx.Bytes([]byte("")),            //trustRoot
 		rpcx.String(broker),               //broker
