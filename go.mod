@@ -4,7 +4,6 @@ go 1.15
 
 require (
 	github.com/Rican7/retry v0.3.1
-	github.com/blend/go-sdk v1.20220411.3 // indirect
 	github.com/cheynewallace/tabby v1.1.1
 	github.com/cloudflare/cfssl v1.6.1 // indirect
 	github.com/coreos/etcd v3.3.27+incompatible
@@ -16,10 +15,10 @@ require (
 	github.com/jiuhuche120/spin v0.0.0-20220224085816-ab11eb007ff8
 	github.com/libp2p/go-libp2p-core v0.6.1
 	github.com/looplab/fsm v0.3.0
-	github.com/meshplus/bitxhub-core v1.3.1-0.20211019055819-2e20288cafa4
-	github.com/meshplus/bitxhub-kit v1.2.1-0.20210902085548-07f4fa85bfc9
-	github.com/meshplus/bitxhub-model v1.2.1-0.20220322064600-b3c51f7ec06e
-	github.com/meshplus/go-bitxhub-client v1.4.1-0.20220401111444-7a5263c4087f
+	github.com/meshplus/bitxhub-core v1.3.1-0.20220701090824-788a823e6049
+	github.com/meshplus/bitxhub-kit v1.2.1-0.20220610092251-68e35ef37b7a
+	github.com/meshplus/bitxhub-model v1.2.1-0.20220712083007-dde80b7c4a84
+	github.com/meshplus/go-bitxhub-client v1.4.1-0.20220719031106-9a0498f18141
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/sirupsen/logrus v1.8.1
