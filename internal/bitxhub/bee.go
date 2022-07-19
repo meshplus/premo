@@ -376,7 +376,6 @@ func prepareInterchainTx() {
 
 func mockIBTP(index uint64, from string, proof []byte) *pb.IBTP {
 	proofHash := sha256.Sum256(proof)
-	log.Infof("ibtp index is %d", index)
 
 	return &pb.IBTP{
 		From:          from,
