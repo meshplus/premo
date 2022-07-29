@@ -25,6 +25,7 @@ const (
 	loadFactor     = 10
 	ClientPoolSize = 4
 	MaxPoolSize    = 64
+	MaxBlockSize   = 2048
 )
 
 var index1 uint64
@@ -323,11 +324,34 @@ func (b *Broker) calTps(current time.Time, meta0 *pb.ChainMeta) error {
 	skip := (meta1.Height - meta0.Height) / 8
 	begin := meta0.Height + skip
 	end := meta1.Height - skip
-	tps, err := b.client.GetTPS(begin, end)
-	if err != nil {
-		return err
+
+	var (
+		tps      uint64
+		totalTps uint64
+		count    uint64
+		tmpBegin = begin
+	)
+
+	for tmpBegin < end {
+		if end-tmpBegin > MaxBlockSize {
+			tps, err = b.client.GetTPS(tmpBegin, tmpBegin+MaxBlockSize)
+			if err != nil {
+				return err
+			}
+			log.Infof("the TPS from block %d to %d is %d", tmpBegin, tmpBegin+MaxBlockSize, tps)
+		} else {
+			tps, err = b.client.GetTPS(tmpBegin, end)
+			if err != nil {
+				return err
+			}
+			log.Infof("the TPS from block %d to %d is %d", tmpBegin, end, tps)
+		}
+		totalTps += tps
+		count++
+		tmpBegin = tmpBegin + MaxBlockSize
 	}
-	log.Infof("the TPS from block %d to %d is %d", begin, end, tps)
+
+	log.Infof("the total TPS from block %d to %d is %d", begin, end, totalTps/count)
 	err = b.client.Stop()
 	if err != nil {
 		return err
