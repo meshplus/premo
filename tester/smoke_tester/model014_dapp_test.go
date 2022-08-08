@@ -47,7 +47,7 @@ func (suite *Model14) SetupTest() {
 }
 
 //tc：根据存在的合约地址注册dapp，dapp注册成功
-func (suite Model14) Test1401_RegisterDappIsSuccess() {
+func (suite *Model14) Test1401_RegisterDappIsSuccess() {
 	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -56,7 +56,7 @@ func (suite Model14) Test1401_RegisterDappIsSuccess() {
 }
 
 //tc：根据存在的合约地址更新dapp，dapp更新成功
-func (suite Model14) Test1402_UpdateDappIsSuccess() {
+func (suite *Model14) Test1402_UpdateDappIsSuccess() {
 	address1 := suite.DeployLedgerContract()
 	address2 := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
@@ -72,7 +72,7 @@ func (suite Model14) Test1402_UpdateDappIsSuccess() {
 }
 
 //tc：根据存在的合约地址冻结dapp，dapp冻结成功
-func (suite Model14) Test1403_FreezeDappIsSuccess() {
+func (suite *Model14) Test1403_FreezeDappIsSuccess() {
 	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -83,7 +83,7 @@ func (suite Model14) Test1403_FreezeDappIsSuccess() {
 }
 
 //tc：根据存在的合约地址激活dapp，dapp激活成功
-func (suite Model14) Test1404_ActivateDappIsSuccess() {
+func (suite *Model14) Test1404_ActivateDappIsSuccess() {
 	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -98,7 +98,7 @@ func (suite Model14) Test1404_ActivateDappIsSuccess() {
 }
 
 //tc：根据存在的合约地址转让dapp，dapp转让成功
-func (suite Model14) Test1405_TransferDappIsSuccess() {
+func (suite *Model14) Test1405_TransferDappIsSuccess() {
 	address := suite.DeployLedgerContract()
 	pk1, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -113,7 +113,7 @@ func (suite Model14) Test1405_TransferDappIsSuccess() {
 }
 
 //tc：评价存在dapp，dapp评价成功
-func (suite Model14) Test1406_EvaluateDappIsSuccess() {
+func (suite *Model14) Test1406_EvaluateDappIsSuccess() {
 	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -124,7 +124,7 @@ func (suite Model14) Test1406_EvaluateDappIsSuccess() {
 }
 
 // RegisterDapp register dapp
-func (suite Snake) RegisterDapp(pk crypto.PrivateKey, conAddrs string) error {
+func (suite *Snake) RegisterDapp(pk crypto.PrivateKey, conAddrs string) error {
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
 		rpcx.String(conAddrs),
@@ -155,7 +155,7 @@ func (suite Snake) RegisterDapp(pk crypto.PrivateKey, conAddrs string) error {
 }
 
 // UpdateDapp update dapp
-func (suite Model14) UpdateDapp(pk crypto.PrivateKey, conAddrs string) error {
+func (suite *Model14) UpdateDapp(pk crypto.PrivateKey, conAddrs string) error {
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
 		rpcx.String(suite.MockDappID(pk)),
@@ -186,7 +186,7 @@ func (suite Model14) UpdateDapp(pk crypto.PrivateKey, conAddrs string) error {
 }
 
 // FreezeDapp freeze dapp
-func (suite Model14) FreezeDapp(pk crypto.PrivateKey) error {
+func (suite *Model14) FreezeDapp(pk crypto.PrivateKey) error {
 	node1pk, from, err := repo.Node1Priv()
 	if err != nil {
 		return err
@@ -215,7 +215,7 @@ func (suite Model14) FreezeDapp(pk crypto.PrivateKey) error {
 }
 
 // ActivateDapp activate dapp
-func (suite Model14) ActivateDapp(pk crypto.PrivateKey) error {
+func (suite *Model14) ActivateDapp(pk crypto.PrivateKey) error {
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.DappMgrContractAddr.Address(), "ActivateDapp", nil, rpcx.String(suite.MockDappID(pk)), rpcx.String("reason"))
 	if err != nil {
@@ -237,7 +237,7 @@ func (suite Model14) ActivateDapp(pk crypto.PrivateKey) error {
 }
 
 // TransferDapp transfer dapp from pk1 to pk2
-func (suite Model14) TransferDapp(pk1, pk2 crypto.PrivateKey) error {
+func (suite *Model14) TransferDapp(pk1, pk2 crypto.PrivateKey) error {
 	client := suite.NewClient(pk1)
 	address, err := pk2.PublicKey().Address()
 	if err != nil {
@@ -268,7 +268,7 @@ func (suite Model14) TransferDapp(pk1, pk2 crypto.PrivateKey) error {
 }
 
 // ConfirmTransfer confirm transfer dapp
-func (suite Model14) ConfirmTransfer(pk1, pk2 crypto.PrivateKey) error {
+func (suite *Model14) ConfirmTransfer(pk1, pk2 crypto.PrivateKey) error {
 	client := suite.NewClient(pk2)
 	res, err := client.InvokeBVMContract(constant.DappMgrContractAddr.Address(), "ConfirmTransfer", nil, rpcx.String(suite.MockDappID(pk1)))
 	if err != nil {
@@ -281,7 +281,7 @@ func (suite Model14) ConfirmTransfer(pk1, pk2 crypto.PrivateKey) error {
 }
 
 // EvaluateDapp evaluate dapp [0-5]
-func (suite Model14) EvaluateDapp(pk crypto.PrivateKey, id, desc string, score float64) error {
+func (suite *Model14) EvaluateDapp(pk crypto.PrivateKey, id, desc string, score float64) error {
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.DappMgrContractAddr.Address(), "EvaluateDapp", nil,
 		rpcx.String(id), rpcx.String(desc), rpcx.Float64(score))
@@ -295,7 +295,7 @@ func (suite Model14) EvaluateDapp(pk crypto.PrivateKey, id, desc string, score f
 }
 
 // CheckDappStatus check dapp status
-func (suite Snake) CheckDappStatus(id string, status governance.GovernanceStatus) error {
+func (suite *Snake) CheckDappStatus(id string, status governance.GovernanceStatus) error {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	if err != nil {
 		return err
@@ -320,13 +320,13 @@ func (suite Snake) CheckDappStatus(id string, status governance.GovernanceStatus
 }
 
 // MockDappID mock first dapp ID
-func (suite Snake) MockDappID(pk crypto.PrivateKey) string {
+func (suite *Snake) MockDappID(pk crypto.PrivateKey) string {
 	address, _ := pk.PublicKey().Address()
 	return address.String() + "-0"
 }
 
 // DappToAvailable get an available dapp
-func (suite Model14) DappToAvailable(pk crypto.PrivateKey, address string) error {
+func (suite *Model14) DappToAvailable(pk crypto.PrivateKey, address string) error {
 	err := suite.RegisterDapp(pk, address)
 	if err != nil {
 		return err
@@ -339,7 +339,7 @@ func (suite Model14) DappToAvailable(pk crypto.PrivateKey, address string) error
 }
 
 // DappToUnavailable get an unavailable dapp
-func (suite Model14) DappToUnavailable(pk crypto.PrivateKey, address string) error {
+func (suite *Model14) DappToUnavailable(pk crypto.PrivateKey, address string) error {
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
 		rpcx.String(address),
@@ -374,7 +374,7 @@ func (suite Model14) DappToUnavailable(pk crypto.PrivateKey, address string) err
 }
 
 // DappToActivating get an activating dapp
-func (suite Model14) DappToActivating(pk crypto.PrivateKey, address string) error {
+func (suite *Model14) DappToActivating(pk crypto.PrivateKey, address string) error {
 	err := suite.RegisterDapp(pk, address)
 	if err != nil {
 		return err
@@ -399,7 +399,7 @@ func (suite Model14) DappToActivating(pk crypto.PrivateKey, address string) erro
 }
 
 // DappToUpdating get an updating dapp
-func (suite Model14) DappToUpdating(pk crypto.PrivateKey, address string) error {
+func (suite *Model14) DappToUpdating(pk crypto.PrivateKey, address string) error {
 	err := suite.RegisterDapp(pk, address)
 	if err != nil {
 		return err
@@ -429,7 +429,7 @@ func (suite Model14) DappToUpdating(pk crypto.PrivateKey, address string) error 
 }
 
 // DappToFreezing get a freezing dapp
-func (suite Model14) DappToFreezing(pk crypto.PrivateKey, address string) error {
+func (suite *Model14) DappToFreezing(pk crypto.PrivateKey, address string) error {
 	err := suite.RegisterDapp(pk, address)
 	if err != nil {
 		return err
@@ -457,7 +457,7 @@ func (suite Model14) DappToFreezing(pk crypto.PrivateKey, address string) error 
 }
 
 // DappToFrozen get a frozen dapp
-func (suite Model14) DappToFrozen(pk crypto.PrivateKey, address string) error {
+func (suite *Model14) DappToFrozen(pk crypto.PrivateKey, address string) error {
 	err := suite.RegisterDapp(pk, address)
 	if err != nil {
 		return err

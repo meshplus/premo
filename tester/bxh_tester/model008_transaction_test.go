@@ -208,7 +208,7 @@ func (suite *Model8) Test0809_GetTxByHashIsSuccess() {
 }
 
 //tc：根据错误交易hash获取交易，交易获取失败
-func (suite Model8) Test0810_GetTxByWrongHashIsFail() {
+func (suite *Model8) Test0810_GetTxByWrongHashIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
