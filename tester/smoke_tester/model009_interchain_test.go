@@ -19,7 +19,7 @@ type Model9 struct {
 }
 
 //tc：中继链收到正常ibtp后，事务状态为TransactionStatus_BEGIN
-func (suite Model9) Test0901_SendIBTPWithStatusTransactionStatus_BEGIN() {
+func (suite *Model9) Test0901_SendIBTPWithStatusTransactionStatus_BEGIN() {
 	pk1, err := suite.PrepareServer()
 	suite.Require().Nil(err)
 	from1, err := pk1.PublicKey().Address()
@@ -43,7 +43,7 @@ func (suite Model9) Test0901_SendIBTPWithStatusTransactionStatus_BEGIN() {
 }
 
 //tc：中继链未在事务超时块高前收到目的链回执，事务状态为TransactionStatus_BEGIN_ROLLBACK
-func (suite Model9) Test0902_GetNoReceiptBeforeTimeOutWithStatusTransactionStatus_BEGIN_ROLLBACK() {
+func (suite *Model9) Test0902_GetNoReceiptBeforeTimeOutWithStatusTransactionStatus_BEGIN_ROLLBACK() {
 	pk1, err := suite.PrepareServer()
 	suite.Require().Nil(err)
 	from1, err := pk1.PublicKey().Address()
@@ -70,7 +70,7 @@ func (suite Model9) Test0902_GetNoReceiptBeforeTimeOutWithStatusTransactionStatu
 }
 
 //tc：中继链收到目的链或服务等不存在IBTP后，事务状态为TransactionStatus_BEGIN_FAIL
-func (suite Model9) Test0903_SendIBTPNoExistChainWithStatusTransactionStatus_BEGIN_FAIL() {
+func (suite *Model9) Test0903_SendIBTPNoExistChainWithStatusTransactionStatus_BEGIN_FAIL() {
 	pk1, err := suite.PrepareServer()
 	suite.Require().Nil(err)
 	from1, err := pk1.PublicKey().Address()
@@ -94,7 +94,7 @@ func (suite Model9) Test0903_SendIBTPNoExistChainWithStatusTransactionStatus_BEG
 }
 
 //tc：中继链收到成功的跨链交易回执后，事务状态为TransactionStatus_SUCCESS
-func (suite Model9) Test0904_GetReceiptSuccessWithStatusTransactionStatus_SUCCESS() {
+func (suite *Model9) Test0904_GetReceiptSuccessWithStatusTransactionStatus_SUCCESS() {
 	pk1, err := suite.PrepareServer()
 	suite.Require().Nil(err)
 	from1, err := pk1.PublicKey().Address()
@@ -122,7 +122,7 @@ func (suite Model9) Test0904_GetReceiptSuccessWithStatusTransactionStatus_SUCCES
 }
 
 //tc：中继链收到失败的跨链交易回执后，事务状态为TransactionStatus_FAILURE
-func (suite Model9) Test0905_GetReceiptFailWithStatusTransactionStatus_FAILURE() {
+func (suite *Model9) Test0905_GetReceiptFailWithStatusTransactionStatus_FAILURE() {
 	pk1, err := suite.PrepareServer()
 	suite.Require().Nil(err)
 	from1, err := pk1.PublicKey().Address()
@@ -150,7 +150,7 @@ func (suite Model9) Test0905_GetReceiptFailWithStatusTransactionStatus_FAILURE()
 }
 
 //tc：中继链在超时块高以后收到目的链回执后，事务状态为TransactionStatus_ROLLBACK
-func (suite Model9) Test0906_GetReceiptAfterTimeOutWithStatusTransactionStatus_ROLLBACK() {
+func (suite *Model9) Test0906_GetReceiptAfterTimeOutWithStatusTransactionStatus_ROLLBACK() {
 	pk1, err := suite.PrepareServer()
 	suite.Require().Nil(err)
 	from1, err := pk1.PublicKey().Address()
@@ -184,7 +184,7 @@ func (suite Model9) Test0906_GetReceiptAfterTimeOutWithStatusTransactionStatus_R
 }
 
 //tc：中继链一对多场景下收到正常ibtp后，事务状态为TransactionStatus_BEGIN
-func (suite Model9) Test0907_SendIBTPSWithStatusTransactionStatus_BEGIN() {
+func (suite *Model9) Test0907_SendIBTPSWithStatusTransactionStatus_BEGIN() {
 	pk1, err := suite.PrepareServer()
 	suite.Require().Nil(err)
 	from1, err := pk1.PublicKey().Address()
@@ -222,7 +222,7 @@ func (suite Model9) Test0907_SendIBTPSWithStatusTransactionStatus_BEGIN() {
 }
 
 //tc：中继链一对多场景下收到一个receipt_failure，事务状态为TransactionStatus_BEGIN_FAIL
-func (suite Model9) Test0908_GetOneReceiptFailWithStatusTransactionStatus_BEGIN_FAIL() {
+func (suite *Model9) Test0908_GetOneReceiptFailWithStatusTransactionStatus_BEGIN_FAIL() {
 	pk1, err := suite.PrepareServer()
 	suite.Require().Nil(err)
 	from1, err := pk1.PublicKey().Address()
@@ -270,7 +270,7 @@ func (suite Model9) Test0908_GetOneReceiptFailWithStatusTransactionStatus_BEGIN_
 }
 
 //tc：中继链一对多场景下超过超时块高，事务状态为TransactionStatus_BEGIN_ROLLBACK
-func (suite Model9) Test0909_GetNoAllReceiptBeforeTimeOutWithStatusTransactionStatus_BEGIN_ROLLBACK() {
+func (suite *Model9) Test0909_GetNoAllReceiptBeforeTimeOutWithStatusTransactionStatus_BEGIN_ROLLBACK() {
 	pk1, err := suite.PrepareServer()
 	suite.Require().Nil(err)
 	from1, err := pk1.PublicKey().Address()
@@ -321,7 +321,7 @@ func (suite Model9) Test0909_GetNoAllReceiptBeforeTimeOutWithStatusTransactionSt
 }
 
 //tc：中继链收到所有回执为成功，事务状态为TransactionStatus_SUCCESS
-func (suite Model9) Test0910_GetAllReceiptSuccessWithStatusTransactionStatus_SUCCESS() {
+func (suite *Model9) Test0910_GetAllReceiptSuccessWithStatusTransactionStatus_SUCCESS() {
 	pk1, err := suite.PrepareServer()
 	suite.Require().Nil(err)
 	from1, err := pk1.PublicKey().Address()
@@ -373,7 +373,7 @@ func (suite Model9) Test0910_GetAllReceiptSuccessWithStatusTransactionStatus_SUC
 }
 
 //tc：中继链一对多场景收到所有失败的跨链交易回执后，事务状态为TransactionStatus_FAILURE
-func (suite Model9) Test0911_GetAllReceiptFailWithStatusTransactionStatus_FAILURE() {
+func (suite *Model9) Test0911_GetAllReceiptFailWithStatusTransactionStatus_FAILURE() {
 	pk1, err := suite.PrepareServer()
 	suite.Require().Nil(err)
 	from1, err := pk1.PublicKey().Address()
@@ -425,7 +425,7 @@ func (suite Model9) Test0911_GetAllReceiptFailWithStatusTransactionStatus_FAILUR
 }
 
 //tc：中继链一对多场景超时块高以后收到所有目的链回执后，事务状态为TransactionStatus_ROLLBACK
-func (suite Model9) Test0912_GetAllReceiptTimeOutWithStatusTransactionStatus_ROLLBACK() {
+func (suite *Model9) Test0912_GetAllReceiptTimeOutWithStatusTransactionStatus_ROLLBACK() {
 	pk1, err := suite.PrepareServer()
 	suite.Require().Nil(err)
 	from1, err := pk1.PublicKey().Address()
@@ -480,7 +480,7 @@ func (suite Model9) Test0912_GetAllReceiptTimeOutWithStatusTransactionStatus_ROL
 }
 
 // PrepareServer prepare a server and return privateKey
-func (suite Snake) PrepareServer() (crypto.PrivateKey, error) {
+func (suite *Snake) PrepareServer() (crypto.PrivateKey, error) {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	from, err := pk.PublicKey().Address()
@@ -493,7 +493,7 @@ func (suite Snake) PrepareServer() (crypto.PrivateKey, error) {
 }
 
 // GetStatus get tx status
-func (suite Model9) GetStatus(txId string) (pb.TransactionStatus, error) {
+func (suite *Model9) GetStatus(txId string) (pb.TransactionStatus, error) {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -510,7 +510,7 @@ func (suite Model9) GetStatus(txId string) (pb.TransactionStatus, error) {
 }
 
 // SendInterchainTx send interchain tx
-func (suite Snake) SendInterchainTx(pk crypto.PrivateKey, ibtp *pb.IBTP, payload, proof []byte) error {
+func (suite *Snake) SendInterchainTx(pk crypto.PrivateKey, ibtp *pb.IBTP, payload, proof []byte) error {
 	ibtp.Payload = payload
 	from, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)

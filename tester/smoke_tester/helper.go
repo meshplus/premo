@@ -232,7 +232,7 @@ func (suite *Snake) SendTransaction(pk crypto.PrivateKey) {
 }
 
 // TransferFromAdmin transfer amount from admin
-func (suite Snake) TransferFromAdmin(address string, amount string) error {
+func (suite *Snake) TransferFromAdmin(address string, amount string) error {
 	pk, node4Addr, err := repo.Node4Priv()
 	if err != nil {
 		return err
@@ -273,7 +273,7 @@ func (suite Snake) TransferFromAdmin(address string, amount string) error {
 }
 
 // MockIBTP mock a ibtp
-func (suite Snake) MockIBTP(index uint64, from, to string, typ pb.IBTP_Type, proof []byte) *pb.IBTP {
+func (suite *Snake) MockIBTP(index uint64, from, to string, typ pb.IBTP_Type, proof []byte) *pb.IBTP {
 	proofHash := sha256.Sum256(proof)
 	return &pb.IBTP{
 		From:          from,
@@ -286,7 +286,7 @@ func (suite Snake) MockIBTP(index uint64, from, to string, typ pb.IBTP_Type, pro
 }
 
 // MockContent mock a content
-func (suite Snake) MockContent(funcName string, args [][]byte) []byte {
+func (suite *Snake) MockContent(funcName string, args [][]byte) []byte {
 	content := &pb.Content{
 		Func: funcName,
 		Args: args,
@@ -301,7 +301,7 @@ func (suite Snake) MockContent(funcName string, args [][]byte) []byte {
 }
 
 // MockResult mock a result
-func (suite Snake) MockResult(data [][]byte) []byte {
+func (suite *Snake) MockResult(data [][]byte) []byte {
 	result := &pb.Result{Data: data}
 	bytes, _ := result.Marshal()
 	payload := &pb.Payload{
@@ -313,7 +313,7 @@ func (suite Snake) MockResult(data [][]byte) []byte {
 }
 
 // MockPid mock a pid
-func (suite Snake) MockPid() (string, error) {
+func (suite *Snake) MockPid() (string, error) {
 	pk, err := asym.GenerateKeyPair(crypto.ECDSA_P256)
 	if err != nil {
 		return "", err

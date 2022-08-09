@@ -38,7 +38,7 @@ type Model12 struct {
 }
 
 //tc：非中继链管理员，注册治理节点，节点注册失败
-func (suite Model12) Test1201_RegisterVpNodeWithNoRelayAdminIsFail() {
+func (suite *Model12) Test1201_RegisterVpNodeWithNoRelayAdminIsFail() {
 	pk, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -59,7 +59,7 @@ func (suite Model12) Test1201_RegisterVpNodeWithNoRelayAdminIsFail() {
 }
 
 //tc：中继链管理员，注册治理节点，节点注册成功
-func (suite Model12) Test1202_RegisterVpNodeWithRelayNodeIsSuccess() {
+func (suite *Model12) Test1202_RegisterVpNodeWithRelayNodeIsSuccess() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -74,7 +74,7 @@ func (suite Model12) Test1202_RegisterVpNodeWithRelayNodeIsSuccess() {
 }
 
 //tc：治理节点未注册，节点注册成功
-func (suite Model12) Test1203_RegisterVpNodeWithNoRegisterIsSuccess() {
+func (suite *Model12) Test1203_RegisterVpNodeWithNoRegisterIsSuccess() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -89,7 +89,7 @@ func (suite Model12) Test1203_RegisterVpNodeWithNoRegisterIsSuccess() {
 }
 
 //tc：治理节点处于registing状态注册治理节点，节点注册失败
-func (suite Model12) Test1204_RegisterVpNodeWithRegistingNodeIsFail() {
+func (suite *Model12) Test1204_RegisterVpNodeWithRegistingNodeIsFail() {
 	pid, err := suite.MockPid()
 	suite.Require().Nil(err)
 	_, from, err := repo.KeyPriv()
@@ -106,7 +106,7 @@ func (suite Model12) Test1204_RegisterVpNodeWithRegistingNodeIsFail() {
 }
 
 //tc：治理节点处于unavailable状态注册治理节点，节点注册成功
-func (suite Model12) Test1205_RegisterVpNodeWithUnavailableNodeIsSuccess() {
+func (suite *Model12) Test1205_RegisterVpNodeWithUnavailableNodeIsSuccess() {
 	pid, err := suite.MockPid()
 	suite.Require().Nil(err)
 	_, from, err := repo.KeyPriv()
@@ -123,7 +123,7 @@ func (suite Model12) Test1205_RegisterVpNodeWithUnavailableNodeIsSuccess() {
 }
 
 //tc：治理节点处于available状态注册治理节点，节点注册失败
-func (suite Model12) Test1206_RegisterVpNodeWithAvailableNodeIsFail() {
+func (suite *Model12) Test1206_RegisterVpNodeWithAvailableNodeIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -140,7 +140,7 @@ func (suite Model12) Test1206_RegisterVpNodeWithAvailableNodeIsFail() {
 }
 
 //tc：治理节点处于logouting状态注册治理节点，节点注册失败
-func (suite Model12) Test1207_RegisterVpNodeWithLogoutingNodeIsFail() {
+func (suite *Model12) Test1207_RegisterVpNodeWithLogoutingNodeIsFail() {
 	pid, err := suite.MockPid()
 	suite.Require().Nil(err)
 	_, from, err := repo.KeyPriv()
@@ -157,7 +157,7 @@ func (suite Model12) Test1207_RegisterVpNodeWithLogoutingNodeIsFail() {
 }
 
 //tc：治理节点处于forbidden状态注册治理节点，节点注册失败
-func (suite Model12) Test1208_RegisterVpNodeWithForbiddenNodeIsFail() {
+func (suite *Model12) Test1208_RegisterVpNodeWithForbiddenNodeIsFail() {
 	pid, err := suite.MockPid()
 	suite.Require().Nil(err)
 	_, from, err := repo.KeyPriv()
@@ -171,7 +171,7 @@ func (suite Model12) Test1208_RegisterVpNodeWithForbiddenNodeIsFail() {
 }
 
 //tc：治理节点用已存在的name注册节点，节点注册成功
-func (suite Model12) Test1209_RegisterVpNodeWithSameNameIsSuccess() {
+func (suite *Model12) Test1209_RegisterVpNodeWithSameNameIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -198,7 +198,7 @@ func (suite Model12) Test1209_RegisterVpNodeWithSameNameIsSuccess() {
 }
 
 //tc：治理节点用已存在的pid注册节点，节点注册失败
-func (suite Model12) Test1210_RegisterVpNodeWithSamePidIsFail() {
+func (suite *Model12) Test1210_RegisterVpNodeWithSamePidIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -217,7 +217,7 @@ func (suite Model12) Test1210_RegisterVpNodeWithSamePidIsFail() {
 }
 
 //tc：治理节点用已存在的vpid注册节点，节点注册失败
-func (suite Model12) Test1211_RegisterVpNodeWithSameVPIDIsFail() {
+func (suite *Model12) Test1211_RegisterVpNodeWithSameVPIDIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	_, from2, err := repo.KeyPriv()
@@ -238,7 +238,7 @@ func (suite Model12) Test1211_RegisterVpNodeWithSameVPIDIsFail() {
 }
 
 //tc：治理节点用较小vpid注册节点，节点注册失败
-func (suite Model12) Test1212_RegisterVpNodeWithSmallVpIDIsFail() {
+func (suite *Model12) Test1212_RegisterVpNodeWithSmallVpIDIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid1, err := suite.MockPid()
@@ -248,7 +248,7 @@ func (suite Model12) Test1212_RegisterVpNodeWithSmallVpIDIsFail() {
 }
 
 //tc：治理节点用已存在的account注册节点，节点注册失败
-func (suite Model12) Test1213_RegisterVpNodeWithSameAccountIsFail() {
+func (suite *Model12) Test1213_RegisterVpNodeWithSameAccountIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid1, err := suite.MockPid()
@@ -267,7 +267,7 @@ func (suite Model12) Test1213_RegisterVpNodeWithSameAccountIsFail() {
 }
 
 //tc：其他治理节点正在注册，注册节点，节点注册失败
-func (suite Model12) Test1214_RegisterVpNodeWithOtherRegistingNodeIsFail() {
+func (suite *Model12) Test1214_RegisterVpNodeWithOtherRegistingNodeIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	_, from2, err := repo.KeyPriv()
@@ -288,7 +288,7 @@ func (suite Model12) Test1214_RegisterVpNodeWithOtherRegistingNodeIsFail() {
 }
 
 //tc：其他治理节点正在注销，注册节点，节点注册失败
-func (suite Model12) Test1215_RegisterVpNodeWIthOtherLogoutingNodeIsFail() {
+func (suite *Model12) Test1215_RegisterVpNodeWIthOtherLogoutingNodeIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	_, from2, err := repo.KeyPriv()
@@ -309,7 +309,7 @@ func (suite Model12) Test1215_RegisterVpNodeWIthOtherLogoutingNodeIsFail() {
 }
 
 //tc：非中继链管理员，注销治理节点，节点注销失败
-func (suite Model12) Test1216_LogoutVpNodeWithNoRelayAdminIsFail() {
+func (suite *Model12) Test1216_LogoutVpNodeWithNoRelayAdminIsFail() {
 	pk, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -332,7 +332,7 @@ func (suite Model12) Test1216_LogoutVpNodeWithNoRelayAdminIsFail() {
 }
 
 //tc：中继链管理员，注销治理节点，节点注销成功
-func (suite Model12) Test1217_LogoutVpNodeIsSuccess() {
+func (suite *Model12) Test1217_LogoutVpNodeIsSuccess() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -346,13 +346,13 @@ func (suite Model12) Test1217_LogoutVpNodeIsSuccess() {
 }
 
 //tc：治理节点未注册，节点注销失败
-func (suite Model12) Test1218_LogoutVpNodeWithNoRegisterIsFail() {
+func (suite *Model12) Test1218_LogoutVpNodeWithNoRegisterIsFail() {
 	err := suite.LogoutNode("0x79a1215469FaB6f9c63c1816b45183AD3624bE31")
 	suite.Require().NotNil(err)
 }
 
 //tc：治理节点处于registing状态注销治理节点，节点注销失败
-func (suite Model12) Test1219_LogoutVpNodeWithRegistingNodeIsFail() {
+func (suite *Model12) Test1219_LogoutVpNodeWithRegistingNodeIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -369,7 +369,7 @@ func (suite Model12) Test1219_LogoutVpNodeWithRegistingNodeIsFail() {
 }
 
 //tc：治理节点处于unavailable状态注销治理节点，节点注销失败
-func (suite Model12) Test1220_LogoutVpNodeWithUnavailableNodeIsFail() {
+func (suite *Model12) Test1220_LogoutVpNodeWithUnavailableNodeIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -381,7 +381,7 @@ func (suite Model12) Test1220_LogoutVpNodeWithUnavailableNodeIsFail() {
 }
 
 //tc：治理节点处于available状态注销治理节点，节点注销成功
-func (suite Model12) Test1221_LogoutVpNodeIsSuccess() {
+func (suite *Model12) Test1221_LogoutVpNodeIsSuccess() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -395,7 +395,7 @@ func (suite Model12) Test1221_LogoutVpNodeIsSuccess() {
 }
 
 //tc：治理节点处于logouting状态注销治理节点，节点注销失败
-func (suite Model12) Test1222_LogoutVpNodeWithLogoutingNodeIsFail() {
+func (suite *Model12) Test1222_LogoutVpNodeWithLogoutingNodeIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -412,7 +412,7 @@ func (suite Model12) Test1222_LogoutVpNodeWithLogoutingNodeIsFail() {
 }
 
 //tc：治理节点处于forbidden状态注销治理节点，节点注销失败
-func (suite Model12) Test1223_LogoutVpNodeWithForbiddenNodeIsFail() {
+func (suite *Model12) Test1223_LogoutVpNodeWithForbiddenNodeIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -424,13 +424,13 @@ func (suite Model12) Test1223_LogoutVpNodeWithForbiddenNodeIsFail() {
 }
 
 //tc：中继链管理员，注销创世节点，节点注销失败
-func (suite Model12) Test1224_LogoutVpNodeWithFourNodeIsFail() {
+func (suite *Model12) Test1224_LogoutVpNodeWithFourNodeIsFail() {
 	err := suite.LogoutNode("0x79a1215469FaB6f9c63c1816b45183AD3624bE34")
 	suite.Require().NotNil(err)
 }
 
 //tc：其他治理节点正在注册，注销节点，节点注销失败
-func (suite Model12) Test1225_LogoutVpNodeWithOtherRegistingNodeIsFail() {
+func (suite *Model12) Test1225_LogoutVpNodeWithOtherRegistingNodeIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	_, from2, err := repo.KeyPriv()
@@ -457,7 +457,7 @@ func (suite Model12) Test1225_LogoutVpNodeWithOtherRegistingNodeIsFail() {
 }
 
 //tc：其他治理节点正在注销，注销节点，节点注销失败
-func (suite Model12) Test1226_LogoutVpNodeWithOtherLogoutingNodeIsFail() {
+func (suite *Model12) Test1226_LogoutVpNodeWithOtherLogoutingNodeIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	_, from2, err := repo.KeyPriv()
@@ -484,7 +484,7 @@ func (suite Model12) Test1226_LogoutVpNodeWithOtherLogoutingNodeIsFail() {
 }
 
 //tc：非中继链管理员，注册审计节点，节点注册失败
-func (suite Model12) Test1227_RegisterNvpNodeWithNoRelayAdminIsFail() {
+func (suite *Model12) Test1227_RegisterNvpNodeWithNoRelayAdminIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -507,7 +507,7 @@ func (suite Model12) Test1227_RegisterNvpNodeWithNoRelayAdminIsFail() {
 }
 
 //tc：中继链管理员，注册审计节点，节点注册成功
-func (suite Model12) Test1228_RegisterNvpNodeWithRelayNodeIsSuccess() {
+func (suite *Model12) Test1228_RegisterNvpNodeWithRelayNodeIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -519,7 +519,7 @@ func (suite Model12) Test1228_RegisterNvpNodeWithRelayNodeIsSuccess() {
 }
 
 //tc：审计节点未注册，节点注册成功
-func (suite Model12) Test1229_RegisterNvpNodeIsSuccess() {
+func (suite *Model12) Test1229_RegisterNvpNodeIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -531,7 +531,7 @@ func (suite Model12) Test1229_RegisterNvpNodeIsSuccess() {
 }
 
 //tc：审计节点处于registing状态注册审计节点，节点注册失败
-func (suite Model12) Test1230_RegisterNvpNodeWithRegistingNodeIsFail() {
+func (suite *Model12) Test1230_RegisterNvpNodeWithRegistingNodeIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -545,7 +545,7 @@ func (suite Model12) Test1230_RegisterNvpNodeWithRegistingNodeIsFail() {
 }
 
 //tc：审计节点处于unavailable状态注册审计节点，节点注册成功
-func (suite Model12) Test1231_RegisterNvpNodeWithUnavailableNodeIsSuccess() {
+func (suite *Model12) Test1231_RegisterNvpNodeWithUnavailableNodeIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -559,7 +559,7 @@ func (suite Model12) Test1231_RegisterNvpNodeWithUnavailableNodeIsSuccess() {
 }
 
 //tc：审计节点处于available状态注册审计节点，节点注册失败
-func (suite Model12) Test1232_RegisterNvpNodeWithAvailableNodeIsFail() {
+func (suite *Model12) Test1232_RegisterNvpNodeWithAvailableNodeIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -573,7 +573,7 @@ func (suite Model12) Test1232_RegisterNvpNodeWithAvailableNodeIsFail() {
 }
 
 //tc：审计节点处于binding状态注册审计节点，节点注册失败
-func (suite Model12) Test1233_RegisterNvpNodeWithBindingNodeIsFail() {
+func (suite *Model12) Test1233_RegisterNvpNodeWithBindingNodeIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -587,7 +587,7 @@ func (suite Model12) Test1233_RegisterNvpNodeWithBindingNodeIsFail() {
 }
 
 //tc：审计节点处于binded状态注册审计节点，节点注册失败
-func (suite Model12) Test1234_RegisterNvpNodeWithBindedNodeIsFail() {
+func (suite *Model12) Test1234_RegisterNvpNodeWithBindedNodeIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -601,7 +601,7 @@ func (suite Model12) Test1234_RegisterNvpNodeWithBindedNodeIsFail() {
 }
 
 //tc：审计节点处于updating状态注册审计节点，节点注册失败
-func (suite Model12) Test1235_RegisterNvpNodeWithUpdatingNodeIsFail() {
+func (suite *Model12) Test1235_RegisterNvpNodeWithUpdatingNodeIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -615,7 +615,7 @@ func (suite Model12) Test1235_RegisterNvpNodeWithUpdatingNodeIsFail() {
 }
 
 //tc：审计节点处于logouting状态注册审计节点，节点注册失败
-func (suite Model12) Test1236_RegisterNvpNodeWithLogoutingNodeIsFail() {
+func (suite *Model12) Test1236_RegisterNvpNodeWithLogoutingNodeIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -629,7 +629,7 @@ func (suite Model12) Test1236_RegisterNvpNodeWithLogoutingNodeIsFail() {
 }
 
 //tc：审计节点处于forbidden状态注册审计节点，节点注册失败
-func (suite Model12) Test1237_RegisterNvpNodeWithForbiddenNodeIsFail() {
+func (suite *Model12) Test1237_RegisterNvpNodeWithForbiddenNodeIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -643,7 +643,7 @@ func (suite Model12) Test1237_RegisterNvpNodeWithForbiddenNodeIsFail() {
 }
 
 //tc：审计节点用已存在的name注册节点，节点注册失败
-func (suite Model12) Test1238_RegisterNvpNodeWithSameNameIsFail() {
+func (suite *Model12) Test1238_RegisterNvpNodeWithSameNameIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -659,7 +659,7 @@ func (suite Model12) Test1238_RegisterNvpNodeWithSameNameIsFail() {
 }
 
 //tc：审计节点用已存在的pid注册节点，节点注册成功
-func (suite Model12) Test1239_RegisterNvpNodeWithSamePidIsSuccess() {
+func (suite *Model12) Test1239_RegisterNvpNodeWithSamePidIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -680,7 +680,7 @@ func (suite Model12) Test1239_RegisterNvpNodeWithSamePidIsSuccess() {
 }
 
 //tc：审计节点用已存在的vpid注册节点，节点注册成功
-func (suite Model12) Test1240_RegisterNvpNodeWithSameVPIDIsSuccess() {
+func (suite *Model12) Test1240_RegisterNvpNodeWithSameVPIDIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -701,7 +701,7 @@ func (suite Model12) Test1240_RegisterNvpNodeWithSameVPIDIsSuccess() {
 }
 
 //tc：审计节点用已存在的account注册节点，节点注册失败
-func (suite Model12) Test1241_RegisterNvpNodeWithSameAccountIsFail() {
+func (suite *Model12) Test1241_RegisterNvpNodeWithSameAccountIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -715,7 +715,7 @@ func (suite Model12) Test1241_RegisterNvpNodeWithSameAccountIsFail() {
 }
 
 //tc：审计节点权限为空注册节点，节点注册失败
-func (suite Model12) Test1242_RegisterNvpNodeWithEmptyPermitIsFail() {
+func (suite *Model12) Test1242_RegisterNvpNodeWithEmptyPermitIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -727,7 +727,7 @@ func (suite Model12) Test1242_RegisterNvpNodeWithEmptyPermitIsFail() {
 }
 
 //tc：非中继链管理员，更新审计节点，节点更新失败
-func (suite Model12) Test1243_UpdateNvpNodeWithNoRelayAdminIsFail() {
+func (suite *Model12) Test1243_UpdateNvpNodeWithNoRelayAdminIsFail() {
 	pk1, from1, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk1, from1, address1)
@@ -749,7 +749,7 @@ func (suite Model12) Test1243_UpdateNvpNodeWithNoRelayAdminIsFail() {
 }
 
 //tc：中继链管理员，更新审计节点，节点更新成功
-func (suite Model12) Test1244_UpdateNvpNodeWithRelayAdminIsSuccess() {
+func (suite *Model12) Test1244_UpdateNvpNodeWithRelayAdminIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -763,7 +763,7 @@ func (suite Model12) Test1244_UpdateNvpNodeWithRelayAdminIsSuccess() {
 }
 
 //tc：审计管理员，更新审计节点，节点更新成功
-func (suite Model12) Test1245_UpdateNvpNodeWithAuditAdminIsSuccess() {
+func (suite *Model12) Test1245_UpdateNvpNodeWithAuditAdminIsSuccess() {
 	pk1, from1, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk1, from1, address1)
@@ -783,7 +783,7 @@ func (suite Model12) Test1245_UpdateNvpNodeWithAuditAdminIsSuccess() {
 }
 
 //tc：审计节点未注册，节点更新失败
-func (suite Model12) Test1246_UpdateNvpNodeWithNoRegisterNodeIsFail() {
+func (suite *Model12) Test1246_UpdateNvpNodeWithNoRegisterNodeIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -795,7 +795,7 @@ func (suite Model12) Test1246_UpdateNvpNodeWithNoRegisterNodeIsFail() {
 }
 
 //tc：审计节点处于registing状态更新审计节点，节点更新失败
-func (suite Model12) Test1247_UpdateNvpNodeWithRegistingNodeIsFail() {
+func (suite *Model12) Test1247_UpdateNvpNodeWithRegistingNodeIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -809,7 +809,7 @@ func (suite Model12) Test1247_UpdateNvpNodeWithRegistingNodeIsFail() {
 }
 
 //tc：审计节点处于unavailable状态更新审计节点，节点更新失败
-func (suite Model12) Test1248_UpdateNvpNodeWithUnavailableNodeIsFail() {
+func (suite *Model12) Test1248_UpdateNvpNodeWithUnavailableNodeIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -823,7 +823,7 @@ func (suite Model12) Test1248_UpdateNvpNodeWithUnavailableNodeIsFail() {
 }
 
 //tc：审计节点处于available状态更新审计节点，节点更新成功
-func (suite Model12) Test1249_UpdateNvpNodeWithAvailableNodeIsSuccess() {
+func (suite *Model12) Test1249_UpdateNvpNodeWithAvailableNodeIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -837,7 +837,7 @@ func (suite Model12) Test1249_UpdateNvpNodeWithAvailableNodeIsSuccess() {
 }
 
 //tc：审计节点处于binding状态更新审计节点，节点更新失败
-func (suite Model12) Test1250_UpdateNvpNodeWithBindingNodeIsFail() {
+func (suite *Model12) Test1250_UpdateNvpNodeWithBindingNodeIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -851,7 +851,7 @@ func (suite Model12) Test1250_UpdateNvpNodeWithBindingNodeIsFail() {
 }
 
 //tc：审计节点处于binded状态更新审计节点，节点更新成功
-func (suite Model12) Test1251_UpdateNvpNodeWithBindedNodeIsSuccess() {
+func (suite *Model12) Test1251_UpdateNvpNodeWithBindedNodeIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -865,7 +865,7 @@ func (suite Model12) Test1251_UpdateNvpNodeWithBindedNodeIsSuccess() {
 }
 
 //tc：审计节点处于updating状态更新审计节点，节点更新失败
-func (suite Model12) Test1252_UpdateNvpNodeWithUpdatingNodeIsFail() {
+func (suite *Model12) Test1252_UpdateNvpNodeWithUpdatingNodeIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -879,7 +879,7 @@ func (suite Model12) Test1252_UpdateNvpNodeWithUpdatingNodeIsFail() {
 }
 
 //tc：审计节点处于logouting状态更新审计节点，节点更新失败
-func (suite Model12) Test1253_UpdateNvpNodeWithLogoutingNodeIsFail() {
+func (suite *Model12) Test1253_UpdateNvpNodeWithLogoutingNodeIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -893,7 +893,7 @@ func (suite Model12) Test1253_UpdateNvpNodeWithLogoutingNodeIsFail() {
 }
 
 //tc：审计节点处于forbidden状态更新审计节点，节点更新失败
-func (suite Model12) Test1254_UpdateNvpNodeWithForbiddenNodeIsFail() {
+func (suite *Model12) Test1254_UpdateNvpNodeWithForbiddenNodeIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -907,7 +907,7 @@ func (suite Model12) Test1254_UpdateNvpNodeWithForbiddenNodeIsFail() {
 }
 
 //tc：审计点点用已存在的name更新节点，节点更新失败
-func (suite Model12) Test1255_UpdateNvpNodeWithSameNameIsFail() {
+func (suite *Model12) Test1255_UpdateNvpNodeWithSameNameIsFail() {
 	pk1, from1, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk1, from1, address1)
@@ -929,7 +929,7 @@ func (suite Model12) Test1255_UpdateNvpNodeWithSameNameIsFail() {
 }
 
 //tc：审计点点用空的name更新节点，节点更新失败
-func (suite Model12) Test1256_UpdateNvpNodeWithEmptyNameIsFail() {
+func (suite *Model12) Test1256_UpdateNvpNodeWithEmptyNameIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -943,7 +943,7 @@ func (suite Model12) Test1256_UpdateNvpNodeWithEmptyNameIsFail() {
 }
 
 //tc：审计节点权限为空更新节点，节点更新失败
-func (suite Model12) Test1257_UpdateNvpNodeWithEmptyPermitIsFail() {
+func (suite *Model12) Test1257_UpdateNvpNodeWithEmptyPermitIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -957,7 +957,7 @@ func (suite Model12) Test1257_UpdateNvpNodeWithEmptyPermitIsFail() {
 }
 
 //tc：非中继链管理员，注销审计节点，节点注销失败
-func (suite Model12) Test1258_LogoutNvpNodeWithNoRelayAdminIsFail() {
+func (suite *Model12) Test1258_LogoutNvpNodeWithNoRelayAdminIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -980,7 +980,7 @@ func (suite Model12) Test1258_LogoutNvpNodeWithNoRelayAdminIsFail() {
 }
 
 //tc：中继链管理员，注销审计节点，节点注销成功
-func (suite Model12) Test1259_LogoutNvpNodeIsSuccess() {
+func (suite *Model12) Test1259_LogoutNvpNodeIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -994,7 +994,7 @@ func (suite Model12) Test1259_LogoutNvpNodeIsSuccess() {
 }
 
 //tc：审计节点未注册，节点注销失败
-func (suite Model12) Test1260_LogoutNvpNodeWithNoRegisterNodeIsFail() {
+func (suite *Model12) Test1260_LogoutNvpNodeWithNoRegisterNodeIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.LogoutNode(from1.String())
@@ -1002,7 +1002,7 @@ func (suite Model12) Test1260_LogoutNvpNodeWithNoRegisterNodeIsFail() {
 }
 
 //tc：审计节点处于registing状态注销审计节点，节点注销失败
-func (suite Model12) Test1261_LogoutNvpNodeWithRegistingNodeIsFail() {
+func (suite *Model12) Test1261_LogoutNvpNodeWithRegistingNodeIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -1016,7 +1016,7 @@ func (suite Model12) Test1261_LogoutNvpNodeWithRegistingNodeIsFail() {
 }
 
 //tc：审计节点处于unavailable状态注销审计节点，节点注销失败
-func (suite Model12) Test1262_LogoutNvpNodeWithUnavailableNodeIsFail() {
+func (suite *Model12) Test1262_LogoutNvpNodeWithUnavailableNodeIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -1030,7 +1030,7 @@ func (suite Model12) Test1262_LogoutNvpNodeWithUnavailableNodeIsFail() {
 }
 
 //tc：审计节点处于available状态注销审计节点，节点注销成功
-func (suite Model12) Test1263_LogoutNvpNodeWithAvailableNodeIsSuccess() {
+func (suite *Model12) Test1263_LogoutNvpNodeWithAvailableNodeIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -1044,7 +1044,7 @@ func (suite Model12) Test1263_LogoutNvpNodeWithAvailableNodeIsSuccess() {
 }
 
 //tc：审计节点处于binding状态注销审计节点，节点注销成功
-func (suite Model12) Test1264_LogoutNvpNodeWithBindingNodeIsSuccess() {
+func (suite *Model12) Test1264_LogoutNvpNodeWithBindingNodeIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -1058,7 +1058,7 @@ func (suite Model12) Test1264_LogoutNvpNodeWithBindingNodeIsSuccess() {
 }
 
 //tc：审计节点处于binded状态注销审计节点，节点注销成功
-func (suite Model12) Test1265_LogoutNvpNodeWithBindedNodeIsSuccess() {
+func (suite *Model12) Test1265_LogoutNvpNodeWithBindedNodeIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -1072,7 +1072,7 @@ func (suite Model12) Test1265_LogoutNvpNodeWithBindedNodeIsSuccess() {
 }
 
 //tc：审计节点处于updating状态注销审计节点，节点注销成功
-func (suite Model12) Test1266_LogoutNvpNodeWithUpdatingNodeIsSuccess() {
+func (suite *Model12) Test1266_LogoutNvpNodeWithUpdatingNodeIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -1086,7 +1086,7 @@ func (suite Model12) Test1266_LogoutNvpNodeWithUpdatingNodeIsSuccess() {
 }
 
 //tc：审计节点处于logouting状态注销审计节点，节点注销失败
-func (suite Model12) Test1267_LogoutNvpNodeWithLogoutingNodeIsFail() {
+func (suite *Model12) Test1267_LogoutNvpNodeWithLogoutingNodeIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -1100,7 +1100,7 @@ func (suite Model12) Test1267_LogoutNvpNodeWithLogoutingNodeIsFail() {
 }
 
 //tc：审计节点处于forbidden状态注销审计节点，节点注销失败
-func (suite Model12) Test1268_LogoutNvpNodeWithForbiddenNodeIsFail() {
+func (suite *Model12) Test1268_LogoutNvpNodeWithForbiddenNodeIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -1114,7 +1114,7 @@ func (suite Model12) Test1268_LogoutNvpNodeWithForbiddenNodeIsFail() {
 }
 
 // InvokeNodeContract invoke node contract by method and args
-func (suite Snake) InvokeNodeContract(method string, args ...*pb.Arg) (string, error) {
+func (suite *Snake) InvokeNodeContract(method string, args ...*pb.Arg) (string, error) {
 	pk, from, err := repo.Node1Priv()
 	if err != nil {
 		return "", err
@@ -1139,7 +1139,7 @@ func (suite Snake) InvokeNodeContract(method string, args ...*pb.Arg) (string, e
 }
 
 // RegisterNode register node
-func (suite Snake) RegisterNode(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) error {
+func (suite *Snake) RegisterNode(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) error {
 	args := []*pb.Arg{
 		rpcx.String(nodeAccount), //nodeAccount
 		rpcx.String(nodeType),    //nodeType
@@ -1165,7 +1165,7 @@ func (suite Snake) RegisterNode(nodeAccount, nodeType, nodePid string, nodeVpId 
 }
 
 //UpdateNode update node
-func (suite Snake) UpdateNode(nodeAccount, nodeName, permit string) error {
+func (suite *Snake) UpdateNode(nodeAccount, nodeName, permit string) error {
 	args := []*pb.Arg{
 		rpcx.String(nodeAccount),
 		rpcx.String(nodeName),
@@ -1184,7 +1184,7 @@ func (suite Snake) UpdateNode(nodeAccount, nodeName, permit string) error {
 }
 
 // LogoutNode logout node
-func (suite Snake) LogoutNode(account string) error {
+func (suite *Snake) LogoutNode(account string) error {
 	args := []*pb.Arg{
 		rpcx.String(account),
 		rpcx.String("reason"),
@@ -1205,7 +1205,7 @@ func (suite Snake) LogoutNode(account string) error {
 }
 
 // NodeToRegisting get a registing node
-func (suite Snake) NodeToRegisting(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) (string, error) {
+func (suite *Snake) NodeToRegisting(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) (string, error) {
 	args := []*pb.Arg{
 		rpcx.String(nodeAccount), //nodeAccount
 		rpcx.String(nodeType),    //nodeType
@@ -1227,7 +1227,7 @@ func (suite Snake) NodeToRegisting(nodeAccount, nodeType, nodePid string, nodeVp
 }
 
 // NodeToUnavailable get a unavailable node
-func (suite Snake) NodeToUnavailable(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) error {
+func (suite *Snake) NodeToUnavailable(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) error {
 	args := []*pb.Arg{
 		rpcx.String(nodeAccount), //nodeAccount
 		rpcx.String(nodeType),    //nodeType
@@ -1253,7 +1253,7 @@ func (suite Snake) NodeToUnavailable(nodeAccount, nodeType, nodePid string, node
 }
 
 // NodeToLogouting get a logouting node
-func (suite Snake) NodeToLogouting(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) (string, error) {
+func (suite *Snake) NodeToLogouting(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) (string, error) {
 	err := suite.RegisterNode(nodeAccount, nodeType, nodePid, nodeVpId, nodeName, permit)
 	if err != nil {
 		return "", err
@@ -1274,7 +1274,7 @@ func (suite Snake) NodeToLogouting(nodeAccount, nodeType, nodePid string, nodeVp
 }
 
 // NodeToForbidden get a forbidden node
-func (suite Snake) NodeToForbidden(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) error {
+func (suite *Snake) NodeToForbidden(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) error {
 	err := suite.RegisterNode(nodeAccount, nodeType, nodePid, nodeVpId, nodeName, permit)
 	if err != nil {
 		return err
@@ -1291,7 +1291,7 @@ func (suite Snake) NodeToForbidden(nodeAccount, nodeType, nodePid string, nodeVp
 }
 
 // NodeToBinding get a binding nvp node
-func (suite Snake) NodeToBinding(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) (string, error) {
+func (suite *Snake) NodeToBinding(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) (string, error) {
 	err := suite.RegisterNode(nodeAccount, nodeType, nodePid, nodeVpId, nodeName, permit)
 	if err != nil {
 		return "", err
@@ -1318,7 +1318,7 @@ func (suite Snake) NodeToBinding(nodeAccount, nodeType, nodePid string, nodeVpId
 }
 
 // NodeToBinded get a binded node
-func (suite Snake) NodeToBinded(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) error {
+func (suite *Snake) NodeToBinded(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) error {
 	err := suite.RegisterNode(nodeAccount, nodeType, nodePid, nodeVpId, nodeName, permit)
 	if err != nil {
 		return err
@@ -1339,7 +1339,7 @@ func (suite Snake) NodeToBinded(nodeAccount, nodeType, nodePid string, nodeVpId 
 }
 
 // NodeToUpdating get a updating node
-func (suite Snake) NodeToUpdating(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) (string, error) {
+func (suite *Snake) NodeToUpdating(nodeAccount, nodeType, nodePid string, nodeVpId uint64, nodeName, permit string) (string, error) {
 	err := suite.RegisterNode(nodeAccount, nodeType, nodePid, nodeVpId, nodeName, permit)
 	if err != nil {
 		return "", err
@@ -1362,7 +1362,7 @@ func (suite Snake) NodeToUpdating(nodeAccount, nodeType, nodePid string, nodeVpI
 }
 
 // CheckNodeStatus check node status
-func (suite Snake) CheckNodeStatus(account string, status governance.GovernanceStatus) error {
+func (suite *Snake) CheckNodeStatus(account string, status governance.GovernanceStatus) error {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	if err != nil {
 		return err

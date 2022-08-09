@@ -68,7 +68,7 @@ func (suite *Model11) Test1104_RegisterAdminIsSuccess() {
 }
 
 //tc：注册治理管理员，管理员处于available，注册失败
-func (suite Model11) Test1105_RegisterAdminWithAvailableAdminIsFail() {
+func (suite *Model11) Test1105_RegisterAdminWithAvailableAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RegisterRole(from.String(), GovernanceAdmin, "")
@@ -83,7 +83,7 @@ func (suite Model11) Test1105_RegisterAdminWithAvailableAdminIsFail() {
 }
 
 //tc：注册治理管理员，管理员处于registing，注册失败
-func (suite Model11) Test1106_RegisterAdminWithRegistingAdminIsFail() {
+func (suite *Model11) Test1106_RegisterAdminWithRegistingAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	proposal, err := suite.RoleToRegisting(from.String(), GovernanceAdmin, "")
@@ -98,7 +98,7 @@ func (suite Model11) Test1106_RegisterAdminWithRegistingAdminIsFail() {
 }
 
 //tc：注册治理管理员，管理员处于unavailable，注册成功
-func (suite Model11) Test1107_RegisterAdminWithUnavailableAdminIsSuccess() {
+func (suite *Model11) Test1107_RegisterAdminWithUnavailableAdminIsSuccess() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RoleToUnavailable(from.String(), GovernanceAdmin, "")
@@ -113,7 +113,7 @@ func (suite Model11) Test1107_RegisterAdminWithUnavailableAdminIsSuccess() {
 }
 
 //tc：注册治理管理员，管理员处于freezing，注册失败
-func (suite Model11) Test1108_RegisterAdminWithFreezingAdminIsFail() {
+func (suite *Model11) Test1108_RegisterAdminWithFreezingAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	proposal, err := suite.RoleToFreezing(from.String(), GovernanceAdmin, "")
@@ -130,7 +130,7 @@ func (suite Model11) Test1108_RegisterAdminWithFreezingAdminIsFail() {
 }
 
 //tc：注册治理管理员，管理员处于frozen，注册失败
-func (suite Model11) Test1109_RegisterAdminWithFrozenAdminIsFail() {
+func (suite *Model11) Test1109_RegisterAdminWithFrozenAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RoleToFrozen(from.String(), GovernanceAdmin, "")
@@ -145,7 +145,7 @@ func (suite Model11) Test1109_RegisterAdminWithFrozenAdminIsFail() {
 }
 
 //tc：注册治理管理员，管理员处于activating，注册失败
-func (suite Model11) Test1110_RegisterAdminWithActivatingAdminIsFail() {
+func (suite *Model11) Test1110_RegisterAdminWithActivatingAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	proposal, err := suite.RoleToActivating(from.String(), GovernanceAdmin, "")
@@ -162,7 +162,7 @@ func (suite Model11) Test1110_RegisterAdminWithActivatingAdminIsFail() {
 }
 
 //tc：注册治理管理员，管理员处于logouting，注册失败
-func (suite Model11) Test1111_RegisterAdminWithLogoutingAdminIsFail() {
+func (suite *Model11) Test1111_RegisterAdminWithLogoutingAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	proposal, err := suite.RoleToLogouting(from.String(), GovernanceAdmin, "")
@@ -177,7 +177,7 @@ func (suite Model11) Test1111_RegisterAdminWithLogoutingAdminIsFail() {
 }
 
 //tc：注册治理管理员，管理员处于forbidden，注册失败
-func (suite Model11) Test1112_RegisterAdminWithForbiddenAdminIsFail() {
+func (suite *Model11) Test1112_RegisterAdminWithForbiddenAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RoleToForbidden(from.String(), GovernanceAdmin, "")
@@ -189,7 +189,7 @@ func (suite Model11) Test1112_RegisterAdminWithForbiddenAdminIsFail() {
 }
 
 //tc：冻结治理管理员，管理员未注册，冻结失败
-func (suite Model11) Test1113_FreezeAdminWithNoRegisterAdminIsFail() {
+func (suite *Model11) Test1113_FreezeAdminWithNoRegisterAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.FreezeRole(from.String())
@@ -197,7 +197,7 @@ func (suite Model11) Test1113_FreezeAdminWithNoRegisterAdminIsFail() {
 }
 
 //tc：冻结治理管理员，管理员处于available，冻结成功
-func (suite Model11) Test1114_FreezeAdminWithAvailableAdminIsSuccess() {
+func (suite *Model11) Test1114_FreezeAdminWithAvailableAdminIsSuccess() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RegisterRole(from.String(), GovernanceAdmin, "")
@@ -212,7 +212,7 @@ func (suite Model11) Test1114_FreezeAdminWithAvailableAdminIsSuccess() {
 }
 
 //tc：冻结治理管理员，管理员处于registing，冻结失败
-func (suite Model11) Test1115_FreezeAdminWithRegistingAdminIsFail() {
+func (suite *Model11) Test1115_FreezeAdminWithRegistingAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	proposal, err := suite.RoleToRegisting(from.String(), GovernanceAdmin, "")
@@ -227,7 +227,7 @@ func (suite Model11) Test1115_FreezeAdminWithRegistingAdminIsFail() {
 }
 
 //tc：冻结治理管理员，管理员处于unavailable，冻结失败
-func (suite Model11) Test1116_FreezeAdminWithUnavailableAdminIsFail() {
+func (suite *Model11) Test1116_FreezeAdminWithUnavailableAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RoleToUnavailable(from.String(), GovernanceAdmin, "")
@@ -237,7 +237,7 @@ func (suite Model11) Test1116_FreezeAdminWithUnavailableAdminIsFail() {
 }
 
 //tc：冻结治理管理员，管理员处于freezing，冻结失败
-func (suite Model11) Test1117_FreezeAdminWithFreezingAdminIsFail() {
+func (suite *Model11) Test1117_FreezeAdminWithFreezingAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	proposal, err := suite.RoleToFreezing(from.String(), GovernanceAdmin, "")
@@ -254,7 +254,7 @@ func (suite Model11) Test1117_FreezeAdminWithFreezingAdminIsFail() {
 }
 
 //tc：冻结治理管理员，管理员处于frozen，冻结失败
-func (suite Model11) Test1118_FreezeAdminWithFrozenAdminIsFail() {
+func (suite *Model11) Test1118_FreezeAdminWithFrozenAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RoleToFrozen(from.String(), GovernanceAdmin, "")
@@ -269,7 +269,7 @@ func (suite Model11) Test1118_FreezeAdminWithFrozenAdminIsFail() {
 }
 
 //tc：冻结治理管理员，管理员处于activating，冻结失败
-func (suite Model11) Test1119_FreezeAdminWithActivatingAdminIsFail() {
+func (suite *Model11) Test1119_FreezeAdminWithActivatingAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	proposal, err := suite.RoleToActivating(from.String(), GovernanceAdmin, "")
@@ -286,7 +286,7 @@ func (suite Model11) Test1119_FreezeAdminWithActivatingAdminIsFail() {
 }
 
 //tc：冻结治理管理员，管理员处于logouting，冻结失败
-func (suite Model11) Test1120_FreezeAdminWithLogoutingAdminIsFail() {
+func (suite *Model11) Test1120_FreezeAdminWithLogoutingAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	proposal, err := suite.RoleToLogouting(from.String(), GovernanceAdmin, "")
@@ -301,7 +301,7 @@ func (suite Model11) Test1120_FreezeAdminWithLogoutingAdminIsFail() {
 }
 
 //tc：冻结治理管理员，管理员处于forbidden，冻结失败
-func (suite Model11) Test1121_FreezeAdminWithForbiddenAdminIsFail() {
+func (suite *Model11) Test1121_FreezeAdminWithForbiddenAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RoleToForbidden(from.String(), GovernanceAdmin, "")
@@ -313,7 +313,7 @@ func (suite Model11) Test1121_FreezeAdminWithForbiddenAdminIsFail() {
 }
 
 //tc：治理管理员冻结自己，冻结失败
-func (suite Model11) Test1122_FreezeAdminWithAdminSelfIsFail() {
+func (suite *Model11) Test1122_FreezeAdminWithAdminSelfIsFail() {
 	pk, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RegisterRole(from.String(), GovernanceAdmin, "")
@@ -329,7 +329,7 @@ func (suite Model11) Test1122_FreezeAdminWithAdminSelfIsFail() {
 }
 
 //tc：激活治理管理员，管理员未注册，激活失败
-func (suite Model11) Test1123_ActivateAdminWithNoRegisterAdminIsFail() {
+func (suite *Model11) Test1123_ActivateAdminWithNoRegisterAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.ActivateRole(from.String())
@@ -337,7 +337,7 @@ func (suite Model11) Test1123_ActivateAdminWithNoRegisterAdminIsFail() {
 }
 
 //tc：激活治理管理员，管理员处于available，激活失败
-func (suite Model11) Test1124_ActivateAdminWithAvailableAdminIsFail() {
+func (suite *Model11) Test1124_ActivateAdminWithAvailableAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RegisterRole(from.String(), GovernanceAdmin, "")
@@ -352,7 +352,7 @@ func (suite Model11) Test1124_ActivateAdminWithAvailableAdminIsFail() {
 }
 
 //tc：激活治理管理员，管理员处于registing，激活失败
-func (suite Model11) Test1125_ActivateAdminWithRegistingAdminIsFail() {
+func (suite *Model11) Test1125_ActivateAdminWithRegistingAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	proposal, err := suite.RoleToRegisting(from.String(), GovernanceAdmin, "")
@@ -367,7 +367,7 @@ func (suite Model11) Test1125_ActivateAdminWithRegistingAdminIsFail() {
 }
 
 //tc：激活治理管理员，管理员处于unavailable，激活失败
-func (suite Model11) Test1126_ActivateAdminWithUnavailableAdminIsFail() {
+func (suite *Model11) Test1126_ActivateAdminWithUnavailableAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RoleToUnavailable(from.String(), GovernanceAdmin, "")
@@ -377,7 +377,7 @@ func (suite Model11) Test1126_ActivateAdminWithUnavailableAdminIsFail() {
 }
 
 //tc：激活治理管理员，管理员处于freezing，激活失败
-func (suite Model11) Test1127_ActivateAdminWithFreezingAdminIsFail() {
+func (suite *Model11) Test1127_ActivateAdminWithFreezingAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	proposal, err := suite.RoleToFreezing(from.String(), GovernanceAdmin, "")
@@ -394,7 +394,7 @@ func (suite Model11) Test1127_ActivateAdminWithFreezingAdminIsFail() {
 }
 
 //tc：激活治理管理员，管理员处于frozen，激活成功
-func (suite Model11) Test1128_ActivateAdminWithFrozenAdminIsSuccess() {
+func (suite *Model11) Test1128_ActivateAdminWithFrozenAdminIsSuccess() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RoleToFrozen(from.String(), GovernanceAdmin, "")
@@ -409,7 +409,7 @@ func (suite Model11) Test1128_ActivateAdminWithFrozenAdminIsSuccess() {
 }
 
 //tc：激活治理管理员，管理员处于activating，激活失败
-func (suite Model11) Test1129_ActivateAdminWithActivatingAdminIsFail() {
+func (suite *Model11) Test1129_ActivateAdminWithActivatingAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	proposal, err := suite.RoleToActivating(from.String(), GovernanceAdmin, "")
@@ -426,7 +426,7 @@ func (suite Model11) Test1129_ActivateAdminWithActivatingAdminIsFail() {
 }
 
 //tc：激活治理管理员，管理员处于logouting，激活失败
-func (suite Model11) Test1130_ActivateAdminWithLogoutingAdminIsFail() {
+func (suite *Model11) Test1130_ActivateAdminWithLogoutingAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	proposal, err := suite.RoleToLogouting(from.String(), GovernanceAdmin, "")
@@ -441,7 +441,7 @@ func (suite Model11) Test1130_ActivateAdminWithLogoutingAdminIsFail() {
 }
 
 //tc：激活治理管理员，管理员处于forbidden，激活失败
-func (suite Model11) Test1131_ActivateAdminWithForbiddenAdminIsFail() {
+func (suite *Model11) Test1131_ActivateAdminWithForbiddenAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RoleToForbidden(from.String(), GovernanceAdmin, "")
@@ -451,7 +451,7 @@ func (suite Model11) Test1131_ActivateAdminWithForbiddenAdminIsFail() {
 }
 
 //tc：注销治理管理员，管理员未注册，注销失败
-func (suite Model11) Test1132_LogoutAdminWithNoRegisterAdminIsFail() {
+func (suite *Model11) Test1132_LogoutAdminWithNoRegisterAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.LogoutRole(from.String())
@@ -459,7 +459,7 @@ func (suite Model11) Test1132_LogoutAdminWithNoRegisterAdminIsFail() {
 }
 
 //tc：注销治理管理员，管理员处于available，注销成功
-func (suite Model11) Test1133_LogoutAdminWithAvailableAdminIsSuccess() {
+func (suite *Model11) Test1133_LogoutAdminWithAvailableAdminIsSuccess() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RegisterRole(from.String(), GovernanceAdmin, "")
@@ -469,7 +469,7 @@ func (suite Model11) Test1133_LogoutAdminWithAvailableAdminIsSuccess() {
 }
 
 //tc：注销治理管理员，管理员处于registing，注销失败
-func (suite Model11) Test1134_LogoutAdminWithRegistingAdminIsFail() {
+func (suite *Model11) Test1134_LogoutAdminWithRegistingAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	proposal, err := suite.RoleToRegisting(from.String(), GovernanceAdmin, "")
@@ -484,7 +484,7 @@ func (suite Model11) Test1134_LogoutAdminWithRegistingAdminIsFail() {
 }
 
 //tc：注销治理管理员，管理员处于unavailable，注销失败
-func (suite Model11) Test1135_LogoutAdminWithUnavailableAdminIsFail() {
+func (suite *Model11) Test1135_LogoutAdminWithUnavailableAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RoleToUnavailable(from.String(), GovernanceAdmin, "")
@@ -494,7 +494,7 @@ func (suite Model11) Test1135_LogoutAdminWithUnavailableAdminIsFail() {
 }
 
 //tc：注销治理管理员，管理员处于freezing，注销成功
-func (suite Model11) Test1136_LogoutAdminWithFreezingAdminIsSuccess() {
+func (suite *Model11) Test1136_LogoutAdminWithFreezingAdminIsSuccess() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	_, err = suite.RoleToFreezing(from.String(), GovernanceAdmin, "")
@@ -504,7 +504,7 @@ func (suite Model11) Test1136_LogoutAdminWithFreezingAdminIsSuccess() {
 }
 
 //tc：注销治理管理员，管理员处于frozen，注销成功
-func (suite Model11) Test1137_LogoutAdminWithFrozenAdminIsSuccess() {
+func (suite *Model11) Test1137_LogoutAdminWithFrozenAdminIsSuccess() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RoleToFrozen(from.String(), GovernanceAdmin, "")
@@ -514,7 +514,7 @@ func (suite Model11) Test1137_LogoutAdminWithFrozenAdminIsSuccess() {
 }
 
 //tc：注销治理管理员，管理员处于activating，注销成功
-func (suite Model11) Test1138_LogoutAdminWithActivatingAdminIsSuccess() {
+func (suite *Model11) Test1138_LogoutAdminWithActivatingAdminIsSuccess() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	_, err = suite.RoleToActivating(from.String(), GovernanceAdmin, "")
@@ -524,7 +524,7 @@ func (suite Model11) Test1138_LogoutAdminWithActivatingAdminIsSuccess() {
 }
 
 //tc：注销治理管理员，管理员处于logouting，注销失败
-func (suite Model11) Test1139_LogoutAdminWithLogoutingAdminIsFail() {
+func (suite *Model11) Test1139_LogoutAdminWithLogoutingAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	_, err = suite.RoleToLogouting(from.String(), GovernanceAdmin, "")
@@ -534,7 +534,7 @@ func (suite Model11) Test1139_LogoutAdminWithLogoutingAdminIsFail() {
 }
 
 //tc：注销治理管理员，管理员处于forbidden，注销失败
-func (suite Model11) Test1140_LogoutAdminWithForbiddenAdminIsFail() {
+func (suite *Model11) Test1140_LogoutAdminWithForbiddenAdminIsFail() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RoleToForbidden(from.String(), GovernanceAdmin, "")
@@ -544,7 +544,7 @@ func (suite Model11) Test1140_LogoutAdminWithForbiddenAdminIsFail() {
 }
 
 //tc：治理管理员处于available，管理员参与提案，参与成功
-func (suite Model11) Test1141_VoteWithAvailableAdminIsSuccess() {
+func (suite *Model11) Test1141_VoteWithAvailableAdminIsSuccess() {
 	pk, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RegisterRole(from.String(), GovernanceAdmin, "")
@@ -563,7 +563,7 @@ func (suite Model11) Test1141_VoteWithAvailableAdminIsSuccess() {
 }
 
 //tc：治理管理员处于registing，管理员参与提案，参与失败
-func (suite Model11) Test1142_VoteWithRegistingAdminIsFail() {
+func (suite *Model11) Test1142_VoteWithRegistingAdminIsFail() {
 	pk, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	proposal1, err := suite.RoleToRegisting(from.String(), GovernanceAdmin, "")
@@ -582,7 +582,7 @@ func (suite Model11) Test1142_VoteWithRegistingAdminIsFail() {
 }
 
 //tc：治理管理员处于unavailable，管理员参与提案，参与失败
-func (suite Model11) Test1143_VoteWithUnavailableAdminIsFail() {
+func (suite *Model11) Test1143_VoteWithUnavailableAdminIsFail() {
 	pk, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RoleToUnavailable(from.String(), GovernanceAdmin, "")
@@ -596,7 +596,7 @@ func (suite Model11) Test1143_VoteWithUnavailableAdminIsFail() {
 }
 
 //tc：治理管理员处于freezing，管理员参与提案，参与成功
-func (suite Model11) Test1144_VoteWithFreezingAdminIsSuccess() {
+func (suite *Model11) Test1144_VoteWithFreezingAdminIsSuccess() {
 	pk, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	proposal1, err := suite.RoleToFreezing(from.String(), GovernanceAdmin, "")
@@ -617,7 +617,7 @@ func (suite Model11) Test1144_VoteWithFreezingAdminIsSuccess() {
 }
 
 //tc：治理管理员处于frozen，管理员参与提案，参与失败
-func (suite Model11) Test1145_VoteWithFrozenAdminIsFail() {
+func (suite *Model11) Test1145_VoteWithFrozenAdminIsFail() {
 	pk, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RoleToFrozen(from.String(), GovernanceAdmin, "")
@@ -636,7 +636,7 @@ func (suite Model11) Test1145_VoteWithFrozenAdminIsFail() {
 }
 
 //tc：治理管理员处于activating，管理员参与提案，参与失败
-func (suite Model11) Test1146_VoteWithActivatingAdminIsFail() {
+func (suite *Model11) Test1146_VoteWithActivatingAdminIsFail() {
 	pk, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	proposal1, err := suite.RoleToActivating(from.String(), GovernanceAdmin, "")
@@ -657,7 +657,7 @@ func (suite Model11) Test1146_VoteWithActivatingAdminIsFail() {
 }
 
 //tc：治理管理员处于logouting，管理员参与提案，参与失败
-func (suite Model11) Test1147_VoteWithLogoutingAdminIsFail() {
+func (suite *Model11) Test1147_VoteWithLogoutingAdminIsFail() {
 	pk, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	proposal1, err := suite.RoleToLogouting(from.String(), GovernanceAdmin, "")
@@ -676,7 +676,7 @@ func (suite Model11) Test1147_VoteWithLogoutingAdminIsFail() {
 }
 
 //tc：治理管理员处于forbidden，管理员参与提案，参与失败
-func (suite Model11) Test1148_VoteWithForbiddenAdminIsFail() {
+func (suite *Model11) Test1148_VoteWithForbiddenAdminIsFail() {
 	pk, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RoleToForbidden(from.String(), GovernanceAdmin, "")
@@ -691,7 +691,7 @@ func (suite Model11) Test1148_VoteWithForbiddenAdminIsFail() {
 
 //TODO tc：注销治理管理员导致提案不可能达成，提案自动放弃
 //tc：注册审计管理员，管理员未注册，注册成功
-func (suite Model11) Test1149_RegisterAuditAdminWithNoRegisterAdminIsSuccess() {
+func (suite *Model11) Test1149_RegisterAuditAdminWithNoRegisterAdminIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -709,7 +709,7 @@ func (suite Model11) Test1149_RegisterAuditAdminWithNoRegisterAdminIsSuccess() {
 }
 
 //tc：注册审计管理员，管理员处于available，注册失败
-func (suite Model11) Test1150_RegisterAuditAdminWithAvailableAdminIsFail() {
+func (suite *Model11) Test1150_RegisterAuditAdminWithAvailableAdminIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -729,7 +729,7 @@ func (suite Model11) Test1150_RegisterAuditAdminWithAvailableAdminIsFail() {
 }
 
 //tc：注册审计管理员，管理员处于registing，注册失败
-func (suite Model11) Test1151_RegisterAuditAdminWithRegistingAdminIsFail() {
+func (suite *Model11) Test1151_RegisterAuditAdminWithRegistingAdminIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -749,7 +749,7 @@ func (suite Model11) Test1151_RegisterAuditAdminWithRegistingAdminIsFail() {
 }
 
 //tc：注册审计管理员，管理员处于unavailable，注册成功
-func (suite Model11) Test1152_RegisterAuditAdminWithUnavailableAdminIsSuccess() {
+func (suite *Model11) Test1152_RegisterAuditAdminWithUnavailableAdminIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -769,7 +769,7 @@ func (suite Model11) Test1152_RegisterAuditAdminWithUnavailableAdminIsSuccess() 
 }
 
 //tc：注册审计管理员，管理员处于frozen，注册失败
-func (suite Model11) Test1153_RegisterAuditAdminWithFrozenAdminIsFail() {
+func (suite *Model11) Test1153_RegisterAuditAdminWithFrozenAdminIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -793,7 +793,7 @@ func (suite Model11) Test1153_RegisterAuditAdminWithFrozenAdminIsFail() {
 }
 
 //tc：注册审计管理员，管理员处于binding，注册失败
-func (suite Model11) Test1154_RegisterAuditAdminWithBindingAdminIsFail() {
+func (suite *Model11) Test1154_RegisterAuditAdminWithBindingAdminIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -813,7 +813,7 @@ func (suite Model11) Test1154_RegisterAuditAdminWithBindingAdminIsFail() {
 }
 
 //tc：注册审计管理员，管理员处于logouting，注册失败
-func (suite Model11) Test1155_RegisterAuditAdminWithLogoutingAdminIsFail() {
+func (suite *Model11) Test1155_RegisterAuditAdminWithLogoutingAdminIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -833,7 +833,7 @@ func (suite Model11) Test1155_RegisterAuditAdminWithLogoutingAdminIsFail() {
 }
 
 //tc：注册审计管理员，管理员处于forbidden，注册失败
-func (suite Model11) Test1156_RegisterAuditAdminWithForbiddenAdminIsFail() {
+func (suite *Model11) Test1156_RegisterAuditAdminWithForbiddenAdminIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -853,7 +853,7 @@ func (suite Model11) Test1156_RegisterAuditAdminWithForbiddenAdminIsFail() {
 }
 
 //tc：注册审计管理员，审计节点未注册，注册失败
-func (suite Model11) Test1157_RegisterAuditAdminWithNoRegisterNodeIsFail() {
+func (suite *Model11) Test1157_RegisterAuditAdminWithNoRegisterNodeIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pk2, from2, address2, err := suite.DeployRule()
@@ -867,7 +867,7 @@ func (suite Model11) Test1157_RegisterAuditAdminWithNoRegisterNodeIsFail() {
 }
 
 //tc：注册审计管理员，审计节点处于registing，注册失败
-func (suite Model11) Test1158_RegisterAuditAdminWithRegistingNodeIsFail() {
+func (suite *Model11) Test1158_RegisterAuditAdminWithRegistingNodeIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -885,7 +885,7 @@ func (suite Model11) Test1158_RegisterAuditAdminWithRegistingNodeIsFail() {
 }
 
 //tc：注册审计管理员，审计节点处于unavailable，注册失败
-func (suite Model11) Test1159_RegisterAuditAdminWithUnavailableNodeIsFail() {
+func (suite *Model11) Test1159_RegisterAuditAdminWithUnavailableNodeIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -903,7 +903,7 @@ func (suite Model11) Test1159_RegisterAuditAdminWithUnavailableNodeIsFail() {
 }
 
 //tc：注册审计管理员，审计节点处于updating，注册失败
-func (suite Model11) Test1160_RegisterAuditAdminWithUpdatingNodeIsFail() {
+func (suite *Model11) Test1160_RegisterAuditAdminWithUpdatingNodeIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -921,7 +921,7 @@ func (suite Model11) Test1160_RegisterAuditAdminWithUpdatingNodeIsFail() {
 }
 
 //tc：注册审计管理员，审计节点处于binding，注册失败
-func (suite Model11) Test1161_RegisterAuditAdminWithBindingNodeIsFail() {
+func (suite *Model11) Test1161_RegisterAuditAdminWithBindingNodeIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -939,7 +939,7 @@ func (suite Model11) Test1161_RegisterAuditAdminWithBindingNodeIsFail() {
 }
 
 //tc：注册审计管理员，审计节点处于binded，注册失败
-func (suite Model11) Test1162_RegisterAuditAdminWithBindedNodeIsFail() {
+func (suite *Model11) Test1162_RegisterAuditAdminWithBindedNodeIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -957,7 +957,7 @@ func (suite Model11) Test1162_RegisterAuditAdminWithBindedNodeIsFail() {
 }
 
 //tc：注册审计管理员，审计节点处于logouting，注册失败
-func (suite Model11) Test1163_RegisterAuditAdminWithLogoutingNodeIsFail() {
+func (suite *Model11) Test1163_RegisterAuditAdminWithLogoutingNodeIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -975,7 +975,7 @@ func (suite Model11) Test1163_RegisterAuditAdminWithLogoutingNodeIsFail() {
 }
 
 //tc：注册审计管理员，审计节点处于forbidden，注册失败
-func (suite Model11) Test1164_RegisterAuditAdminWithForbiddenNodeIsFail() {
+func (suite *Model11) Test1164_RegisterAuditAdminWithForbiddenNodeIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -993,7 +993,7 @@ func (suite Model11) Test1164_RegisterAuditAdminWithForbiddenNodeIsFail() {
 }
 
 //tc：注销审计管理员，管理员未注册，注销失败
-func (suite Model11) Test1165_LogoutAuditAdminWithNoRegisterAdminIsFail() {
+func (suite *Model11) Test1165_LogoutAuditAdminWithNoRegisterAdminIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.LogoutRole(from1.String())
@@ -1001,7 +1001,7 @@ func (suite Model11) Test1165_LogoutAuditAdminWithNoRegisterAdminIsFail() {
 }
 
 //tc：注销审计管理员，管理员处于available，注销成功
-func (suite Model11) Test1166_LogoutAuditAdminWithAvailableAdminIsSuccess() {
+func (suite *Model11) Test1166_LogoutAuditAdminWithAvailableAdminIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -1021,7 +1021,7 @@ func (suite Model11) Test1166_LogoutAuditAdminWithAvailableAdminIsSuccess() {
 }
 
 //tc：注销审计管理员，管理员处于registing，注销失败
-func (suite Model11) Test1167_LogoutAuditAdminWithRegistingAdminIsFail() {
+func (suite *Model11) Test1167_LogoutAuditAdminWithRegistingAdminIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -1041,7 +1041,7 @@ func (suite Model11) Test1167_LogoutAuditAdminWithRegistingAdminIsFail() {
 }
 
 //tc：注销审计管理员，管理员处于unavailable，注销失败
-func (suite Model11) Test1168_LogoutAuditAdminWithUnavailableAdminIsFail() {
+func (suite *Model11) Test1168_LogoutAuditAdminWithUnavailableAdminIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -1061,7 +1061,7 @@ func (suite Model11) Test1168_LogoutAuditAdminWithUnavailableAdminIsFail() {
 }
 
 //tc：注销审计管理员，管理员处于frozen，注销成功
-func (suite Model11) Test1169_LogoutAuditAdminWithFrozenAdminIsSuccess() {
+func (suite *Model11) Test1169_LogoutAuditAdminWithFrozenAdminIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -1083,7 +1083,7 @@ func (suite Model11) Test1169_LogoutAuditAdminWithFrozenAdminIsSuccess() {
 }
 
 //tc：注销审计管理员，管理员处于binding，注销成功
-func (suite Model11) Test1170_LogoutAuditAdminWithBindingAdminIsSuccess() {
+func (suite *Model11) Test1170_LogoutAuditAdminWithBindingAdminIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -1103,7 +1103,7 @@ func (suite Model11) Test1170_LogoutAuditAdminWithBindingAdminIsSuccess() {
 }
 
 //tc：注销审计管理员，管理员处于logouting，注销失败
-func (suite Model11) Test1171_LogoutAuditAdminWithLogoutingAdminIsFail() {
+func (suite *Model11) Test1171_LogoutAuditAdminWithLogoutingAdminIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -1123,7 +1123,7 @@ func (suite Model11) Test1171_LogoutAuditAdminWithLogoutingAdminIsFail() {
 }
 
 //tc：注销审计管理员，管理员处于forbidden，注销失败
-func (suite Model11) Test1172_LogoutAuditAdminWithForbiddenAdminIsFail() {
+func (suite *Model11) Test1172_LogoutAuditAdminWithForbiddenAdminIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -1143,7 +1143,7 @@ func (suite Model11) Test1172_LogoutAuditAdminWithForbiddenAdminIsFail() {
 }
 
 //tc：注销审计管理员，审计节点处于updating，注销成功，审计节点提案通过，审计节点处于available
-func (suite Model11) Test1173_LogoutAuditAdminWithUpdatingNodePassIsSuccess() {
+func (suite *Model11) Test1173_LogoutAuditAdminWithUpdatingNodePassIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -1174,7 +1174,7 @@ func (suite Model11) Test1173_LogoutAuditAdminWithUpdatingNodePassIsSuccess() {
 }
 
 //tc：注销审计管理员，审计节点处于updating，注销成功，审计节点提案不通过，审计节点处于available
-func (suite Model11) Test1174_LogoutAuditAdminWithUpdatingNodeRejectIsSuccess() {
+func (suite *Model11) Test1174_LogoutAuditAdminWithUpdatingNodeRejectIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -1206,7 +1206,7 @@ func (suite Model11) Test1174_LogoutAuditAdminWithUpdatingNodeRejectIsSuccess() 
 }
 
 //tc：注销审计管理员，审计节点处于binding，注销成功，审计节点提案放弃，审计节点处于available
-func (suite Model11) Test1175_LogoutAuditAdminWithBindingNodeIsSuccess() {
+func (suite *Model11) Test1175_LogoutAuditAdminWithBindingNodeIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -1226,7 +1226,7 @@ func (suite Model11) Test1175_LogoutAuditAdminWithBindingNodeIsSuccess() {
 }
 
 //tc：注销审计管理员，审计节点处于binded，注销成功
-func (suite Model11) Test1176_LogoutAuditAdminWithBindedNodeIsSuccess() {
+func (suite *Model11) Test1176_LogoutAuditAdminWithBindedNodeIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -1246,7 +1246,7 @@ func (suite Model11) Test1176_LogoutAuditAdminWithBindedNodeIsSuccess() {
 }
 
 //tc：注销审计管理员，审计节点处于logouting，注销成功，审计节点提案通过，审计节点处于forbidden
-func (suite Model11) Test1177_LogoutRoleWithLogoutingNodePassIsSuccess() {
+func (suite *Model11) Test1177_LogoutRoleWithLogoutingNodePassIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -1278,7 +1278,7 @@ func (suite Model11) Test1177_LogoutRoleWithLogoutingNodePassIsSuccess() {
 }
 
 //tc：注销审计管理员，审计节点处于logouting，注销成功，审计节点提案不通过，审计节点处于available
-func (suite Model11) Test1178_LogoutAuditAdminWithLogoutingRejectIsSuccess() {
+func (suite *Model11) Test1178_LogoutAuditAdminWithLogoutingRejectIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -1310,7 +1310,7 @@ func (suite Model11) Test1178_LogoutAuditAdminWithLogoutingRejectIsSuccess() {
 }
 
 //tc：审计管理员重新绑定审计节点，审计节点未注册，绑定失败
-func (suite Model11) Test1179_BindRoleWithNoRegisterRoleIsFail() {
+func (suite *Model11) Test1179_BindRoleWithNoRegisterRoleIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid1, err := suite.MockPid()
@@ -1334,7 +1334,7 @@ func (suite Model11) Test1179_BindRoleWithNoRegisterRoleIsFail() {
 }
 
 //tc：审计管理员重新绑定审计节点，审计节点处于registing，绑定失败
-func (suite Model11) Test1180_BindRoleWithRegistingRoleIsFail() {
+func (suite *Model11) Test1180_BindRoleWithRegistingRoleIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid1, err := suite.MockPid()
@@ -1366,7 +1366,7 @@ func (suite Model11) Test1180_BindRoleWithRegistingRoleIsFail() {
 }
 
 //tc：审计管理员重新绑定审计节点，审计节点处于unavailable，绑定失败
-func (suite Model11) Test1181_BindRoleWithUnavailableRoleIsFail() {
+func (suite *Model11) Test1181_BindRoleWithUnavailableRoleIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid1, err := suite.MockPid()
@@ -1398,7 +1398,7 @@ func (suite Model11) Test1181_BindRoleWithUnavailableRoleIsFail() {
 }
 
 //tc：审计管理员重新绑定审计节点，审计节点处于available，绑定成功
-func (suite Model11) Test1182_BindRoleWithAvailableRoleIsSuccess() {
+func (suite *Model11) Test1182_BindRoleWithAvailableRoleIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid1, err := suite.MockPid()
@@ -1430,7 +1430,7 @@ func (suite Model11) Test1182_BindRoleWithAvailableRoleIsSuccess() {
 }
 
 //tc：审计管理员重新绑定审计节点，审计节点处于binding，绑定失败
-func (suite Model11) Test1183_BindRoleWithBindingRoleIsFail() {
+func (suite *Model11) Test1183_BindRoleWithBindingRoleIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid1, err := suite.MockPid()
@@ -1462,7 +1462,7 @@ func (suite Model11) Test1183_BindRoleWithBindingRoleIsFail() {
 }
 
 //tc：审计管理员重新绑定审计节点，审计节点处于binded，绑定失败
-func (suite Model11) Test1184_BindRoleWithBindedRoleIsFail() {
+func (suite *Model11) Test1184_BindRoleWithBindedRoleIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid1, err := suite.MockPid()
@@ -1494,7 +1494,7 @@ func (suite Model11) Test1184_BindRoleWithBindedRoleIsFail() {
 }
 
 //tc：审计管理员重新绑定审计节点，审计节点处于updating，绑定失败
-func (suite Model11) Test1185_BindRoleWithUpdatingRoleIsFail() {
+func (suite *Model11) Test1185_BindRoleWithUpdatingRoleIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid1, err := suite.MockPid()
@@ -1526,7 +1526,7 @@ func (suite Model11) Test1185_BindRoleWithUpdatingRoleIsFail() {
 }
 
 //tc：审计管理员重新绑定审计节点，审计节点处于logouting，绑定失败
-func (suite Model11) Test1186_BindRoleWithLogoutingRoleIsFail() {
+func (suite *Model11) Test1186_BindRoleWithLogoutingRoleIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid1, err := suite.MockPid()
@@ -1558,7 +1558,7 @@ func (suite Model11) Test1186_BindRoleWithLogoutingRoleIsFail() {
 }
 
 //tc：审计管理员重新绑定审计节点，审计节点处于forbidden，绑定失败
-func (suite Model11) Test1187_BindRoleWithForbiddenRoleIsFail() {
+func (suite *Model11) Test1187_BindRoleWithForbiddenRoleIsFail() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid1, err := suite.MockPid()
@@ -1590,7 +1590,7 @@ func (suite Model11) Test1187_BindRoleWithForbiddenRoleIsFail() {
 }
 
 //tc：审计管理员绑定中，注销审计节点，节点注销成功
-func (suite Model11) Test1188_BindRoleThenLogoutNodeIsSuccess() {
+func (suite *Model11) Test1188_BindRoleThenLogoutNodeIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid1, err := suite.MockPid()
@@ -1629,7 +1629,7 @@ func (suite Model11) Test1188_BindRoleThenLogoutNodeIsSuccess() {
 }
 
 //tc：审计管理员绑定中，注销审计管理员，管理员注销成功
-func (suite Model11) Test1189_BindRoleThenLogoutRoleIsSuccess() {
+func (suite *Model11) Test1189_BindRoleThenLogoutRoleIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid1, err := suite.MockPid()
@@ -1668,7 +1668,7 @@ func (suite Model11) Test1189_BindRoleThenLogoutRoleIsSuccess() {
 }
 
 //tc：审计管理员参与治理投票，投票失败
-func (suite Model11) Test1190_AuditAdminVoteIsFail() {
+func (suite *Model11) Test1190_AuditAdminVoteIsFail() {
 	pk1, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid1, err := suite.MockPid()
@@ -1692,7 +1692,7 @@ func (suite Model11) Test1190_AuditAdminVoteIsFail() {
 }
 
 // InvokeRoleContract invoke role contract by methodName and args
-func (suite Snake) InvokeRoleContract(method string, args ...*pb.Arg) (string, error) {
+func (suite *Snake) InvokeRoleContract(method string, args ...*pb.Arg) (string, error) {
 	pk, _, err := repo.Node2Priv()
 	if err != nil {
 		return "", err
@@ -1716,7 +1716,7 @@ func (suite Snake) InvokeRoleContract(method string, args ...*pb.Arg) (string, e
 }
 
 // RegisterRole register role
-func (suite Snake) RegisterRole(id, typ, account string) error {
+func (suite *Snake) RegisterRole(id, typ, account string) error {
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String(typ),
@@ -1731,7 +1731,7 @@ func (suite Snake) RegisterRole(id, typ, account string) error {
 }
 
 // FreezeRole freeze role
-func (suite Snake) FreezeRole(id string) error {
+func (suite *Snake) FreezeRole(id string) error {
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String("reason"),
@@ -1744,7 +1744,7 @@ func (suite Snake) FreezeRole(id string) error {
 }
 
 // ActivateRole activate role
-func (suite Snake) ActivateRole(id string) error {
+func (suite *Snake) ActivateRole(id string) error {
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String("reason"),
@@ -1757,7 +1757,7 @@ func (suite Snake) ActivateRole(id string) error {
 }
 
 // LogoutRole logout role
-func (suite Snake) LogoutRole(id string) error {
+func (suite *Snake) LogoutRole(id string) error {
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String("reason"),
@@ -1770,7 +1770,7 @@ func (suite Snake) LogoutRole(id string) error {
 }
 
 // BindRole bind role
-func (suite Snake) BindRole(roleId, nodeAccount string) error {
+func (suite *Snake) BindRole(roleId, nodeAccount string) error {
 	args := []*pb.Arg{
 		rpcx.String(roleId),
 		rpcx.String(nodeAccount),
@@ -1784,7 +1784,7 @@ func (suite Snake) BindRole(roleId, nodeAccount string) error {
 }
 
 // RoleToRegisting get a registing role
-func (suite Snake) RoleToRegisting(id, typ, account string) (string, error) {
+func (suite *Snake) RoleToRegisting(id, typ, account string) (string, error) {
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String(typ),
@@ -1803,7 +1803,7 @@ func (suite Snake) RoleToRegisting(id, typ, account string) (string, error) {
 }
 
 // RoleToUnavailable get an Unavailable role
-func (suite Snake) RoleToUnavailable(id, typ, account string) error {
+func (suite *Snake) RoleToUnavailable(id, typ, account string) error {
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String(typ),
@@ -1826,7 +1826,7 @@ func (suite Snake) RoleToUnavailable(id, typ, account string) error {
 }
 
 // RoleToFreezing get a freezing role
-func (suite Snake) RoleToFreezing(id, typ, account string) (string, error) {
+func (suite *Snake) RoleToFreezing(id, typ, account string) (string, error) {
 	err := suite.RegisterRole(id, typ, account)
 	if err != nil {
 		return "", err
@@ -1847,7 +1847,7 @@ func (suite Snake) RoleToFreezing(id, typ, account string) (string, error) {
 }
 
 // RoleToFrozen get a frozen role
-func (suite Snake) RoleToFrozen(id, typ, account string) error {
+func (suite *Snake) RoleToFrozen(id, typ, account string) error {
 	err := suite.RegisterRole(id, typ, account)
 	if err != nil {
 		return err
@@ -1864,7 +1864,7 @@ func (suite Snake) RoleToFrozen(id, typ, account string) error {
 }
 
 // RoleToActivating get an activating role
-func (suite Snake) RoleToActivating(id, typ, account string) (string, error) {
+func (suite *Snake) RoleToActivating(id, typ, account string) (string, error) {
 	err := suite.RegisterRole(id, typ, account)
 	if err != nil {
 		return "", err
@@ -1889,7 +1889,7 @@ func (suite Snake) RoleToActivating(id, typ, account string) (string, error) {
 }
 
 // RoleToLogouting get a logouting role
-func (suite Snake) RoleToLogouting(id, typ, account string) (string, error) {
+func (suite *Snake) RoleToLogouting(id, typ, account string) (string, error) {
 	err := suite.RegisterRole(id, typ, account)
 	if err != nil {
 		return "", err
@@ -1910,7 +1910,7 @@ func (suite Snake) RoleToLogouting(id, typ, account string) (string, error) {
 }
 
 // RoleToForbidden get a forbidden role
-func (suite Snake) RoleToForbidden(id, typ, account string) error {
+func (suite *Snake) RoleToForbidden(id, typ, account string) error {
 	err := suite.RegisterRole(id, typ, account)
 	if err != nil {
 		return err
@@ -1927,7 +1927,7 @@ func (suite Snake) RoleToForbidden(id, typ, account string) error {
 }
 
 // RoleToBinding get a binding role
-func (suite Snake) RoleToBinding(id, typ, account string) error {
+func (suite *Snake) RoleToBinding(id, typ, account string) error {
 	err := suite.RegisterRole(id, typ, account)
 	if err != nil {
 		return err
@@ -1985,7 +1985,7 @@ func (suite *Snake) CheckRoleStatus(id string, expectStatus governance.Governanc
 }
 
 // GetRoleStatus get role status by id
-func (suite Snake) GetRoleStatus(id string) (governance.GovernanceStatus, error) {
+func (suite *Snake) GetRoleStatus(id string) (governance.GovernanceStatus, error) {
 	args := []*pb.Arg{
 		rpcx.String(id),
 	}
@@ -2009,7 +2009,7 @@ func (suite Snake) GetRoleStatus(id string) (governance.GovernanceStatus, error)
 }
 
 // GetProposal return a proposal id
-func (suite Snake) GetProposal() string {
+func (suite *Snake) GetProposal() string {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	bytes, err := pk.PublicKey().Bytes()

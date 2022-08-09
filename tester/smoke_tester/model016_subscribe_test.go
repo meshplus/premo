@@ -14,7 +14,7 @@ type Model16 struct {
 }
 
 //tc:订阅普通交易
-func (suite Model16) Test1601_SubscribeAuditInfoWithNoIBTPIsSuccess() {
+func (suite *Model16) Test1601_SubscribeAuditInfoWithNoIBTPIsSuccess() {
 	pk1, from1, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk1, from1, address)
@@ -66,7 +66,7 @@ func (suite Model16) Test1601_SubscribeAuditInfoWithNoIBTPIsSuccess() {
 }
 
 //订阅跨链交易
-func (suite Model16) Test1602_SubscribeAuditInfoWithIBTPIsSuccess() {
+func (suite *Model16) Test1602_SubscribeAuditInfoWithIBTPIsSuccess() {
 	pk1, err := suite.PrepareServer()
 	suite.Require().Nil(err)
 	from1, err := pk1.PublicKey().Address()
