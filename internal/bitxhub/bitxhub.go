@@ -299,7 +299,7 @@ func (b *Broker) listenBlock() {
 				cnt++
 				counter++
 
-				txDelay := now - tx.GetTimeStamp()
+				txDelay := now - tx.(*pb.BxhTransaction).ReceiveTimestamp
 				dly += txDelay
 				delayer += txDelay
 
