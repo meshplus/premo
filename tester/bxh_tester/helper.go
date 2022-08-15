@@ -3,6 +3,7 @@ package bxh_tester
 import (
 	"crypto/sha256"
 	"fmt"
+	"math/rand"
 	"sync/atomic"
 	"time"
 
@@ -99,6 +100,8 @@ func (suite *Snake) SetupSuite() {
 	nonce, err = client.GetPendingNonceByAccount(node4Addr.String())
 	suite.Require().Nil(err)
 	nonce4 = nonce - 1
+
+	rand.Seed(time.Now().UnixNano())
 }
 
 // NewClient return client by privateKey
