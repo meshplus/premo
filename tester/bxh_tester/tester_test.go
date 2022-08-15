@@ -21,6 +21,8 @@ func TestTester(t *testing.T) {
 	suite.Run(t, &Model14{&Snake{}})
 	//suite.Run(t, &Model15{&Snake{}})
 	suite.Run(t, &Model16{&Snake{}})
+	suite.Run(t, &Model18{&Snake{}})
+	suite.Run(t, &Model19{&Snake{}})
 	//these testcases can't parallel because its will affect others
 	//suite.Run(t, &Model11{Snake{}})
 	//suite.Run(t, &Model12{&Snake{}})
