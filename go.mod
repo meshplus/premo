@@ -15,9 +15,9 @@ require (
 	github.com/jiuhuche120/spin v0.0.0-20220224085816-ab11eb007ff8
 	github.com/libp2p/go-libp2p-core v0.6.1
 	github.com/looplab/fsm v0.3.0
-	github.com/meshplus/bitxhub-core v1.3.1-0.20220701090824-788a823e6049
+	github.com/meshplus/bitxhub-core v1.3.1-0.20220810080906-e29855b55db6
 	github.com/meshplus/bitxhub-kit v1.2.1-0.20220610092251-68e35ef37b7a
-	github.com/meshplus/bitxhub-model v1.2.1-0.20220809093855-418fed5bf06f
+	github.com/meshplus/bitxhub-model v1.2.1-0.20220811053903-7cd82d10a8ec
 	github.com/meshplus/go-bitxhub-client v1.4.1-0.20220719031106-9a0498f18141
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/shirou/gopsutil v3.21.11+incompatible
