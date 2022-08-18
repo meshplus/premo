@@ -378,13 +378,12 @@ func mockIBTP(index uint64, from string, proof []byte) *pb.IBTP {
 	proofHash := sha256.Sum256(proof)
 
 	return &pb.IBTP{
-		From:          from,
-		To:            "1356:" + To + ":mychannel&transfer",
-		Payload:       ibtppd,
-		Index:         index,
-		Type:          pb.IBTP_INTERCHAIN,
-		TimeoutHeight: 1000000,
-		Proof:         proofHash[:],
+		From:    from,
+		To:      "1356:" + To + ":mychannel&transfer",
+		Payload: ibtppd,
+		Index:   index,
+		Type:    pb.IBTP_INTERCHAIN,
+		Proof:   proofHash[:],
 	}
 }
 
