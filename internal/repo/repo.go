@@ -115,7 +115,7 @@ func Node4Priv() (crypto.PrivateKey, *types.Address, error) {
 	return getPrivByPath(path)
 }
 
-// KeyPriv return node4's privateKey and address
+// KeyPriv return privateKey and address
 func KeyPriv() (crypto.PrivateKey, *types.Address, error) {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	if err != nil {

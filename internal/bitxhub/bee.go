@@ -32,11 +32,14 @@ var ibtppd []byte
 
 type bee struct {
 	normalPrivKey crypto.PrivateKey
+	toPrivKey     crypto.PrivateKey
 	normalFrom    *types.Address
+	normalTo      *types.Address
 	client        rpcx.Client
 	tps           int
 	count         uint64
 	nonce         uint64
+	toNonce       uint64
 	ctx           context.Context
 	cancel        context.CancelFunc
 	config        *Config
@@ -53,6 +56,11 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, config
 	if err != nil {
 		return nil, err
 	}
+	ToPK, normalTo, err := repo.KeyPriv()
+	if err != nil {
+		return nil, err
+	}
+
 	node0 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[0]}
 
 	client, err := rpcx.New(
@@ -73,17 +81,29 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, config
 		return nil, err
 	}
 
+	toNonce, err := client.GetPendingNonceByAccount(normalTo.String())
+	if err != nil {
+		return nil, err
+	}
+	err = TransferFromAdmin(client, adminPk, adminFrom, normalTo, "100")
+	if err != nil {
+		return nil, err
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	return &bee{
 		client:        client,
 		normalPrivKey: normalPk,
+		toPrivKey:     ToPK,
 		normalFrom:    normalFrom,
+		normalTo:      normalTo,
 		tps:           tps,
 		ctx:           ctx,
 		cancel:        cancel,
 		config:        config,
 		count:         1,
 		nonce:         nonce,
+		toNonce:       toNonce,
 		txs:           make(chan *pb.MultiTransaction, 1024),
 	}, nil
 }
@@ -210,6 +230,104 @@ func (bee *bee) genBVMTx(nonce uint64) (*pb.BxhTransaction, error) {
 	}
 	return tx, nil
 }
+func (bee *bee) prepareToChain(typ, desc string) error {
+	// register chain
+	broker := "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"
+	address := "0x00000000000000000000000000000000000000a2"
+	if typ == "Fabric V1.4.3" {
+		address = "0x00000000000000000000000000000000000000a0"
+		broker = "{\"channel_id\":\"mychannel\",\"chaincode_id\":\"broker\",\"broker_version\":\"1\"}"
+	} else if typ == "Flato V1.0.3" {
+		repoRoot, err := repo.PathRoot()
+		contract, err := ioutil.ReadFile(filepath.Join(repoRoot, "rule.wasm"))
+		if err != nil {
+			return fmt.Errorf("read rule file err %w", err)
+		}
+		addr, err := bee.client.DeployContract(contract, nil)
+		if err != nil {
+			return fmt.Errorf("deploy rule err %w", err)
+		}
+		atomic.AddUint64(&bee.toNonce, 1)
+		address = addr.String()
+	}
+	bytes, err := bee.toPrivKey.PublicKey().Bytes()
+	if err != nil {
+		return err
+	}
+	args := []*pb.Arg{
+		rpcx.String(bee.normalTo.String()),       //chainID
+		rpcx.String(bee.normalTo.String()),       //chainName
+		rpcx.Bytes(bytes),                        //pubKey
+		rpcx.String(typ),                         //chainType
+		rpcx.Bytes([]byte(bee.config.Validator)), //trustRoot
+		rpcx.String(broker),                      //broker
+		rpcx.String(desc),                        //desc
+		rpcx.String(address),                     //masterRuleAddr
+		rpcx.String("https://github.com"),        //masterRuleUrl
+		rpcx.String(bee.normalTo.String()),       //adminAddrs
+		rpcx.String("reason"),                    //reason
+	}
+	res, err := bee.client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "RegisterAppchain", &rpcx.TransactOpts{
+		From:    bee.normalTo.String(),
+		Nonce:   atomic.AddUint64(&bee.toNonce, 1) - 1,
+		PrivKey: bee.toPrivKey,
+	}, args...)
+	if err != nil {
+		return fmt.Errorf("register appchain error: %w", err)
+	}
+	// vote chain
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	if err != nil || result.ProposalID == "" {
+		return fmt.Errorf("vote chain unmarshal error: %w", err)
+	}
+	err = bee.VotePass(bee.client, result.ProposalID)
+	if err != nil {
+		return fmt.Errorf("vote chain error: %w", err)
+	}
+	res, err = bee.GetChainStatusById(bee.client, bee.toPrivKey, bee.normalTo.String())
+	if err != nil {
+		return fmt.Errorf("getChainStatus111 error: %w", err)
+	}
+	atomic.AddUint64(&bee.toNonce, 1)
+	appchain := &appchainMgr.Appchain{}
+	err = json.Unmarshal(res.Ret, appchain)
+	if err != nil || appchain.Status != governance.GovernanceAvailable {
+		return fmt.Errorf("chain error: %w", err)
+	}
+	//register server
+	args = []*pb.Arg{
+		rpcx.String(bee.normalTo.String()),
+		rpcx.String("toTransfer"),
+		rpcx.String(bee.normalTo.String()),
+		rpcx.String("CallContract"),
+		rpcx.String("test"),
+		rpcx.Uint64(1),
+		rpcx.String(""),
+		rpcx.String("test"),
+		rpcx.String("reason"),
+	}
+	res, err = bee.client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "RegisterService", &rpcx.TransactOpts{
+		From:    bee.normalTo.String(),
+		Nonce:   atomic.AddUint64(&bee.toNonce, 1) - 1,
+		PrivKey: bee.toPrivKey,
+	}, args...)
+	if err != nil {
+		return fmt.Errorf("register server error %w", err)
+	}
+	//vote server
+	result = &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	if err != nil || result.ProposalID == "" {
+		return fmt.Errorf("vote server unmarshal error: %w", err)
+	}
+	err = bee.VotePass(bee.client, result.ProposalID)
+	if err != nil {
+		return fmt.Errorf("vote server error: %w", err)
+	}
+	log.Infof("success prepare to chain")
+	return nil
+}
 
 func (bee *bee) prepareChain(typ, desc string) error {
 	bee.client.SetPrivateKey(bee.normalPrivKey)
@@ -279,7 +397,7 @@ func (bee *bee) prepareChain(typ, desc string) error {
 	//register server
 	args = []*pb.Arg{
 		rpcx.String(bee.normalFrom.String()),
-		rpcx.String("mychannel&transfer"),
+		rpcx.String("fromTransfer"),
 		rpcx.String(bee.normalFrom.String()),
 		rpcx.String("CallContract"),
 		rpcx.String("test"),
@@ -306,6 +424,7 @@ func (bee *bee) prepareChain(typ, desc string) error {
 	if err != nil {
 		return fmt.Errorf("vote server error: %w", err)
 	}
+	//log.Infof("End prepare from service:%s", fmt.Sprintf(bee.normalFrom.String()+))
 	prepareInterchainTx()
 	return nil
 }
@@ -335,7 +454,7 @@ func (bee *bee) genTransferTx(to *types.Address, normalNo uint64) (*pb.BxhTransa
 
 func (bee *bee) genInterchainTx(i, nonce uint64) (*pb.BxhTransaction, error) {
 	atomic.AddInt64(&sender, 1)
-	ibtp := mockIBTP(i, "1356:"+bee.normalFrom.String()+":mychannel&transfer", bee.config.Proof)
+	ibtp := mockIBTP(i, "1356:"+bee.normalFrom.String()+":fromTransfer", "1356:"+bee.normalTo.String()+":toTransfer", bee.config.Proof)
 
 	tx := &pb.BxhTransaction{
 		From:      bee.normalFrom,
@@ -374,12 +493,12 @@ func prepareInterchainTx() {
 	ibtppd, _ = payload.Marshal()
 }
 
-func mockIBTP(index uint64, from string, proof []byte) *pb.IBTP {
+func mockIBTP(index uint64, from, to string, proof []byte) *pb.IBTP {
 	proofHash := sha256.Sum256(proof)
 
 	return &pb.IBTP{
 		From:          from,
-		To:            "1356:" + To + ":mychannel&transfer",
+		To:            to,
 		Payload:       ibtppd,
 		Index:         index,
 		Type:          pb.IBTP_INTERCHAIN,
