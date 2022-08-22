@@ -63,6 +63,17 @@ var testCMD = &cli.Command{
 			Aliases: []string{"g"},
 			Value:   false,
 		},
+		&cli.BoolFlag{
+			Name:    "multiDestChain",
+			Usage:   "Specify different src annchain send tx to different dest appchain",
+			Aliases: []string{"m"},
+			Value:   false,
+		},
+		&cli.IntFlag{
+			Name:  "timeoutHeight",
+			Value: 0,
+			Usage: "interchain timeoutHeight",
+		},
 	},
 	Action: benchmark,
 }
@@ -106,16 +117,18 @@ func benchmark(ctx *cli.Context) error {
 		}
 	}
 	config := &bitxhub.Config{
-		Concurrent:  ctx.Int("concurrent"),
-		TPS:         ctx.Int("tps"),
-		Duration:    ctx.Int("duration"),
-		Type:        ctx.String("type"),
-		KeyPath:     keyPath,
-		BitxhubAddr: ctx.StringSlice("remote_bitxhub_addr"),
-		Validator:   string(val),
-		Proof:       proof,
-		Appchain:    typ,
-		Graph:       ctx.Bool("graph"),
+		Concurrent:     ctx.Int("concurrent"),
+		TPS:            ctx.Int("tps"),
+		Duration:       ctx.Int("duration"),
+		Type:           ctx.String("type"),
+		KeyPath:        keyPath,
+		BitxhubAddr:    ctx.StringSlice("remote_bitxhub_addr"),
+		Validator:      string(val),
+		Proof:          proof,
+		Appchain:       typ,
+		Graph:          ctx.Bool("graph"),
+		MultiDestChain: ctx.Bool("multiDestChain"),
+		TimeoutHeight:  ctx.Int("timeoutHeight"),
 	}
 
 	if config.Concurrent > config.TPS {

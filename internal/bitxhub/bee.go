@@ -56,11 +56,6 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, config
 	if err != nil {
 		return nil, err
 	}
-	ToPK, normalTo, err := repo.KeyPriv()
-	if err != nil {
-		return nil, err
-	}
-
 	node0 := &rpcx.NodeInfo{Addr: config.BitxhubAddr[0]}
 
 	client, err := rpcx.New(
@@ -81,20 +76,31 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, config
 		return nil, err
 	}
 
-	toNonce, err := client.GetPendingNonceByAccount(normalTo.String())
-	if err != nil {
-		return nil, err
-	}
-	err = TransferFromAdmin(client, adminPk, adminFrom, normalTo, "100")
-	if err != nil {
-		return nil, err
+	var (
+		toPK     crypto.PrivateKey
+		normalTo *types.Address
+		toNonce  uint64
+	)
+	if config.MultiDestChain {
+		toPK, normalTo, err = repo.KeyPriv()
+		if err != nil {
+			return nil, err
+		}
+		toNonce, err = client.GetPendingNonceByAccount(normalTo.String())
+		if err != nil {
+			return nil, err
+		}
+		err = TransferFromAdmin(client, adminPk, adminFrom, normalTo, "100")
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	return &bee{
 		client:        client,
 		normalPrivKey: normalPk,
-		toPrivKey:     ToPK,
+		toPrivKey:     toPK,
 		normalFrom:    normalFrom,
 		normalTo:      normalTo,
 		tps:           tps,
@@ -298,7 +304,7 @@ func (bee *bee) prepareToChain(typ, desc string) error {
 	//register server
 	args = []*pb.Arg{
 		rpcx.String(bee.normalTo.String()),
-		rpcx.String("toTransfer"),
+		rpcx.String("mychannel&transfer"),
 		rpcx.String(bee.normalTo.String()),
 		rpcx.String("CallContract"),
 		rpcx.String("test"),
@@ -397,7 +403,7 @@ func (bee *bee) prepareChain(typ, desc string) error {
 	//register server
 	args = []*pb.Arg{
 		rpcx.String(bee.normalFrom.String()),
-		rpcx.String("fromTransfer"),
+		rpcx.String("mychannel&transfer"),
 		rpcx.String(bee.normalFrom.String()),
 		rpcx.String("CallContract"),
 		rpcx.String("test"),
@@ -454,7 +460,14 @@ func (bee *bee) genTransferTx(to *types.Address, normalNo uint64) (*pb.BxhTransa
 
 func (bee *bee) genInterchainTx(i, nonce uint64) (*pb.BxhTransaction, error) {
 	atomic.AddInt64(&sender, 1)
-	ibtp := mockIBTP(i, "1356:"+bee.normalFrom.String()+":fromTransfer", "1356:"+bee.normalTo.String()+":toTransfer", bee.config.Proof)
+	var to string
+	if bee.config.MultiDestChain {
+		to = "1356:" + bee.normalTo.String() + ":mychannel&transfer"
+	} else {
+		to = "1356:" + To + ":mychannel&transfer"
+	}
+
+	ibtp := bee.mockIBTP(i, "1356:"+bee.normalFrom.String()+"::mychannel&transfer", to, bee.config.Proof)
 
 	tx := &pb.BxhTransaction{
 		From:      bee.normalFrom,
@@ -493,7 +506,7 @@ func prepareInterchainTx() {
 	ibtppd, _ = payload.Marshal()
 }
 
-func mockIBTP(index uint64, from, to string, proof []byte) *pb.IBTP {
+func (bee *bee) mockIBTP(index uint64, from, to string, proof []byte) *pb.IBTP {
 	proofHash := sha256.Sum256(proof)
 
 	return &pb.IBTP{
@@ -502,7 +515,7 @@ func mockIBTP(index uint64, from, to string, proof []byte) *pb.IBTP {
 		Payload:       ibtppd,
 		Index:         index,
 		Type:          pb.IBTP_INTERCHAIN,
-		TimeoutHeight: 1000000,
+		TimeoutHeight: int64(bee.config.TimeoutHeight),
 		Proof:         proofHash[:],
 	}
 }

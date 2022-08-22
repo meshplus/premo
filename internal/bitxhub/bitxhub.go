@@ -2,11 +2,18 @@ package bitxhub
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"os"
 	"sync"
 	"time"
 
+	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
+	"github.com/meshplus/bitxhub-core/governance"
+	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
+	"github.com/meshplus/bitxhub-kit/types"
+	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	"github.com/meshplus/premo/internal/repo"
@@ -26,8 +33,7 @@ var index2 uint64
 var index3 uint64
 var adminNonce uint64
 var log = logrus.New()
-
-//var To string
+var To string
 
 type Broker struct {
 	config     *Config
@@ -46,16 +52,18 @@ type Broker struct {
 }
 
 type Config struct {
-	Concurrent  int
-	TPS         int
-	Duration    int // s uint
-	Type        string
-	Validator   string
-	Proof       []byte
-	KeyPath     string
-	BitxhubAddr []string
-	Appchain    string
-	Graph       bool
+	Concurrent     int
+	TPS            int
+	Duration       int // s uint
+	TimeoutHeight  int
+	Type           string
+	Validator      string
+	Proof          []byte
+	KeyPath        string
+	BitxhubAddr    []string
+	Appchain       string
+	Graph          bool
+	MultiDestChain bool
 }
 
 func calculateClientPoolSize(tps int) int {
@@ -136,11 +144,13 @@ func New(config *Config) (*Broker, error) {
 		return nil, err
 	}
 	// prepare to
-	//to, err := PrepareTo(client, config, adminPk, adminFrom)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//To = to
+	if !config.MultiDestChain {
+		to, err := PrepareTo(client, config, adminPk, adminFrom)
+		if err != nil {
+			return nil, err
+		}
+		To = to
+	}
 
 	var lock sync.Mutex
 	bees := make([]*bee, 0, config.Concurrent)
@@ -160,9 +170,11 @@ func New(config *Config) (*Broker, error) {
 					log.Error(err)
 					return
 				}
-				if err := bee.prepareToChain(bee.config.Appchain, "test to"); err != nil {
-					log.Error(err)
-					return
+				if config.MultiDestChain {
+					if err := bee.prepareToChain(bee.config.Appchain, "test to"); err != nil {
+						log.Error(err)
+						return
+					}
 				}
 			}
 			lock.Lock()
@@ -388,93 +400,93 @@ func (b *Broker) Stop(current time.Time) error {
 	return nil
 }
 
-//func PrepareTo(client *rpcx.ChainClient, config *Config, adminPk crypto.PrivateKey, adminFrom *types.Address) (string, error) {
-//	pk, from, err := repo.KeyPriv()
-//	if err != nil {
-//		return "", err
-//	}
-//	bytes, err := pk.PublicKey().Bytes()
-//	if err != nil {
-//		return "", err
-//	}
-//	err = TransferFromAdmin(client, adminPk, adminFrom, from, "100")
-//	if err != nil {
-//		return "", err
-//	}
-//	args := []*pb.Arg{
-//		rpcx.String(from.String()),                                //chainID
-//		rpcx.String(from.String()),                                //chainName
-//		rpcx.Bytes(bytes),                                         //pubKey
-//		rpcx.String("Flato v1.0.3"),                               //chainType
-//		rpcx.Bytes([]byte("")),                                    //trustRoot
-//		rpcx.String("0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"), //broker
-//		rpcx.String("desc"),                                       //desc
-//		rpcx.String("0x00000000000000000000000000000000000000a2"), //masterRuleAddr
-//		rpcx.String("https://github.com"),                         //masterRuleUrl
-//		rpcx.String(from.String()),                                //adminAddrs
-//		rpcx.String("reason"),                                     //reason
-//	}
-//
-//	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "RegisterAppchain", &rpcx.TransactOpts{
-//		From:    from.String(),
-//		Nonce:   0,
-//		PrivKey: pk,
-//	}, args...)
-//	if err != nil {
-//		return "", err
-//	}
-//	//vote chain
-//	result := &RegisterResult{}
-//	err = json.Unmarshal(res.Ret, result)
-//	if err != nil || result.ProposalID == "" {
-//		return "", fmt.Errorf("vote chain unmarshal error: %w", err)
-//	}
-//	b := bee{}
-//	b.config = config
-//	err = b.VotePass(client, result.ProposalID)
-//	if err != nil {
-//		return "", fmt.Errorf("vote chain error: %w", err)
-//	}
-//	res, err = b.GetChainStatusById(client, pk, from.String())
-//	if err != nil {
-//		return "", fmt.Errorf("getChainStatus error: %w", err)
-//	}
-//	appchain := &appchain_mgr.Appchain{}
-//	err = json.Unmarshal(res.Ret, appchain)
-//	if err != nil || appchain.Status != governance.GovernanceAvailable {
-//		return "", fmt.Errorf("chain error: %w", err)
-//	}
-//	//register server
-//	args = []*pb.Arg{
-//		rpcx.String(from.String()),
-//		rpcx.String("mychannel&transfer"),
-//		rpcx.String(from.String()),
-//		rpcx.String("CallContract"),
-//		rpcx.String("test"),
-//		rpcx.Uint64(1),
-//		rpcx.String(""),
-//		rpcx.String("test"),
-//		rpcx.String("reason"),
-//	}
-//	res, err = client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "RegisterService", &rpcx.TransactOpts{
-//		From:    from.String(),
-//		PrivKey: pk,
-//	}, args...)
-//	if err != nil {
-//		return "", fmt.Errorf("register service error %w", err)
-//	}
-//	//vote server
-//	result = &RegisterResult{}
-//	err = json.Unmarshal(res.Ret, result)
-//	if err != nil || result.ProposalID == "" {
-//		return "", fmt.Errorf("vote server unmarshal error: %w", err)
-//	}
-//	err = b.VotePass(client, result.ProposalID)
-//	if err != nil {
-//		return "", fmt.Errorf("vote server error: %w", err)
-//	}
-//	return from.String(), nil
-//}
+func PrepareTo(client *rpcx.ChainClient, config *Config, adminPk crypto.PrivateKey, adminFrom *types.Address) (string, error) {
+	pk, from, err := repo.KeyPriv()
+	if err != nil {
+		return "", err
+	}
+	bytes, err := pk.PublicKey().Bytes()
+	if err != nil {
+		return "", err
+	}
+	err = TransferFromAdmin(client, adminPk, adminFrom, from, "100")
+	if err != nil {
+		return "", err
+	}
+	args := []*pb.Arg{
+		rpcx.String(from.String()),                                //chainID
+		rpcx.String(from.String()),                                //chainName
+		rpcx.Bytes(bytes),                                         //pubKey
+		rpcx.String("Flato v1.0.3"),                               //chainType
+		rpcx.Bytes([]byte("")),                                    //trustRoot
+		rpcx.String("0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"), //broker
+		rpcx.String("desc"),                                       //desc
+		rpcx.String("0x00000000000000000000000000000000000000a2"), //masterRuleAddr
+		rpcx.String("https://github.com"),                         //masterRuleUrl
+		rpcx.String(from.String()),                                //adminAddrs
+		rpcx.String("reason"),                                     //reason
+	}
+
+	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "RegisterAppchain", &rpcx.TransactOpts{
+		From:    from.String(),
+		Nonce:   0,
+		PrivKey: pk,
+	}, args...)
+	if err != nil {
+		return "", err
+	}
+	//vote chain
+	result := &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	if err != nil || result.ProposalID == "" {
+		return "", fmt.Errorf("vote chain unmarshal error: %w", err)
+	}
+	b := bee{}
+	b.config = config
+	err = b.VotePass(client, result.ProposalID)
+	if err != nil {
+		return "", fmt.Errorf("vote chain error: %w", err)
+	}
+	res, err = b.GetChainStatusById(client, pk, from.String())
+	if err != nil {
+		return "", fmt.Errorf("getChainStatus error: %w", err)
+	}
+	appchain := &appchain_mgr.Appchain{}
+	err = json.Unmarshal(res.Ret, appchain)
+	if err != nil || appchain.Status != governance.GovernanceAvailable {
+		return "", fmt.Errorf("chain error: %w", err)
+	}
+	//register server
+	args = []*pb.Arg{
+		rpcx.String(from.String()),
+		rpcx.String("mychannel&transfer"),
+		rpcx.String(from.String()),
+		rpcx.String("CallContract"),
+		rpcx.String("test"),
+		rpcx.Uint64(1),
+		rpcx.String(""),
+		rpcx.String("test"),
+		rpcx.String("reason"),
+	}
+	res, err = client.InvokeBVMContract(constant.ServiceMgrContractAddr.Address(), "RegisterService", &rpcx.TransactOpts{
+		From:    from.String(),
+		PrivKey: pk,
+	}, args...)
+	if err != nil {
+		return "", fmt.Errorf("register service error %w", err)
+	}
+	//vote server
+	result = &RegisterResult{}
+	err = json.Unmarshal(res.Ret, result)
+	if err != nil || result.ProposalID == "" {
+		return "", fmt.Errorf("vote server unmarshal error: %w", err)
+	}
+	err = b.VotePass(client, result.ProposalID)
+	if err != nil {
+		return "", fmt.Errorf("vote server error: %w", err)
+	}
+	return from.String(), nil
+}
 
 func Graph(x []time.Time, tpsY []float64, latencyY []float64, maxTps, maxLatency float64) {
 	graph := chart.Chart{
