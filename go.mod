@@ -7,7 +7,7 @@ require (
 	github.com/cheynewallace/tabby v1.1.1
 	github.com/cloudflare/cfssl v1.6.1 // indirect
 	github.com/coreos/etcd v3.3.27+incompatible
-	github.com/ethereum/go-ethereum v1.10.4
+	github.com/ethereum/go-ethereum v1.10.22
 	github.com/gobuffalo/packd v1.0.1
 	github.com/gobuffalo/packr v1.30.1
 	github.com/hyperledger/fabric-lib-go v1.0.0 // indirect
@@ -23,8 +23,8 @@ require (
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/viper v1.10.1
-	github.com/stretchr/testify v1.7.0
-	github.com/urfave/cli/v2 v2.3.0
+	github.com/stretchr/testify v1.7.2
+	github.com/urfave/cli/v2 v2.10.2
 	github.com/wcharczuk/go-chart/v2 v2.1.0
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	golang.org/x/image v0.0.0-20220413100746-70e8d0d3baa9 // indirect
