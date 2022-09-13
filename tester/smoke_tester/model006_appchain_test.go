@@ -21,7 +21,7 @@ type Model6 struct {
 }
 
 //tc：通过正确的参数注册应用链，应用链注册成功
-func (suite Model6) Test0601_RegisterAppchainIsSuccess() {
+func (suite *Model6) Test0601_RegisterAppchainIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -29,7 +29,7 @@ func (suite Model6) Test0601_RegisterAppchainIsSuccess() {
 }
 
 //tc：通过曾被占用的应用链名称注册应用链，应用链注册成功
-func (suite Model6) Test0602_RegisterAppchainWithFreeNameIsSuccess() {
+func (suite *Model6) Test0602_RegisterAppchainWithFreeNameIsSuccess() {
 	pk1, from1, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk1, from1, address1)
@@ -43,7 +43,7 @@ func (suite Model6) Test0602_RegisterAppchainWithFreeNameIsSuccess() {
 }
 
 //tc：通过曾被占用的管理员地址注册应用链，应用链注册成功
-func (suite Model6) Test0603_RegisterAppchainWithFreeAdminIsSuccess() {
+func (suite *Model6) Test0603_RegisterAppchainWithFreeAdminIsSuccess() {
 	pk1, from1, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	pk2, err := asym.GenerateKeyPair(crypto.Secp256k1)
@@ -51,9 +51,12 @@ func (suite Model6) Test0603_RegisterAppchainWithFreeAdminIsSuccess() {
 	from2, err := pk2.PublicKey().Address()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk1)
+	bytes, err := pk1.PublicKey().Bytes()
+	suite.Require().Nil(err)
 	args := []*pb.Arg{
-		rpcx.String(from1),
+		rpcx.String(from1),          //chainID
 		rpcx.String(from1),          //chainName
+		rpcx.Bytes(bytes),           //publicKey
 		rpcx.String("Flato V1.0.3"), //chainType
 		rpcx.Bytes([]byte("")),      //trustRoot
 		rpcx.String("0x857133ce6Ce66F7AD46F200B9B3573e77582"), //broker
@@ -69,9 +72,12 @@ func (suite Model6) Test0603_RegisterAppchainWithFreeAdminIsSuccess() {
 	pk3, from3, address3, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	client = suite.NewClient(pk3)
+	bytes, err = pk3.PublicKey().Bytes()
+	suite.Require().Nil(err)
 	args = []*pb.Arg{
-		rpcx.String(from3),
+		rpcx.String(from3),          //chainID
 		rpcx.String(from3),          //chainName
+		rpcx.Bytes(bytes),           //publicKey
 		rpcx.String("Flato V1.0.3"), //chainType
 		rpcx.Bytes([]byte("")),      //trustRoot
 		rpcx.String("0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"), //broker
@@ -87,7 +93,7 @@ func (suite Model6) Test0603_RegisterAppchainWithFreeAdminIsSuccess() {
 }
 
 //tc：通过正确的参数更新应用链，应用链更新成功
-func (suite Model6) Test0604_UpdateAppchainIsSuccess() {
+func (suite *Model6) Test0604_UpdateAppchainIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -97,7 +103,7 @@ func (suite Model6) Test0604_UpdateAppchainIsSuccess() {
 }
 
 //tc：通过曾被占用的应用链名称更新应用链，应用链更新成功
-func (suite Model6) Test0605_UpdateAppchainWithFreeNameIsSuccess() {
+func (suite *Model6) Test0605_UpdateAppchainWithFreeNameIsSuccess() {
 	pk1, from1, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk1, from1, address1)
@@ -113,7 +119,7 @@ func (suite Model6) Test0605_UpdateAppchainWithFreeNameIsSuccess() {
 }
 
 //tc：通过曾被占用的管理员地址更新应用链，应用链更新成功
-func (suite Model6) Test0606_UpdateAppchainWithFreeAdminIsSuccess() {
+func (suite *Model6) Test0606_UpdateAppchainWithFreeAdminIsSuccess() {
 	pk1, from1, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	pk2, err := asym.GenerateKeyPair(crypto.Secp256k1)
@@ -121,9 +127,12 @@ func (suite Model6) Test0606_UpdateAppchainWithFreeAdminIsSuccess() {
 	from2, err := pk2.PublicKey().Address()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk1)
+	bytes, err := pk1.PublicKey().Bytes()
+	suite.Require().Nil(err)
 	args := []*pb.Arg{
-		rpcx.String(from1),
+		rpcx.String(from1),          //chainID
 		rpcx.String(from1),          //chainName
+		rpcx.Bytes(bytes),           //publicKey
 		rpcx.String("Flato V1.0.3"), //chainType
 		rpcx.Bytes([]byte("")),      //trustRoot
 		rpcx.String("0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"), //broker
@@ -152,7 +161,7 @@ func (suite Model6) Test0606_UpdateAppchainWithFreeAdminIsSuccess() {
 }
 
 //tc：应用链处于frozen状态更新应用链，应用链更新成功
-func (suite Model6) Test0607_UpdateAppchainWithFrozenChainIsSuccess() {
+func (suite *Model6) Test0607_UpdateAppchainWithFrozenChainIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFrozen(pk, from, address)
@@ -162,7 +171,7 @@ func (suite Model6) Test0607_UpdateAppchainWithFrozenChainIsSuccess() {
 }
 
 //tc：应用链更新名称字段，产生提案
-func (suite Model6) Test0608_UpdateAppchainWithNameFieldHaveProposalIsSuccess() {
+func (suite *Model6) Test0608_UpdateAppchainWithNameFieldHaveProposalIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -185,7 +194,7 @@ func (suite Model6) Test0608_UpdateAppchainWithNameFieldHaveProposalIsSuccess() 
 }
 
 //tc：应用链信任根名称字段，产生提案
-func (suite Model6) Test0609_UpdateAppchainWithTrustRootFieldHaveProposalIsSuccess() {
+func (suite *Model6) Test0609_UpdateAppchainWithTrustRootFieldHaveProposalIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -208,7 +217,7 @@ func (suite Model6) Test0609_UpdateAppchainWithTrustRootFieldHaveProposalIsSucce
 }
 
 //tc：应用链更新管理员地址字段，产生提案
-func (suite Model6) Test0610_UpdateAppchainWithAdminsFieldHaveProposalIsSuccess() {
+func (suite *Model6) Test0610_UpdateAppchainWithAdminsFieldHaveProposalIsSuccess() {
 	pk1, from1, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk1, from1, address)
@@ -235,7 +244,7 @@ func (suite Model6) Test0610_UpdateAppchainWithAdminsFieldHaveProposalIsSuccess(
 }
 
 //tc：应用链更新描述字段，不产生提案
-func (suite Model6) Test0611_UpdateAppchainWithDescFieldNoProposalIsSuccess() {
+func (suite *Model6) Test0611_UpdateAppchainWithDescFieldNoProposalIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -258,7 +267,7 @@ func (suite Model6) Test0611_UpdateAppchainWithDescFieldNoProposalIsSuccess() {
 }
 
 //tc：中继链管理员冻结应用链，应用链冻结成功
-func (suite Model6) Test0612_FreezeAppchainIsSuccess() {
+func (suite *Model6) Test0612_FreezeAppchainIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -268,7 +277,7 @@ func (suite Model6) Test0612_FreezeAppchainIsSuccess() {
 }
 
 //tc：应用链管理员激活应用链，应用链激活成功
-func (suite Model6) Test0613_ActivateAppchainIsSuccess() {
+func (suite *Model6) Test0613_ActivateAppchainIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFrozen(pk, from, address)
@@ -278,7 +287,7 @@ func (suite Model6) Test0613_ActivateAppchainIsSuccess() {
 }
 
 //tc：中继链管理员激活应用链，应用链激活成功
-func (suite Model6) Test0614_ActivateAppchainWithRelayAdminIsSuccess() {
+func (suite *Model6) Test0614_ActivateAppchainWithRelayAdminIsSuccess() {
 	pk, chainID, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFrozen(pk, chainID, address)
@@ -300,7 +309,7 @@ func (suite Model6) Test0614_ActivateAppchainWithRelayAdminIsSuccess() {
 }
 
 //tc：应用链管理员注销应用链，应用链注销成功
-func (suite Model6) Test0615_LogoutAppchainIsSuccess() {
+func (suite *Model6) Test0615_LogoutAppchainIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -310,7 +319,7 @@ func (suite Model6) Test0615_LogoutAppchainIsSuccess() {
 }
 
 //tc：应用链处于updating状态注销应用链，应用链注销成功
-func (suite Model6) Test0616_LogoutAppchainWithUpdatingCainIsSuccess() {
+func (suite *Model6) Test0616_LogoutAppchainWithUpdatingCainIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToUpdating(pk, from, address)
@@ -320,7 +329,7 @@ func (suite Model6) Test0616_LogoutAppchainWithUpdatingCainIsSuccess() {
 }
 
 //tc：应用链处于activating状态注销应用链，应用链注销成功
-func (suite Model6) Test0617_LogoutAppchainWithActivatingChainIsSuccess() {
+func (suite *Model6) Test0617_LogoutAppchainWithActivatingChainIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToActivating(pk, from, address)
@@ -330,7 +339,7 @@ func (suite Model6) Test0617_LogoutAppchainWithActivatingChainIsSuccess() {
 }
 
 //tc：应用链处于freezing状态注销应用链，应用链注销成功
-func (suite Model6) Test0618_LogoutAppchainWithFreezingChainIsSuccess() {
+func (suite *Model6) Test0618_LogoutAppchainWithFreezingChainIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFreezing(pk, from, address)
@@ -340,7 +349,7 @@ func (suite Model6) Test0618_LogoutAppchainWithFreezingChainIsSuccess() {
 }
 
 //tc：应用链处于frozen状态注销应用链，应用链注销成功
-func (suite Model6) Test0619_LogoutAppchainWithFrozenChainIsSuccess() {
+func (suite *Model6) Test0619_LogoutAppchainWithFrozenChainIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFrozen(pk, from, address)
@@ -350,7 +359,7 @@ func (suite Model6) Test0619_LogoutAppchainWithFrozenChainIsSuccess() {
 }
 
 //tc：更新主验证规则中，应用链处于frozen状态，注销应用链，应用链注销成功
-func (suite Model6) Test0620_LogoutAppchainWithUpdateMasterRuleIsSuccess() {
+func (suite *Model6) Test0620_LogoutAppchainWithUpdateMasterRuleIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address)
@@ -375,9 +384,12 @@ func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, name, address string)
 	client := suite.NewClient(pk)
 	from, err := pk.PublicKey().Address()
 	suite.Require().Nil(err)
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(from.String()),  //chainID
 		rpcx.String(name),           //chainName
+		rpcx.Bytes(bytes),           //publicKey
 		rpcx.String("Flato V1.0.3"), //chainType
 		rpcx.Bytes([]byte("")),      //trustRoot
 		rpcx.String("0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"), //broker
@@ -401,13 +413,16 @@ func (suite *Snake) RegisterAppchain(pk crypto.PrivateKey, name, address string)
 }
 
 // RegisterAppchainWithType register appchain with type
-func (suite Snake) RegisterAppchainWithType(pk crypto.PrivateKey, typ, address, broker string) error {
+func (suite *Snake) RegisterAppchainWithType(pk crypto.PrivateKey, typ, address, broker string) error {
 	client := suite.NewClient(pk)
 	from, err := pk.PublicKey().Address()
+	suite.Require().Nil(err)
+	bytes, err := pk.PublicKey().Bytes()
 	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(from.String()),        //chainID
 		rpcx.String(from.String()),        //chainName
+		rpcx.Bytes(bytes),                 //publicKey
 		rpcx.String(typ),                  //chainType
 		rpcx.Bytes([]byte("")),            //trustRoot
 		rpcx.String(broker),               //broker
@@ -518,7 +533,7 @@ func (suite *Snake) LogoutAppchain(pk crypto.PrivateKey, chainID string) error {
 }
 
 // ChainToActivating get an activating appchain
-func (suite Snake) ChainToActivating(pk crypto.PrivateKey, name, address string) error {
+func (suite *Snake) ChainToActivating(pk crypto.PrivateKey, name, address string) error {
 	err := suite.RegisterAppchain(pk, name, address)
 	suite.Require().Nil(err)
 	err = suite.FreezeAppchain(name)
@@ -535,7 +550,7 @@ func (suite Snake) ChainToActivating(pk crypto.PrivateKey, name, address string)
 }
 
 // ChainToUpdating get a updating appchain
-func (suite Snake) ChainToUpdating(pk crypto.PrivateKey, name, address string) error {
+func (suite *Snake) ChainToUpdating(pk crypto.PrivateKey, name, address string) error {
 	err := suite.RegisterAppchain(pk, name, address)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -558,7 +573,7 @@ func (suite Snake) ChainToUpdating(pk crypto.PrivateKey, name, address string) e
 }
 
 // ChainToFreezing get a freezing appchain
-func (suite Snake) ChainToFreezing(pk crypto.PrivateKey, name, address string) error {
+func (suite *Snake) ChainToFreezing(pk crypto.PrivateKey, name, address string) error {
 	err := suite.RegisterAppchain(pk, name, address)
 	suite.Require().Nil(err)
 	node1, node1Addr, err := repo.Node1Priv()
@@ -582,7 +597,7 @@ func (suite Snake) ChainToFreezing(pk crypto.PrivateKey, name, address string) e
 }
 
 // ChainToFrozen get a frozen appchain
-func (suite Snake) ChainToFrozen(pk crypto.PrivateKey, name, address string) error {
+func (suite *Snake) ChainToFrozen(pk crypto.PrivateKey, name, address string) error {
 	err := suite.RegisterAppchain(pk, name, address)
 	suite.Require().Nil(err)
 	err = suite.FreezeAppchain(name)
@@ -593,7 +608,7 @@ func (suite Snake) ChainToFrozen(pk crypto.PrivateKey, name, address string) err
 }
 
 // ChainToLogouting get a logouting appchain
-func (suite Snake) ChainToLogouting(pk crypto.PrivateKey, name, address string) error {
+func (suite *Snake) ChainToLogouting(pk crypto.PrivateKey, name, address string) error {
 	err := suite.RegisterAppchain(pk, name, address)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -608,7 +623,7 @@ func (suite Snake) ChainToLogouting(pk crypto.PrivateKey, name, address string) 
 }
 
 // ChainToForbidden get a forbidden appchain
-func (suite Snake) ChainToForbidden(pk crypto.PrivateKey, name, address string) error {
+func (suite *Snake) ChainToForbidden(pk crypto.PrivateKey, name, address string) error {
 	err := suite.RegisterAppchain(pk, name, address)
 	suite.Require().Nil(err)
 	err = suite.LogoutAppchain(pk, name)

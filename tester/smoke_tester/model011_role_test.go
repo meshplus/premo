@@ -41,7 +41,7 @@ func (suite *Model11) Test1101_RegisterAdminIsSuccess() {
 }
 
 //tc：注册治理管理员，管理员处于unavailable，注册成功
-func (suite Model11) Test1102_RegisterAdminWithUnavailableAdminIsSuccess() {
+func (suite *Model11) Test1102_RegisterAdminWithUnavailableAdminIsSuccess() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RoleToUnavailable(from.String(), GovernanceAdmin, "")
@@ -56,7 +56,7 @@ func (suite Model11) Test1102_RegisterAdminWithUnavailableAdminIsSuccess() {
 }
 
 //tc：冻结治理管理员，管理员处于available，冻结成功
-func (suite Model11) Test1103_FreezeAdminWithAvailableAdminIsSuccess() {
+func (suite *Model11) Test1103_FreezeAdminWithAvailableAdminIsSuccess() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RegisterRole(from.String(), GovernanceAdmin, "")
@@ -71,7 +71,7 @@ func (suite Model11) Test1103_FreezeAdminWithAvailableAdminIsSuccess() {
 }
 
 //tc：激活治理管理员，管理员处于frozen，激活成功
-func (suite Model11) Test1104_ActivateAdminWithFrozenAdminIsSuccess() {
+func (suite *Model11) Test1104_ActivateAdminWithFrozenAdminIsSuccess() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RoleToFrozen(from.String(), GovernanceAdmin, "")
@@ -86,7 +86,7 @@ func (suite Model11) Test1104_ActivateAdminWithFrozenAdminIsSuccess() {
 }
 
 //tc：注销治理管理员，管理员处于available，注销成功
-func (suite Model11) Test1105_LogoutAdminWithAvailableAdminIsSuccess() {
+func (suite *Model11) Test1105_LogoutAdminWithAvailableAdminIsSuccess() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RegisterRole(from.String(), GovernanceAdmin, "")
@@ -96,7 +96,7 @@ func (suite Model11) Test1105_LogoutAdminWithAvailableAdminIsSuccess() {
 }
 
 //tc：注销治理管理员，管理员处于freezing，注销成功
-func (suite Model11) Test1106_LogoutAdminWithFreezingAdminIsSuccess() {
+func (suite *Model11) Test1106_LogoutAdminWithFreezingAdminIsSuccess() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	_, err = suite.RoleToFreezing(from.String(), GovernanceAdmin, "")
@@ -106,7 +106,7 @@ func (suite Model11) Test1106_LogoutAdminWithFreezingAdminIsSuccess() {
 }
 
 //tc：注销治理管理员，管理员处于frozen，注销成功
-func (suite Model11) Test1107_LogoutAdminWithFrozenAdminIsSuccess() {
+func (suite *Model11) Test1107_LogoutAdminWithFrozenAdminIsSuccess() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RoleToFrozen(from.String(), GovernanceAdmin, "")
@@ -116,7 +116,7 @@ func (suite Model11) Test1107_LogoutAdminWithFrozenAdminIsSuccess() {
 }
 
 //tc：注销治理管理员，管理员处于activating，注销成功
-func (suite Model11) Test1108_LogoutAdminWithActivatingAdminIsSuccess() {
+func (suite *Model11) Test1108_LogoutAdminWithActivatingAdminIsSuccess() {
 	_, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	_, err = suite.RoleToActivating(from.String(), GovernanceAdmin, "")
@@ -126,7 +126,7 @@ func (suite Model11) Test1108_LogoutAdminWithActivatingAdminIsSuccess() {
 }
 
 //tc：治理管理员处于available，管理员参与提案，参与成功
-func (suite Model11) Test1109_VoteWithAvailableAdminIsSuccess() {
+func (suite *Model11) Test1109_VoteWithAvailableAdminIsSuccess() {
 	pk, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	err = suite.RegisterRole(from.String(), GovernanceAdmin, "")
@@ -145,7 +145,7 @@ func (suite Model11) Test1109_VoteWithAvailableAdminIsSuccess() {
 }
 
 //tc：治理管理员处于freezing，管理员参与提案，参与成功
-func (suite Model11) Test1110_VoteWithFreezingAdminIsSuccess() {
+func (suite *Model11) Test1110_VoteWithFreezingAdminIsSuccess() {
 	pk, from, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	proposal1, err := suite.RoleToFreezing(from.String(), GovernanceAdmin, "")
@@ -167,7 +167,7 @@ func (suite Model11) Test1110_VoteWithFreezingAdminIsSuccess() {
 
 //TODO tc：注销治理管理员导致提案不可能达成，提案自动放弃
 //tc：注册审计管理员，管理员未注册，注册成功
-func (suite Model11) Test1111_RegisterAuditAdminWithNoRegisterAdminIsSuccess() {
+func (suite *Model11) Test1111_RegisterAuditAdminWithNoRegisterAdminIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -185,7 +185,7 @@ func (suite Model11) Test1111_RegisterAuditAdminWithNoRegisterAdminIsSuccess() {
 }
 
 //tc：注册审计管理员，管理员处于unavailable，注册成功
-func (suite Model11) Test1112_RegisterAuditAdminWithUnavailableAdminIsSuccess() {
+func (suite *Model11) Test1112_RegisterAuditAdminWithUnavailableAdminIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -205,7 +205,7 @@ func (suite Model11) Test1112_RegisterAuditAdminWithUnavailableAdminIsSuccess() 
 }
 
 //tc：注销审计管理员，管理员处于available，注销成功
-func (suite Model11) Test1113_LogoutAuditAdminWithAvailableAdminIsSuccess() {
+func (suite *Model11) Test1113_LogoutAuditAdminWithAvailableAdminIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -225,7 +225,7 @@ func (suite Model11) Test1113_LogoutAuditAdminWithAvailableAdminIsSuccess() {
 }
 
 //tc：注销审计管理员，管理员处于frozen，注销成功
-func (suite Model11) Test1114_LogoutAuditAdminWithFrozenAdminIsSuccess() {
+func (suite *Model11) Test1114_LogoutAuditAdminWithFrozenAdminIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -247,7 +247,7 @@ func (suite Model11) Test1114_LogoutAuditAdminWithFrozenAdminIsSuccess() {
 }
 
 //tc：注销审计管理员，管理员处于binding，注销成功
-func (suite Model11) Test1115_LogoutAuditAdminWithBindingAdminIsSuccess() {
+func (suite *Model11) Test1115_LogoutAuditAdminWithBindingAdminIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -267,7 +267,7 @@ func (suite Model11) Test1115_LogoutAuditAdminWithBindingAdminIsSuccess() {
 }
 
 //tc：注销审计管理员，审计节点处于updating，注销成功，审计节点提案通过，审计节点处于available
-func (suite Model11) Test1116_LogoutAuditAdminWithUpdatingNodePassIsSuccess() {
+func (suite *Model11) Test1116_LogoutAuditAdminWithUpdatingNodePassIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -298,7 +298,7 @@ func (suite Model11) Test1116_LogoutAuditAdminWithUpdatingNodePassIsSuccess() {
 }
 
 //tc：注销审计管理员，审计节点处于updating，注销成功，审计节点提案不通过，审计节点处于available
-func (suite Model11) Test1117_LogoutAuditAdminWithUpdatingNodeRejectIsSuccess() {
+func (suite *Model11) Test1117_LogoutAuditAdminWithUpdatingNodeRejectIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -330,7 +330,7 @@ func (suite Model11) Test1117_LogoutAuditAdminWithUpdatingNodeRejectIsSuccess() 
 }
 
 //tc：注销审计管理员，审计节点处于binding，注销成功，审计节点提案放弃，审计节点处于available
-func (suite Model11) Test1118_LogoutAuditAdminWithBindingNodeIsSuccess() {
+func (suite *Model11) Test1118_LogoutAuditAdminWithBindingNodeIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -350,7 +350,7 @@ func (suite Model11) Test1118_LogoutAuditAdminWithBindingNodeIsSuccess() {
 }
 
 //tc：注销审计管理员，审计节点处于binded，注销成功
-func (suite Model11) Test1119_LogoutAuditAdminWithBindedNodeIsSuccess() {
+func (suite *Model11) Test1119_LogoutAuditAdminWithBindedNodeIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -370,7 +370,7 @@ func (suite Model11) Test1119_LogoutAuditAdminWithBindedNodeIsSuccess() {
 }
 
 //tc：注销审计管理员，审计节点处于logouting，注销成功，审计节点提案通过，审计节点处于forbidden
-func (suite Model11) Test1120_LogoutRoleWithLogoutingNodePassIsSuccess() {
+func (suite *Model11) Test1120_LogoutRoleWithLogoutingNodePassIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -402,7 +402,7 @@ func (suite Model11) Test1120_LogoutRoleWithLogoutingNodePassIsSuccess() {
 }
 
 //tc：注销审计管理员，审计节点处于logouting，注销成功，审计节点提案不通过，审计节点处于available
-func (suite Model11) Test1121_LogoutAuditAdminWithLogoutingRejectIsSuccess() {
+func (suite *Model11) Test1121_LogoutAuditAdminWithLogoutingRejectIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid, err := suite.MockPid()
@@ -434,7 +434,7 @@ func (suite Model11) Test1121_LogoutAuditAdminWithLogoutingRejectIsSuccess() {
 }
 
 //tc：审计管理员重新绑定审计节点，审计节点处于available，绑定成功
-func (suite Model11) Test1122_BindRoleWithAvailableRoleIsSuccess() {
+func (suite *Model11) Test1122_BindRoleWithAvailableRoleIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid1, err := suite.MockPid()
@@ -466,7 +466,7 @@ func (suite Model11) Test1122_BindRoleWithAvailableRoleIsSuccess() {
 }
 
 //tc：审计管理员绑定中，注销审计节点，节点注销成功
-func (suite Model11) Test1123_BindRoleThenLogoutNodeIsSuccess() {
+func (suite *Model11) Test1123_BindRoleThenLogoutNodeIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid1, err := suite.MockPid()
@@ -505,7 +505,7 @@ func (suite Model11) Test1123_BindRoleThenLogoutNodeIsSuccess() {
 }
 
 //tc：审计管理员绑定中，注销审计管理员，管理员注销成功
-func (suite Model11) Test1124_BindRoleThenLogoutRoleIsSuccess() {
+func (suite *Model11) Test1124_BindRoleThenLogoutRoleIsSuccess() {
 	_, from1, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	pid1, err := suite.MockPid()
@@ -544,7 +544,7 @@ func (suite Model11) Test1124_BindRoleThenLogoutRoleIsSuccess() {
 }
 
 // InvokeRoleContract invoke role contract by methodName and args
-func (suite Snake) InvokeRoleContract(method string, args ...*pb.Arg) (string, error) {
+func (suite *Snake) InvokeRoleContract(method string, args ...*pb.Arg) (string, error) {
 	pk, _, err := repo.Node2Priv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -562,7 +562,7 @@ func (suite Snake) InvokeRoleContract(method string, args ...*pb.Arg) (string, e
 }
 
 // RegisterRole register role
-func (suite Snake) RegisterRole(id, typ, account string) error {
+func (suite *Snake) RegisterRole(id, typ, account string) error {
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String(typ),
@@ -575,7 +575,7 @@ func (suite Snake) RegisterRole(id, typ, account string) error {
 }
 
 // FreezeRole freeze role
-func (suite Snake) FreezeRole(id string) error {
+func (suite *Snake) FreezeRole(id string) error {
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String("reason"),
@@ -586,7 +586,7 @@ func (suite Snake) FreezeRole(id string) error {
 }
 
 // ActivateRole activate role
-func (suite Snake) ActivateRole(id string) error {
+func (suite *Snake) ActivateRole(id string) error {
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String("reason"),
@@ -597,7 +597,7 @@ func (suite Snake) ActivateRole(id string) error {
 }
 
 // LogoutRole logout role
-func (suite Snake) LogoutRole(id string) error {
+func (suite *Snake) LogoutRole(id string) error {
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String("reason"),
@@ -608,7 +608,7 @@ func (suite Snake) LogoutRole(id string) error {
 }
 
 // BindRole bind role
-func (suite Snake) BindRole(roleId, nodeAccount string) error {
+func (suite *Snake) BindRole(roleId, nodeAccount string) error {
 	args := []*pb.Arg{
 		rpcx.String(roleId),
 		rpcx.String(nodeAccount),
@@ -620,7 +620,7 @@ func (suite Snake) BindRole(roleId, nodeAccount string) error {
 }
 
 // RoleToRegisting get a registing role
-func (suite Snake) RoleToRegisting(id, typ, account string) (string, error) {
+func (suite *Snake) RoleToRegisting(id, typ, account string) (string, error) {
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String(typ),
@@ -635,7 +635,7 @@ func (suite Snake) RoleToRegisting(id, typ, account string) (string, error) {
 }
 
 // RoleToUnavailable get an Unavailable role
-func (suite Snake) RoleToUnavailable(id, typ, account string) error {
+func (suite *Snake) RoleToUnavailable(id, typ, account string) error {
 	args := []*pb.Arg{
 		rpcx.String(id),
 		rpcx.String(typ),
@@ -652,7 +652,7 @@ func (suite Snake) RoleToUnavailable(id, typ, account string) error {
 }
 
 // RoleToFreezing get a freezing role
-func (suite Snake) RoleToFreezing(id, typ, account string) (string, error) {
+func (suite *Snake) RoleToFreezing(id, typ, account string) (string, error) {
 	err := suite.RegisterRole(id, typ, account)
 	suite.Require().Nil(err)
 	args := []*pb.Arg{
@@ -667,7 +667,7 @@ func (suite Snake) RoleToFreezing(id, typ, account string) (string, error) {
 }
 
 // RoleToFrozen get a frozen role
-func (suite Snake) RoleToFrozen(id, typ, account string) error {
+func (suite *Snake) RoleToFrozen(id, typ, account string) error {
 	err := suite.RegisterRole(id, typ, account)
 	suite.Require().Nil(err)
 	err = suite.FreezeRole(id)
@@ -678,7 +678,7 @@ func (suite Snake) RoleToFrozen(id, typ, account string) error {
 }
 
 // RoleToActivating get an activating role
-func (suite Snake) RoleToActivating(id, typ, account string) (string, error) {
+func (suite *Snake) RoleToActivating(id, typ, account string) (string, error) {
 	err := suite.RegisterRole(id, typ, account)
 	suite.Require().Nil(err)
 	err = suite.FreezeRole(id)
@@ -695,7 +695,7 @@ func (suite Snake) RoleToActivating(id, typ, account string) (string, error) {
 }
 
 // RoleToLogouting get a logouting role
-func (suite Snake) RoleToLogouting(id, typ, account string) (string, error) {
+func (suite *Snake) RoleToLogouting(id, typ, account string) (string, error) {
 	err := suite.RegisterRole(id, typ, account)
 	suite.Require().Nil(err)
 	args := []*pb.Arg{
@@ -710,7 +710,7 @@ func (suite Snake) RoleToLogouting(id, typ, account string) (string, error) {
 }
 
 // RoleToForbidden get a forbidden role
-func (suite Snake) RoleToForbidden(id, typ, account string) error {
+func (suite *Snake) RoleToForbidden(id, typ, account string) error {
 	err := suite.RegisterRole(id, typ, account)
 	suite.Require().Nil(err)
 	err = suite.LogoutRole(id)
@@ -721,7 +721,7 @@ func (suite Snake) RoleToForbidden(id, typ, account string) error {
 }
 
 // RoleToBinding get a binding role
-func (suite Snake) RoleToBinding(id, typ, account string) error {
+func (suite *Snake) RoleToBinding(id, typ, account string) error {
 	err := suite.RegisterRole(id, typ, account)
 	suite.Require().Nil(err)
 	err = suite.LogoutNode(account)
@@ -759,7 +759,7 @@ func (suite *Snake) CheckRoleStatus(id string, expectStatus governance.Governanc
 }
 
 // GetRoleStatus get role status by id
-func (suite Snake) GetRoleStatus(id string) (governance.GovernanceStatus, error) {
+func (suite *Snake) GetRoleStatus(id string) (governance.GovernanceStatus, error) {
 	args := []*pb.Arg{
 		rpcx.String(id),
 	}
@@ -777,13 +777,16 @@ func (suite Snake) GetRoleStatus(id string) (governance.GovernanceStatus, error)
 }
 
 // GetProposal return a proposal id
-func (suite Snake) GetProposal() string {
+func (suite *Snake) GetProposal() string {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
+	bytes, err := pk.PublicKey().Bytes()
+	suite.Require().Nil(err)
 	args := []*pb.Arg{
 		rpcx.String(from),           //chainID
 		rpcx.String(from),           //chainName
+		rpcx.Bytes(bytes),           //publicKey
 		rpcx.String("Flato V1.0.3"), //chainType
 		rpcx.Bytes([]byte("")),      //trustRoot
 		rpcx.String("0x857133c5C69e6Ce66F7AD46F200B9B3573e77582"), //broker

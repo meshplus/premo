@@ -16,12 +16,12 @@ type Model4 struct {
 	*Snake
 }
 
-func (suite Model4) SetupTest() {
+func (suite *Model4) SetupTest() {
 	suite.T().Parallel()
 }
 
 //tc：部署账本合约后调用state_test_set方法设置键值对为（Alice，111），合约调用成功
-func (suite Model4) Test0401_LegerSetIsSuccess() {
+func (suite *Model4) Test0401_LegerSetIsSuccess() {
 	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -32,7 +32,7 @@ func (suite Model4) Test0401_LegerSetIsSuccess() {
 }
 
 //tc：部署账本合约后调用state_test_set方法设置键值对为（Alice，），合约调用失败
-func (suite Model4) Test0402_LegerSetWithValueLossIsFail() {
+func (suite *Model4) Test0402_LegerSetWithValueLossIsFail() {
 	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -44,7 +44,7 @@ func (suite Model4) Test0402_LegerSetWithValueLossIsFail() {
 }
 
 //tc：部署账本合约后调用state_test_set方法设置键值对为（，），合约调用失败
-func (suite Model4) Test0403_LegerSetWithKVLossIsFail() {
+func (suite *Model4) Test0403_LegerSetWithKVLossIsFail() {
 	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -56,7 +56,7 @@ func (suite Model4) Test0403_LegerSetWithKVLossIsFail() {
 }
 
 //tc：部署账本合约后调用state_test_set111方法设置键值对为（Alice，111），合约调用失败
-func (suite Model4) Test0404_LegerSetWithErrorMethodIsFail() {
+func (suite *Model4) Test0404_LegerSetWithErrorMethodIsFail() {
 	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -68,7 +68,7 @@ func (suite Model4) Test0404_LegerSetWithErrorMethodIsFail() {
 }
 
 //tc：部署账本合约后调用state_test_set方法设置键值对为（Alice，111）,重复调用，合约调用成功
-func (suite Model4) Test0405_LegerSetRepeatIsSuccess() {
+func (suite *Model4) Test0405_LegerSetRepeatIsSuccess() {
 	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -84,7 +84,7 @@ func (suite Model4) Test0405_LegerSetRepeatIsSuccess() {
 }
 
 //tc：部署账本合约后直接调用state_test_get方法获取Alice的值，合约调用失败
-func (suite Model4) Test0406_LegerGetAliceWithoutSetIsFail() {
+func (suite *Model4) Test0406_LegerGetAliceWithoutSetIsFail() {
 	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -95,7 +95,7 @@ func (suite Model4) Test0406_LegerGetAliceWithoutSetIsFail() {
 }
 
 //tc：部署账本合约后直接调用state_test_get方法获取nil的值，合约调用失败
-func (suite Model4) Test0407_GetNilWithoutSetIsFail() {
+func (suite *Model4) Test0407_GetNilWithoutSetIsFail() {
 	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -107,7 +107,7 @@ func (suite Model4) Test0407_GetNilWithoutSetIsFail() {
 }
 
 //tc：部署账本合约后设置键值对为（Alice，111），调用state_test_get方法获取Alice的值,合约调用成功
-func (suite Model4) Test0408_SetAliceGetAliceIsSuccess() {
+func (suite *Model4) Test0408_SetAliceGetAliceIsSuccess() {
 	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -122,7 +122,7 @@ func (suite Model4) Test0408_SetAliceGetAliceIsSuccess() {
 }
 
 //tc：部署账本合约后设置键值对为（Alice，111），调用state_test_get方法获取Bob的值，合约调用失败
-func (suite Model4) Test0409_SetAliceGetBobIsFail() {
+func (suite *Model4) Test0409_SetAliceGetBobIsFail() {
 	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -136,7 +136,7 @@ func (suite Model4) Test0409_SetAliceGetBobIsFail() {
 }
 
 //tc：部署账本合约后设置键值对为（Alice，111），调用state_test_get方法获取nil的值，合约调用失败
-func (suite Model4) Test0410_SetAliceGetNilIsFail() {
+func (suite *Model4) Test0410_SetAliceGetNilIsFail() {
 	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -151,7 +151,7 @@ func (suite Model4) Test0410_SetAliceGetNilIsFail() {
 }
 
 //tc：部署账本合约后设置键值对为（Alice，111），调用state_test_get方法获取Alice的值，重复调用，合约调用成功
-func (suite Model4) Test0411_SetAliceGetAliceRepeatIsSuccess() {
+func (suite *Model4) Test0411_SetAliceGetAliceRepeatIsSuccess() {
 	address := suite.DeployLedgerContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -170,7 +170,7 @@ func (suite Model4) Test0411_SetAliceGetAliceRepeatIsSuccess() {
 }
 
 //tc：部署结果合约，获取当前的块高，合约调用成功
-func (suite Model4) Test0412_GetCurrentHeightIsSuccess() {
+func (suite *Model4) Test0412_GetCurrentHeightIsSuccess() {
 	address := suite.DeployResultContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -183,7 +183,7 @@ func (suite Model4) Test0412_GetCurrentHeightIsSuccess() {
 }
 
 //tc：部署结果合约，获取当前交易的交易hash，合约调用成功
-func (suite Model4) Test0413_GetTxHashIsSuccess() {
+func (suite *Model4) Test0413_GetTxHashIsSuccess() {
 	address := suite.DeployResultContract()
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
@@ -205,7 +205,7 @@ func (suite *Snake) DeployLedgerContract() *types.Address {
 	return address
 }
 
-func (suite Snake) DeployResultContract() *types.Address {
+func (suite *Snake) DeployResultContract() *types.Address {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)

@@ -34,14 +34,14 @@ func (suite *Model7) SetupTest() {
 }
 
 //tc：正确部署验证规则,并返回地址
-func (suite Model7) Test0701_DeployRuleIsSuccess() {
+func (suite *Model7) Test0701_DeployRuleIsSuccess() {
 	address, err := suite.DeploySimpleRule()
 	suite.Require().Nil(err)
 	suite.Require().NotNil(address)
 }
 
 //tc：部署验证规则字段为空，并提示错误信息
-func (suite Model7) Test0702_DeployRuleIsFail() {
+func (suite *Model7) Test0702_DeployRuleIsFail() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -51,7 +51,7 @@ func (suite Model7) Test0702_DeployRuleIsFail() {
 }
 
 //tc：注册Fabric V1.4.3类型的应用链，默认验证规则注册成功
-func (suite Model7) Test0703_RegisterDefaultRuleWithFabricV143IsSuccess() {
+func (suite *Model7) Test0703_RegisterDefaultRuleWithFabricV143IsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Fabric V1.4.3", address, "{\"channel_id\":\"mychannel\",\"chaincode_id\":\"broker\",\"broker_version\":\"1\"}")
@@ -62,7 +62,7 @@ func (suite Model7) Test0703_RegisterDefaultRuleWithFabricV143IsSuccess() {
 }
 
 //tc：注册Fabric V1.4.4类型的应用链，默认验证规则注册成功
-func (suite Model7) Test0704_RegisterDefaultRuleWithFabricV144IsSuccess() {
+func (suite *Model7) Test0704_RegisterDefaultRuleWithFabricV144IsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Fabric V1.4.4", address, "{\"channel_id\":\"mychannel\",\"chaincode_id\":\"broker\",\"broker_version\":\"1\"}")
@@ -73,7 +73,7 @@ func (suite Model7) Test0704_RegisterDefaultRuleWithFabricV144IsSuccess() {
 }
 
 //tc：注册Hyperchain V1.8.3类型的应用链，默认验证规则注册成功
-func (suite Model7) Test0705_RegisterDefaultRuleWithHyperchainV183IsSuccess() {
+func (suite *Model7) Test0705_RegisterDefaultRuleWithHyperchainV183IsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -82,7 +82,7 @@ func (suite Model7) Test0705_RegisterDefaultRuleWithHyperchainV183IsSuccess() {
 }
 
 ////tc：注册Hyperchain V1.8.6类型的应用链，默认验证规则注册成功
-func (suite Model7) Test0706_RegisterDefaultRuleWithHyperchainV186IsSuccess() {
+func (suite *Model7) Test0706_RegisterDefaultRuleWithHyperchainV186IsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.6", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -91,7 +91,7 @@ func (suite Model7) Test0706_RegisterDefaultRuleWithHyperchainV186IsSuccess() {
 }
 
 //tc：注册Flato V1.0.0类型的应用链，默认验证规则注册成功
-func (suite Model7) Test0707_RegisterDefaultRuleWithFlatoV100IsSuccess() {
+func (suite *Model7) Test0707_RegisterDefaultRuleWithFlatoV100IsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Flato V1.0.0", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -100,7 +100,7 @@ func (suite Model7) Test0707_RegisterDefaultRuleWithFlatoV100IsSuccess() {
 }
 
 //tc：注册Flato V1.0.3类型的应用链，默认验证规则注册成功
-func (suite Model7) Test0708_RegisterDefaultRuleWithFlatoV103IsSuccess() {
+func (suite *Model7) Test0708_RegisterDefaultRuleWithFlatoV103IsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Flato V1.0.3", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -109,7 +109,7 @@ func (suite Model7) Test0708_RegisterDefaultRuleWithFlatoV103IsSuccess() {
 }
 
 //tc：注册Flato V1.0.6类型的应用链，默认验证规则注册成功
-func (suite Model7) Test0709_RegisterDefaultRuleWithFlatoV106IsSuccess() {
+func (suite *Model7) Test0709_RegisterDefaultRuleWithFlatoV106IsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Flato V1.0.6", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -118,7 +118,7 @@ func (suite Model7) Test0709_RegisterDefaultRuleWithFlatoV106IsSuccess() {
 }
 
 //tc：注册BCOS V2.6.0类型的应用链，默认验证规则注册成功
-func (suite Model7) Test0710_RegisterDefaultRuleWithBCOSV260IsSuccess() {
+func (suite *Model7) Test0710_RegisterDefaultRuleWithBCOSV260IsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "BCOS V2.6.0", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -127,7 +127,7 @@ func (suite Model7) Test0710_RegisterDefaultRuleWithBCOSV260IsSuccess() {
 }
 
 //tc：注册CITA V20.2.2类型的应用链，默认验证规则注册成功
-func (suite Model7) Test0711_RegisterDefaultRuleWithCITAV2022IsSuccess() {
+func (suite *Model7) Test0711_RegisterDefaultRuleWithCITAV2022IsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "CITA V20.2.2", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -136,7 +136,7 @@ func (suite Model7) Test0711_RegisterDefaultRuleWithCITAV2022IsSuccess() {
 }
 
 //tc：注册ETH类型的应用链，默认验证规则注册成功
-func (suite Model7) Test0712_RegisterDefaultRuleWithETHIsSuccess() {
+func (suite *Model7) Test0712_RegisterDefaultRuleWithETHIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "ETH", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -145,7 +145,7 @@ func (suite Model7) Test0712_RegisterDefaultRuleWithETHIsSuccess() {
 }
 
 //tc：注册其他类型的应用链，默认验证规则注册成功
-func (suite Model7) Test0713_RegisterDefaultRuleWithOthersIsSuccess() {
+func (suite *Model7) Test0713_RegisterDefaultRuleWithOthersIsSuccess() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Other", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -154,7 +154,7 @@ func (suite Model7) Test0713_RegisterDefaultRuleWithOthersIsSuccess() {
 }
 
 //tc：非应用链管理员调用注册验证规则，验证规则注册失败
-func (suite Model7) Test0714_RegisterRuleWithNoAdminIsFail() {
+func (suite *Model7) Test0714_RegisterRuleWithNoAdminIsFail() {
 	pk1, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk1, "Hyperchain V1.8.3", address1, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -166,7 +166,7 @@ func (suite Model7) Test0714_RegisterRuleWithNoAdminIsFail() {
 }
 
 //tc：应用链管理员调用注册验证规则，验证规则注册成功
-func (suite Model7) Test0715_RegisterRuleIsSuccess() {
+func (suite *Model7) Test0715_RegisterRuleIsSuccess() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address1, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -178,7 +178,7 @@ func (suite Model7) Test0715_RegisterRuleIsSuccess() {
 }
 
 //tc：应用链注册未部署的验证规则，验证规则注册失败
-func (suite Model7) Test0716_RegisterRuleWithNoRegisterRuleIsFail() {
+func (suite *Model7) Test0716_RegisterRuleWithNoRegisterRuleIsFail() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address1, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -188,7 +188,7 @@ func (suite Model7) Test0716_RegisterRuleWithNoRegisterRuleIsFail() {
 }
 
 //tc：应用链注册available的验证规则，验证规则注册失败
-func (suite Model7) Test0717_RegisterRuleWithAvailableRuleIsFail() {
+func (suite *Model7) Test0717_RegisterRuleWithAvailableRuleIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -198,7 +198,7 @@ func (suite Model7) Test0717_RegisterRuleWithAvailableRuleIsFail() {
 }
 
 //tc：应用链注册binding的验证规则，验证规则注册失败
-func (suite Model7) Test0718_RegisterRuleWithBindingRuleIsFail() {
+func (suite *Model7) Test0718_RegisterRuleWithBindingRuleIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -219,7 +219,7 @@ func (suite Model7) Test0718_RegisterRuleWithBindingRuleIsFail() {
 }
 
 //tc：应用链注册unbinding的验证规则，验证规则注册失败
-func (suite Model7) Test0719_RegisterRuleWithUnBindingRuleIsFail() {
+func (suite *Model7) Test0719_RegisterRuleWithUnBindingRuleIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -242,7 +242,7 @@ func (suite Model7) Test0719_RegisterRuleWithUnBindingRuleIsFail() {
 }
 
 //tc：应用链注册bindable的验证规则，验证规则注册失败
-func (suite Model7) Test0720_RegisterRuleWithBindableRuleIsFail() {
+func (suite *Model7) Test0720_RegisterRuleWithBindableRuleIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -252,7 +252,7 @@ func (suite Model7) Test0720_RegisterRuleWithBindableRuleIsFail() {
 }
 
 //tc：应用链注册forbidden的验证规则，验证规则注册失败
-func (suite Model7) Test0721_RegisterRuleWithForbiddenRuleIsFail() {
+func (suite *Model7) Test0721_RegisterRuleWithForbiddenRuleIsFail() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address1, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -270,7 +270,7 @@ func (suite Model7) Test0721_RegisterRuleWithForbiddenRuleIsFail() {
 }
 
 //tc：应用链不存在注册验证规则，验证规则注册失败
-func (suite Model7) Test0722_RegisterRuleWithUnRegisteredChainIsFail() {
+func (suite *Model7) Test0722_RegisterRuleWithUnRegisteredChainIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterRule(pk, from, address)
@@ -278,7 +278,7 @@ func (suite Model7) Test0722_RegisterRuleWithUnRegisteredChainIsFail() {
 }
 
 //tc：应用链处于updating注册验证规则，验证规则注册成功
-func (suite Model7) Test0723_RegisterRuleWithUpdatingChainIsSuccess() {
+func (suite *Model7) Test0723_RegisterRuleWithUpdatingChainIsSuccess() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToUpdating(pk, from, address1)
@@ -290,7 +290,7 @@ func (suite Model7) Test0723_RegisterRuleWithUpdatingChainIsSuccess() {
 }
 
 //tc：应用链处于activating注册验证规则，验证规则注册成功
-func (suite Model7) Test0724_RegisterRuleWithActivatingChainIsSuccess() {
+func (suite *Model7) Test0724_RegisterRuleWithActivatingChainIsSuccess() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToActivating(pk, from, address1)
@@ -302,7 +302,7 @@ func (suite Model7) Test0724_RegisterRuleWithActivatingChainIsSuccess() {
 }
 
 //tc：应用链处于freezing注册验证规则，验证规则注册成功
-func (suite Model7) Test0725_RegisterRuleWithFreezingChainIsSuccess() {
+func (suite *Model7) Test0725_RegisterRuleWithFreezingChainIsSuccess() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFreezing(pk, from, address1)
@@ -314,7 +314,7 @@ func (suite Model7) Test0725_RegisterRuleWithFreezingChainIsSuccess() {
 }
 
 //tc：应用链处于Frozen注册验证规则，验证规则注册成功
-func (suite Model7) Test0726_RegisterRuleWithFrozenChainIsSuccess() {
+func (suite *Model7) Test0726_RegisterRuleWithFrozenChainIsSuccess() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFrozen(pk, from, address1)
@@ -326,7 +326,7 @@ func (suite Model7) Test0726_RegisterRuleWithFrozenChainIsSuccess() {
 }
 
 //tc：应用链处于Logouting注册验证规则，验证规则注册成功
-func (suite Model7) Test0727_RegisterRuleWithLogoutingChainIsSuccess() {
+func (suite *Model7) Test0727_RegisterRuleWithLogoutingChainIsSuccess() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToLogouting(pk, from, address1)
@@ -338,7 +338,7 @@ func (suite Model7) Test0727_RegisterRuleWithLogoutingChainIsSuccess() {
 }
 
 //tc：应用链处于Forbidden注册验证规则，验证规则注册失败
-func (suite Model7) Test0728_RegisterRuleWithForbiddenChainIsFail() {
+func (suite *Model7) Test0728_RegisterRuleWithForbiddenChainIsFail() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToForbidden(pk, from, address1)
@@ -350,7 +350,7 @@ func (suite Model7) Test0728_RegisterRuleWithForbiddenChainIsFail() {
 }
 
 //tc：非应用链管理员更新验证规则，验证规则更新失败
-func (suite Model7) Test0729_UpdateRuleWithNoAdminIsFail() {
+func (suite *Model7) Test0729_UpdateRuleWithNoAdminIsFail() {
 	pk1, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk1, "Hyperchain V1.8.3", address1, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -364,7 +364,7 @@ func (suite Model7) Test0729_UpdateRuleWithNoAdminIsFail() {
 }
 
 //tc：应用链管理员更新验证规则，验证规则更新成功
-func (suite Model7) Test0730_UpdateRuleIsSuccess() {
+func (suite *Model7) Test0730_UpdateRuleIsSuccess() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address1, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -378,7 +378,7 @@ func (suite Model7) Test0730_UpdateRuleIsSuccess() {
 }
 
 //tc：应用链处于未注册状态更新验证规则，验证规则更新失败
-func (suite Model7) Test0731_UpdateRuleWithNoRegisterChainIsFail() {
+func (suite *Model7) Test0731_UpdateRuleWithNoRegisterChainIsFail() {
 	pk, from, _, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	_, _, address2, err := suite.DeployRule()
@@ -388,7 +388,7 @@ func (suite Model7) Test0731_UpdateRuleWithNoRegisterChainIsFail() {
 }
 
 //tc：应用链处于activating状态更新验证规则，验证规则更新失败
-func (suite Model7) Test0732_UpdateRuleWithActivatingChainIsFail() {
+func (suite *Model7) Test0732_UpdateRuleWithActivatingChainIsFail() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToActivating(pk, from, address1)
@@ -402,7 +402,7 @@ func (suite Model7) Test0732_UpdateRuleWithActivatingChainIsFail() {
 }
 
 //tc：应用链处于freezing状态更新验证规则，验证规则更新失败
-func (suite Model7) Test0733_UpdateRuleWithFreezingChainIsFail() {
+func (suite *Model7) Test0733_UpdateRuleWithFreezingChainIsFail() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFreezing(pk, from, address1)
@@ -416,7 +416,7 @@ func (suite Model7) Test0733_UpdateRuleWithFreezingChainIsFail() {
 }
 
 //tc：应用链处于frozen状态更新验证规则，验证规则更新成功
-func (suite Model7) Test0734_UpdateRuleWithFrozenChainIsSuccess() {
+func (suite *Model7) Test0734_UpdateRuleWithFrozenChainIsSuccess() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFrozen(pk, from, address1)
@@ -430,7 +430,7 @@ func (suite Model7) Test0734_UpdateRuleWithFrozenChainIsSuccess() {
 }
 
 //tc：应用链处于logouting状态更新验证规则，验证规则更新失败
-func (suite Model7) Test0735_UpdateRuleWithLogoutingChainIsFail() {
+func (suite *Model7) Test0735_UpdateRuleWithLogoutingChainIsFail() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToLogouting(pk, from, address1)
@@ -444,7 +444,7 @@ func (suite Model7) Test0735_UpdateRuleWithLogoutingChainIsFail() {
 }
 
 //tc：应用链处于forbidden状态更新验证规则，验证规则更新失败
-func (suite Model7) Test0736_UpdateRuleWithForbiddenChainIsFail() {
+func (suite *Model7) Test0736_UpdateRuleWithForbiddenChainIsFail() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToForbidden(pk, from, address1)
@@ -454,7 +454,7 @@ func (suite Model7) Test0736_UpdateRuleWithForbiddenChainIsFail() {
 }
 
 //tc：应用链更新未注册的验证规则，验证规则更新失败
-func (suite Model7) Test0737_UpdateRuleWithNoRegisterRuleIsFail() {
+func (suite *Model7) Test0737_UpdateRuleWithNoRegisterRuleIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -464,7 +464,7 @@ func (suite Model7) Test0737_UpdateRuleWithNoRegisterRuleIsFail() {
 }
 
 //tc：应用链更新available状态的验证规则，验证规则更新失败
-func (suite Model7) Test0738_UpdateRuleWithAvailableRuleIsFail() {
+func (suite *Model7) Test0738_UpdateRuleWithAvailableRuleIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -474,7 +474,7 @@ func (suite Model7) Test0738_UpdateRuleWithAvailableRuleIsFail() {
 }
 
 //tc：应用链更新binding状态的验证规则，验证规则更新失败
-func (suite Model7) Test0739_UpdateRuleWithBindingRuleIsFail() {
+func (suite *Model7) Test0739_UpdateRuleWithBindingRuleIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -495,7 +495,7 @@ func (suite Model7) Test0739_UpdateRuleWithBindingRuleIsFail() {
 }
 
 //tc：应用链更新unbinding状态的验证规则，验证规则更新失败
-func (suite Model7) Test0740_UpdateRuleWithUnbindingRuleIsFail() {
+func (suite *Model7) Test0740_UpdateRuleWithUnbindingRuleIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -516,7 +516,7 @@ func (suite Model7) Test0740_UpdateRuleWithUnbindingRuleIsFail() {
 }
 
 //tc：应用链更新forbidden状态的验证规则，验证规则更新失败
-func (suite Model7) Test0741_UpdateRuleWithForbiddenRuleIsFail() {
+func (suite *Model7) Test0741_UpdateRuleWithForbiddenRuleIsFail() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address1, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -532,7 +532,7 @@ func (suite Model7) Test0741_UpdateRuleWithForbiddenRuleIsFail() {
 }
 
 //tc：非应用链管理员注销验证规则，验证规则注销失败
-func (suite Model7) Test0742_LogoutRuleWithNoAdminIsFail() {
+func (suite *Model7) Test0742_LogoutRuleWithNoAdminIsFail() {
 	pk1, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk1, "Hyperchain V1.8.3", address1, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -546,7 +546,7 @@ func (suite Model7) Test0742_LogoutRuleWithNoAdminIsFail() {
 }
 
 //tc：应用链管理员注销验证规则，验证规则注销成功
-func (suite Model7) Test0743_LogoutRuleIsSuccess() {
+func (suite *Model7) Test0743_LogoutRuleIsSuccess() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address1, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -560,7 +560,7 @@ func (suite Model7) Test0743_LogoutRuleIsSuccess() {
 }
 
 //tc：应用链处于未注册状态注销规则，验证规则注销失败
-func (suite Model7) Test0744_LogoutRuleWithNoRegisterChainIsFail() {
+func (suite *Model7) Test0744_LogoutRuleWithNoRegisterChainIsFail() {
 	pk, from, _, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	_, _, address2, err := suite.DeployRule()
@@ -570,7 +570,7 @@ func (suite Model7) Test0744_LogoutRuleWithNoRegisterChainIsFail() {
 }
 
 //tc：应用链处于activating状态注销验证规则，验证规则注销成功
-func (suite Model7) Test0745_LogoutRuleWithActivatingChainIsSuccess() {
+func (suite *Model7) Test0745_LogoutRuleWithActivatingChainIsSuccess() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToActivating(pk, from, address1)
@@ -584,7 +584,7 @@ func (suite Model7) Test0745_LogoutRuleWithActivatingChainIsSuccess() {
 }
 
 //tc：应用链处于freezing状态注销验证规则，验证规则注销成功
-func (suite Model7) Test0746_LogoutRuleWithFreezingChainIsSuccess() {
+func (suite *Model7) Test0746_LogoutRuleWithFreezingChainIsSuccess() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFreezing(pk, from, address1)
@@ -598,7 +598,7 @@ func (suite Model7) Test0746_LogoutRuleWithFreezingChainIsSuccess() {
 }
 
 //tc：应用链处于frozen状态注销验证规则，验证规则注销成功
-func (suite Model7) Test0747_LogoutRuleWithFrozenChainIsSuccess() {
+func (suite *Model7) Test0747_LogoutRuleWithFrozenChainIsSuccess() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToFrozen(pk, from, address1)
@@ -612,7 +612,7 @@ func (suite Model7) Test0747_LogoutRuleWithFrozenChainIsSuccess() {
 }
 
 //tc：应用链处于logouting状态注销验证规则，验证规则注销成功
-func (suite Model7) Test0748_LogoutRuleWithLogoutingChainIsSuccess() {
+func (suite *Model7) Test0748_LogoutRuleWithLogoutingChainIsSuccess() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.ChainToLogouting(pk, from, address1)
@@ -626,7 +626,7 @@ func (suite Model7) Test0748_LogoutRuleWithLogoutingChainIsSuccess() {
 }
 
 //tc：应用链处于forbidden状态注销验证规则，验证规则注销失败
-func (suite Model7) Test0749_LogoutRuleWithForbiddenChainIsFail() {
+func (suite *Model7) Test0749_LogoutRuleWithForbiddenChainIsFail() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchain(pk, from, address1)
@@ -642,7 +642,7 @@ func (suite Model7) Test0749_LogoutRuleWithForbiddenChainIsFail() {
 }
 
 //tc：应用链注销未注册的验证规则，验证规则注销失败
-func (suite Model7) Test0750_LogoutRuleWithNoRegisterRuleIsFail() {
+func (suite *Model7) Test0750_LogoutRuleWithNoRegisterRuleIsFail() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address1, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -654,7 +654,7 @@ func (suite Model7) Test0750_LogoutRuleWithNoRegisterRuleIsFail() {
 }
 
 //tc：应用链注销available状态的验证规则，验证规则注销失败
-func (suite Model7) Test0751_LogoutRuleWithAvailableRuleIsFail() {
+func (suite *Model7) Test0751_LogoutRuleWithAvailableRuleIsFail() {
 	pk, from, address, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -664,7 +664,7 @@ func (suite Model7) Test0751_LogoutRuleWithAvailableRuleIsFail() {
 }
 
 //tc：应用链注销bindable状态的验证规则，验证规则注销成功
-func (suite Model7) Test0752_LogoutRuleWithBindableRuleIsSuccess() {
+func (suite *Model7) Test0752_LogoutRuleWithBindableRuleIsSuccess() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address1, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -678,7 +678,7 @@ func (suite Model7) Test0752_LogoutRuleWithBindableRuleIsSuccess() {
 }
 
 //tc：应用链注销binding状态的验证规则，验证规则注销失败
-func (suite Model7) Test0753_LogoutRuleWithBindingRuleIsFail() {
+func (suite *Model7) Test0753_LogoutRuleWithBindingRuleIsFail() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address1, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -703,7 +703,7 @@ func (suite Model7) Test0753_LogoutRuleWithBindingRuleIsFail() {
 }
 
 //tc：应用链注销unbinding状态的验证规则，验证规则注销失败
-func (suite Model7) Test0754_LogoutRuleWithUnbindingRuleIsFail() {
+func (suite *Model7) Test0754_LogoutRuleWithUnbindingRuleIsFail() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address1, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -728,7 +728,7 @@ func (suite Model7) Test0754_LogoutRuleWithUnbindingRuleIsFail() {
 }
 
 //tc：应用链注销forbidden状态的验证规则，验证规则注销失败
-func (suite Model7) Test0755_LogoutRuleWithForbiddenRuleIsFail() {
+func (suite *Model7) Test0755_LogoutRuleWithForbiddenRuleIsFail() {
 	pk, from, address1, err := suite.DeployRule()
 	suite.Require().Nil(err)
 	err = suite.RegisterAppchainWithType(pk, "Hyperchain V1.8.3", address1, "0x857133c5C69e6Ce66F7AD46F200B9B3573e77582")
@@ -744,7 +744,7 @@ func (suite Model7) Test0755_LogoutRuleWithForbiddenRuleIsFail() {
 }
 
 // DeploySimpleRule deploy simple rule
-func (suite Snake) DeploySimpleRule() (string, error) {
+func (suite *Snake) DeploySimpleRule() (string, error) {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -756,7 +756,7 @@ func (suite Snake) DeploySimpleRule() (string, error) {
 }
 
 // DeployRule deploy rule and return address
-func (suite Snake) DeployRule() (crypto.PrivateKey, string, string, error) {
+func (suite *Snake) DeployRule() (crypto.PrivateKey, string, string, error) {
 	address, err := suite.DeploySimpleRule()
 	suite.Require().Nil(err)
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
@@ -767,7 +767,7 @@ func (suite Snake) DeployRule() (crypto.PrivateKey, string, string, error) {
 }
 
 // RegisterRule register rule
-func (suite Snake) RegisterRule(pk crypto.PrivateKey, ChainID, contractAddr string) error {
+func (suite *Snake) RegisterRule(pk crypto.PrivateKey, ChainID, contractAddr string) error {
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
 		rpcx.String(ChainID),
@@ -790,7 +790,7 @@ func (suite Snake) RegisterRule(pk crypto.PrivateKey, ChainID, contractAddr stri
 }
 
 // UpdateMasterRule update master rule
-func (suite Snake) UpdateMasterRule(pk crypto.PrivateKey, ChainID, contractAddr string) error {
+func (suite *Snake) UpdateMasterRule(pk crypto.PrivateKey, ChainID, contractAddr string) error {
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
 		rpcx.String(ChainID),
@@ -813,7 +813,7 @@ func (suite Snake) UpdateMasterRule(pk crypto.PrivateKey, ChainID, contractAddr 
 }
 
 // LogoutRule logout rule
-func (suite Snake) LogoutRule(pk crypto.PrivateKey, ChainID, contractAddr string) error {
+func (suite *Snake) LogoutRule(pk crypto.PrivateKey, ChainID, contractAddr string) error {
 	client := suite.NewClient(pk)
 	args := []*pb.Arg{
 		rpcx.String(ChainID),
@@ -835,7 +835,7 @@ func (suite Snake) LogoutRule(pk crypto.PrivateKey, ChainID, contractAddr string
 }
 
 // Rules return all rules
-func (suite Snake) Rules(chainID string) ([]Rule, error) {
+func (suite *Snake) Rules(chainID string) ([]Rule, error) {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -851,7 +851,7 @@ func (suite Snake) Rules(chainID string) ([]Rule, error) {
 }
 
 // RuleContains check whether the rule contains
-func (suite Snake) RuleContains(chainID, address string) bool {
+func (suite *Snake) RuleContains(chainID, address string) bool {
 	rules, err := suite.Rules(chainID)
 	if err != nil {
 		return false
