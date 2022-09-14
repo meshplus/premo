@@ -9,7 +9,7 @@ require (
 	github.com/coreos/etcd v3.3.27+incompatible
 	github.com/ethereum/go-ethereum v1.10.4
 	github.com/gobuffalo/packd v1.0.1
-	github.com/gobuffalo/packr v1.30.1
+	github.com/gobuffalo/packr/v2 v2.8.3
 	github.com/hyperledger/fabric-lib-go v1.0.0 // indirect
 	github.com/hyperledger/fabric-sdk-go v1.0.0-alpha5
 	github.com/jiuhuche120/spin v0.0.0-20220224085816-ab11eb007ff8

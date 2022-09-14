@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gobuffalo/packr"
+	"github.com/gobuffalo/packr/v2"
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 	"github.com/meshplus/bitxhub-model/constant"
@@ -28,7 +28,7 @@ func (suite *Model9) Test0901_SendIBTPWithStatusTransactionStatus_BEGIN() {
 	suite.Require().Nil(err)
 	from2, err := pk2.PublicKey().Address()
 	suite.Require().Nil(err)
-	box := packr.NewBox(repo.ConfigPath)
+	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
 	ibtp := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
@@ -52,7 +52,7 @@ func (suite *Model9) Test0902_GetNoReceiptBeforeTimeOutWithStatusTransactionStat
 	suite.Require().Nil(err)
 	from2, err := pk2.PublicKey().Address()
 	suite.Require().Nil(err)
-	box := packr.NewBox(repo.ConfigPath)
+	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
 	ibtp := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
@@ -79,7 +79,7 @@ func (suite *Model9) Test0903_SendIBTPNoExistChainWithStatusTransactionStatus_BE
 	suite.Require().Nil(err)
 	from2, err := pk2.PublicKey().Address()
 	suite.Require().Nil(err)
-	box := packr.NewBox(repo.ConfigPath)
+	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
 	ibtp := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
@@ -103,7 +103,7 @@ func (suite *Model9) Test0904_GetReceiptSuccessWithStatusTransactionStatus_SUCCE
 	suite.Require().Nil(err)
 	from2, err := pk2.PublicKey().Address()
 	suite.Require().Nil(err)
-	box := packr.NewBox(repo.ConfigPath)
+	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
 	ibtp := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
@@ -131,7 +131,7 @@ func (suite *Model9) Test0905_GetReceiptFailWithStatusTransactionStatus_FAILURE(
 	suite.Require().Nil(err)
 	from2, err := pk2.PublicKey().Address()
 	suite.Require().Nil(err)
-	box := packr.NewBox(repo.ConfigPath)
+	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
 	ibtp := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
@@ -159,7 +159,7 @@ func (suite *Model9) Test0906_GetReceiptAfterTimeOutWithStatusTransactionStatus_
 	suite.Require().Nil(err)
 	from2, err := pk2.PublicKey().Address()
 	suite.Require().Nil(err)
-	box := packr.NewBox(repo.ConfigPath)
+	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
 	ibtp := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
@@ -197,7 +197,7 @@ func (suite *Model9) Test0907_SendIBTPSWithStatusTransactionStatus_BEGIN() {
 	suite.Require().Nil(err)
 	from3, err := pk3.PublicKey().Address()
 	suite.Require().Nil(err)
-	box := packr.NewBox(repo.ConfigPath)
+	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
 	ibtp1 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	ibtp2 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from3.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
@@ -235,7 +235,7 @@ func (suite *Model9) Test0908_GetOneReceiptFailWithStatusTransactionStatus_BEGIN
 	suite.Require().Nil(err)
 	from3, err := pk3.PublicKey().Address()
 	suite.Require().Nil(err)
-	box := packr.NewBox(repo.ConfigPath)
+	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
 	ibtp1 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	ibtp2 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from3.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
@@ -283,7 +283,7 @@ func (suite *Model9) Test0909_GetNoAllReceiptBeforeTimeOutWithStatusTransactionS
 	suite.Require().Nil(err)
 	from3, err := pk3.PublicKey().Address()
 	suite.Require().Nil(err)
-	box := packr.NewBox(repo.ConfigPath)
+	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
 	ibtp1 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	ibtp2 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from3.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
@@ -334,7 +334,7 @@ func (suite *Model9) Test0910_GetAllReceiptSuccessWithStatusTransactionStatus_SU
 	suite.Require().Nil(err)
 	from3, err := pk3.PublicKey().Address()
 	suite.Require().Nil(err)
-	box := packr.NewBox(repo.ConfigPath)
+	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
 	ibtp1 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	ibtp2 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from3.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
@@ -386,7 +386,7 @@ func (suite *Model9) Test0911_GetAllReceiptFailWithStatusTransactionStatus_FAILU
 	suite.Require().Nil(err)
 	from3, err := pk3.PublicKey().Address()
 	suite.Require().Nil(err)
-	box := packr.NewBox(repo.ConfigPath)
+	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
 	ibtp1 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	ibtp2 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from3.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
@@ -438,7 +438,7 @@ func (suite *Model9) Test0912_GetAllReceiptTimeOutWithStatusTransactionStatus_RO
 	suite.Require().Nil(err)
 	from3, err := pk3.PublicKey().Address()
 	suite.Require().Nil(err)
-	box := packr.NewBox(repo.ConfigPath)
+	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
 	ibtp1 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	ibtp2 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from3.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
