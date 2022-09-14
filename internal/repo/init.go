@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/gobuffalo/packd"
-	"github.com/gobuffalo/packr"
+	"github.com/gobuffalo/packr/v2"
 )
 
 const (
@@ -15,8 +15,8 @@ const (
 )
 
 func Initialize(repoRoot string) error {
-	scriptBox := packr.NewBox(ScriptsPath)
-	configBox := packr.NewBox(ConfigPath)
+	scriptBox := packr.New(ScriptsPath, ScriptsPath)
+	configBox := packr.New(ConfigPath, ConfigPath)
 
 	var walkFn = func(s string, file packd.File) error {
 		p := filepath.Join(repoRoot, s)

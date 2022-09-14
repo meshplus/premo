@@ -51,12 +51,12 @@ smoke-tester:
 
 ## make install: Go install the project
 install:
-	cd internal/repo && packr
+	cd internal/repo && packr2
 	$(GO) install -ldflags '${GO_LDFLAGS}' ./cmd/${APP_NAME}
 	@printf "${GREEN}Build ${APP_NAME} successfully!${NC}\n"
 
 build:
-	cd internal/repo && packr
+	cd internal/repo && packr2
 	@mkdir -p bin
 	$(GO) build -ldflags '${GO_LDFLAGS}' ./cmd/${APP_NAME}
 	@mv ./${APP_NAME} bin

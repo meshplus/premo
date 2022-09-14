@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gobuffalo/packr"
+	"github.com/gobuffalo/packr/v2"
 	"github.com/meshplus/bitxhub-model/pb"
 	"github.com/meshplus/premo/internal/repo"
 )
@@ -75,7 +75,7 @@ func (suite *Model16) Test1602_SubscribeAuditInfoWithIBTPIsSuccess() {
 	suite.Require().Nil(err)
 	from2, err := pk2.PublicKey().Address()
 	suite.Require().Nil(err)
-	box := packr.NewBox(repo.ConfigPath)
+	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
 	ibtp := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
