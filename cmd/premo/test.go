@@ -7,10 +7,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/meshplus/premo/internal/repo"
-
-	"github.com/gobuffalo/packr"
+	"github.com/gobuffalo/packr/v2"
 	"github.com/meshplus/premo/internal/bitxhub"
+	"github.com/meshplus/premo/internal/repo"
 	"github.com/urfave/cli/v2"
 )
 
@@ -79,7 +78,7 @@ var testCMD = &cli.Command{
 }
 
 func benchmark(ctx *cli.Context) error {
-	box := packr.NewBox(repo.ConfigPath)
+	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	//val, err := box.Find("validator_fabric")
 	val, err := box.Find("single_validator")
 	if err != nil {
