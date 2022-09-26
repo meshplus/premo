@@ -467,7 +467,7 @@ func (bee *bee) genInterchainTx(i, nonce uint64) (*pb.BxhTransaction, error) {
 		to = "1356:" + To + ":mychannel&transfer"
 	}
 
-	ibtp := bee.mockIBTP(i, "1356:"+bee.normalFrom.String()+"::mychannel&transfer", to, bee.config.Proof)
+	ibtp := bee.mockIBTP(i, "1356:"+bee.normalFrom.String()+":mychannel&transfer", to, bee.config.Proof)
 
 	tx := &pb.BxhTransaction{
 		From:      bee.normalFrom,
