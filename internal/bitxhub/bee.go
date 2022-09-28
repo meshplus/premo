@@ -331,7 +331,6 @@ func (bee *bee) prepareToChain(typ, desc string) error {
 	if err != nil {
 		return fmt.Errorf("vote server error: %w", err)
 	}
-	log.Infof("success prepare to chain")
 	return nil
 }
 
@@ -430,7 +429,6 @@ func (bee *bee) prepareChain(typ, desc string) error {
 	if err != nil {
 		return fmt.Errorf("vote server error: %w", err)
 	}
-	//log.Infof("End prepare from service:%s", fmt.Sprintf(bee.normalFrom.String()+))
 	prepareInterchainTx()
 	return nil
 }

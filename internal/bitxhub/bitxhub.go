@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
@@ -155,10 +156,12 @@ func New(config *Config) (*Broker, error) {
 	var lock sync.Mutex
 	bees := make([]*bee, 0, config.Concurrent)
 	ctx, cancel := context.WithCancel(context.Background())
-	var wg sync.WaitGroup
-	wg.Add(config.Concurrent)
+
+	pool := NewGoPool(MaxPoolSize)
+	var count uint64
 	for i := 0; i < config.Concurrent; i++ {
-		go func() {
+		pool.Add()
+		go func(wg *Pool) {
 			defer wg.Done()
 			bee, err := NewBee(config.TPS/config.Concurrent, adminPk, adminFrom, config)
 			if err != nil {
@@ -180,10 +183,11 @@ func New(config *Config) (*Broker, error) {
 			lock.Lock()
 			bees = append(bees, bee)
 			lock.Unlock()
-		}()
+			log.Infof("prepared %d chain", atomic.AddUint64(&count, 1))
+		}(pool)
 	}
 
-	wg.Wait()
+	pool.Wait()
 	log.WithFields(logrus.Fields{
 		"number": len(bees),
 	}).Info("generate all bees")
