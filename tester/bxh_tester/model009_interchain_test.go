@@ -1,8 +1,11 @@
 package bxh_tester
 
 import (
+	"encoding/json"
 	"fmt"
+	"math/big"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gobuffalo/packr/v2"
@@ -12,6 +15,13 @@ import (
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	"github.com/meshplus/premo/internal/repo"
+)
+
+const (
+	normalTxGasFee = 1050000000
+	ibtpGasFee     = normalTxGasFee * 10
+	leftFee        = 10
+	gasError       = "insufficeient balance"
 )
 
 type Model9 struct {
@@ -477,6 +487,124 @@ func (suite *Model9) Test0912_GetAllReceiptTimeOutWithStatusTransactionStatus_RO
 	status, err = suite.GetStatus(ibtp2.ID())
 	suite.Require().Nil(err)
 	suite.Require().Equal(pb.TransactionStatus_ROLLBACK, status)
+}
+
+//tc：中继链因为gas费不足，需要回滚跨链交易
+func (suite *Model9) Test0913_AccountHaveInsufficientGas() {
+	pk1, err := suite.PrepareServer()
+	suite.Require().Nil(err)
+	from1, err := pk1.PublicKey().Address()
+	suite.Require().Nil(err)
+	pk2, err := suite.PrepareServer()
+	suite.Require().Nil(err)
+	from2, err := pk2.PublicKey().Address()
+	suite.Require().Nil(err)
+	client1 := suite.NewClient(pk1)
+	res, err := client1.GetAccountBalance(from1.String())
+	suite.Require().Nil(err)
+	account := Account{}
+	err = json.Unmarshal(res.Data, &account)
+	suite.Require().Nil(err)
+	fmt.Println(from1.String(), account.Balance)
+
+	// left 3 tx balance, first tx for deducting balance,
+	// second tx for sending success ibtp1,
+	// third tx for getting interchain,
+	// if send fourth tx for sending ibtp2, receive failed receipt for insufficeient balance(left gas)
+	gasUsed := normalTxGasFee + ibtpGasFee*2
+	balance := new(big.Int).Sub(big.NewInt(account.Balance.Int64()), big.NewInt(int64(gasUsed)+leftFee))
+
+	data := &pb.TransactionData{
+		Amount: balance.String(),
+	}
+	payload, err := data.Marshal()
+	suite.Require().Nil(err)
+	tx := &pb.BxhTransaction{
+		From:      from1,
+		To:        from2,
+		Timestamp: time.Now().UnixNano(),
+		Payload:   payload,
+	}
+	receipt, err := client1.SendTransactionWithReceipt(tx, nil)
+	suite.Require().True(receipt.IsSuccess())
+	suite.Require().Nil(err)
+
+	// mock ibtp1, get successful receipt
+	box := packr.New(repo.ConfigPath, repo.ConfigPath)
+	proof, err := box.Find("proof_fabric")
+	ibtp1 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
+	payload = suite.MockContent(
+		"interchainCharge",
+		[][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
+	)
+	ibtp1.Payload = payload
+
+	tx = &pb.BxhTransaction{
+		From:      from1,
+		To:        constant.InterchainContractAddr.Address(),
+		Timestamp: time.Now().UnixNano(),
+		Extra:     proof,
+		IBTP:      ibtp1,
+	}
+	receipt, err = client1.SendTransactionWithReceipt(tx, nil)
+	suite.Require().Nil(err)
+	suite.Require().True(receipt.IsSuccess())
+
+	// get interchain to proof ibtp store bitxhub ledger successfully
+	receipt1, err := client1.InvokeBVMContract(constant.InterchainContractAddr.Address(), "GetInterchain", nil, pb.String(ibtp1.From))
+	interchain := &pb.Interchain{}
+	err = interchain.Unmarshal(receipt1.Ret)
+	suite.Require().Nil(err)
+	suite.Require().True(receipt1.IsSuccess())
+	suite.Require().Equal(ibtp1.From, interchain.ID)
+	suite.Require().Equal(uint64(1), interchain.InterchainCounter[ibtp1.To])
+
+	// ensure have insufficient gas
+	res, err = client1.GetAccountBalance(from1.String())
+	suite.Require().Nil(err)
+	account = Account{}
+	err = json.Unmarshal(res.Data, &account)
+	suite.Require().Nil(err)
+	fmt.Println(from1.String(), account.Balance)
+	suite.Require().Equal(int64(leftFee), account.Balance.Int64())
+
+	// mock ibtp2, send ibtp2 failed because insufficient gas
+	ibtp2 := suite.MockIBTP(2, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
+	payload = suite.MockContent(
+		"interchainCharge",
+		[][]byte{[]byte("Alice"), []byte("Alice"), []byte("2")},
+	)
+	ibtp2.Payload = payload
+
+	tx2 := &pb.BxhTransaction{
+		From:      from1,
+		To:        constant.InterchainContractAddr.Address(),
+		Timestamp: time.Now().UnixNano(),
+		Extra:     proof,
+		IBTP:      ibtp2,
+	}
+	receipt2, err := client1.SendTransactionWithReceipt(tx2, nil)
+	suite.Require().Nil(err)
+	suite.Require().False(receipt2.IsSuccess())
+	suite.Require().True(strings.Contains(string(receipt2.Ret), gasError))
+
+	client2 := suite.NewClient(pk2)
+	res2, err := client2.GetAccountBalance(from1.String())
+	suite.Require().Nil(err)
+
+	// from1 have insufficient gas, so paying all left balance
+	err = json.Unmarshal(res2.Data, &account)
+	suite.Require().Nil(err)
+	suite.Require().Equal(int64(0), account.Balance.Int64())
+
+	// query interchain, bitxhub had already rollback interchain
+	receipt, err = client2.InvokeBVMContract(constant.InterchainContractAddr.Address(), "GetInterchain", nil, pb.String(ibtp2.From))
+	interchain = &pb.Interchain{}
+	err = interchain.Unmarshal(receipt.Ret)
+	suite.Require().Nil(err)
+	suite.Require().True(receipt.IsSuccess())
+	suite.Require().Equal(ibtp2.From, interchain.ID)
+	suite.Require().Equal(uint64(1), interchain.InterchainCounter[ibtp2.To])
 }
 
 // PrepareServer prepare a server and return privateKey

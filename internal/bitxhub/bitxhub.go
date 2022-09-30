@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	appchain_mgr "github.com/meshplus/bitxhub-core/appchain-mgr"
@@ -52,16 +53,18 @@ type Broker struct {
 }
 
 type Config struct {
-	Concurrent  int
-	TPS         int
-	Duration    int // s uint
-	Type        string
-	Validator   string
-	Proof       []byte
-	KeyPath     string
-	BitxhubAddr []string
-	Appchain    string
-	Graph       bool
+	Concurrent     int
+	TPS            int
+	Duration       int // s uint
+	TimeoutHeight  int
+	Type           string
+	Validator      string
+	Proof          []byte
+	KeyPath        string
+	BitxhubAddr    []string
+	Appchain       string
+	Graph          bool
+	MultiDestChain bool
 }
 
 func calculateClientPoolSize(tps int) int {
@@ -142,19 +145,23 @@ func New(config *Config) (*Broker, error) {
 		return nil, err
 	}
 	// prepare to
-	to, err := PrepareTo(client, config, adminPk, adminFrom)
-	if err != nil {
-		return nil, err
+	if !config.MultiDestChain {
+		to, err := PrepareTo(client, config, adminPk, adminFrom)
+		if err != nil {
+			return nil, err
+		}
+		To = to
 	}
-	To = to
 
 	var lock sync.Mutex
 	bees := make([]*bee, 0, config.Concurrent)
 	ctx, cancel := context.WithCancel(context.Background())
-	var wg sync.WaitGroup
-	wg.Add(config.Concurrent)
+
+	pool := NewGoPool(MaxPoolSize)
+	var count uint64
 	for i := 0; i < config.Concurrent; i++ {
-		go func() {
+		pool.Add()
+		go func(wg *Pool) {
 			defer wg.Done()
 			bee, err := NewBee(config.TPS/config.Concurrent, adminPk, adminFrom, config)
 			if err != nil {
@@ -166,14 +173,21 @@ func New(config *Config) (*Broker, error) {
 					log.Error(err)
 					return
 				}
+				if config.MultiDestChain {
+					if err := bee.prepareToChain(bee.config.Appchain, "test to"); err != nil {
+						log.Error(err)
+						return
+					}
+				}
 			}
 			lock.Lock()
 			bees = append(bees, bee)
 			lock.Unlock()
-		}()
+			log.Infof("prepared %d chain", atomic.AddUint64(&count, 1))
+		}(pool)
 	}
 
-	wg.Wait()
+	pool.Wait()
 	log.WithFields(logrus.Fields{
 		"number": len(bees),
 	}).Info("generate all bees")
