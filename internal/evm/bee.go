@@ -2,53 +2,44 @@ package evm
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"fmt"
 	"math/big"
 	"sync/atomic"
 	"time"
 
-	eth "github.com/meshplus/go-eth-client"
 	"github.com/sirupsen/logrus"
+
+	eth "github.com/meshplus/go-eth-client"
 )
 
 type Bee struct {
-	client *eth.EthRPC
-	pk     *ecdsa.PrivateKey
-	typ    string
-	tps    int
-	ctx    context.Context
+	typ     string
+	tps     int
+	jsonRpc string
+	ctx     context.Context
 }
 
 func NewBee(config *Config) (*Bee, error) {
-	client, pk, err := NewClient(config)
-	if err != nil {
-		return nil, err
-	}
 	return &Bee{
-		client: client,
-		pk:     pk,
-		typ:    config.Typ,
-		tps:    config.TPS / config.Concurrent,
-		ctx:    config.Ctx,
+		typ:     config.Typ,
+		jsonRpc: config.JsonRpc,
+		tps:     config.TPS / config.Concurrent,
+		ctx:     config.Ctx,
 	}, nil
 }
 
 func (b *Bee) Start() error {
 	ticker := time.NewTicker(time.Second)
-	nonce := int64(-1)
 	for {
 		select {
 		case <-ticker.C:
 			for i := 0; i < b.tps; i++ {
 				go func() {
-					txNonce := atomic.AddInt64(&nonce, 1)
-					err := b.SendTx(txNonce)
+					err := b.SendTx(0)
 					if err != nil {
 						log.WithFields(logrus.Fields{
 							"error": err.Error(),
 						}).Info("Error send evm tx")
-						return
 					}
 					atomic.AddInt64(&delayer, 1)
 				}()
@@ -85,7 +76,11 @@ func (b *Bee) DeployContract(nonce int64) error {
 	if compileResult == nil {
 		return fmt.Errorf("no compile result")
 	}
-	_, err := b.client.Deploy(compileResult, args, eth.WithNonce(big.NewInt(nonce)))
+	client, err := NewClient(b.jsonRpc)
+	if err != nil {
+		return err
+	}
+	_, err = client.Deploy(compileResult, args, eth.WithNonce(big.NewInt(nonce)))
 	if err != nil {
 		return err
 	}
@@ -93,7 +88,11 @@ func (b *Bee) DeployContract(nonce int64) error {
 }
 
 func (b *Bee) Invoke(nonce int64) error {
-	_, err := b.client.Invoke(contractAbi, address, function, args, eth.WithTxNonce(uint64(nonce)))
+	client, err := NewClient(b.jsonRpc)
+	if err != nil {
+		return err
+	}
+	_, err = client.Invoke(contractAbi, address, function, args, eth.WithTxNonce(uint64(nonce)))
 	if err != nil {
 		return err
 	}
