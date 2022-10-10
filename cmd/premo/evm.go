@@ -77,6 +77,7 @@ func evmBenchmark(ctx *cli.Context) error {
 	tps := ctx.Int("tps")
 	duration := ctx.Int("duration")
 	contractPath := ctx.String("contract_path")
+	strs := strings.Split(contractPath, "/")
 	abiPath := ctx.String("abi_path")
 	addr := ctx.String("remote_bitxhub_addr")
 	address := ctx.String("address")
@@ -99,6 +100,7 @@ func evmBenchmark(ctx *cli.Context) error {
 		Duration:     duration,
 		Typ:          typ,
 		ContractPath: contractPath,
+		ContractName: strs[len(strs)-1],
 		AbiPath:      abiPath,
 		Address:      address,
 		Function:     function,

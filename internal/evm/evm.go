@@ -3,17 +3,14 @@ package evm
 import (
 	"bytes"
 	"context"
-	"crypto/ecdsa"
 	"fmt"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/meshplus/bitxhub-kit/types"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	eth "github.com/meshplus/go-eth-client"
@@ -42,6 +39,7 @@ type Config struct {
 	Duration     int
 	Typ          string
 	ContractPath string
+	ContractName string
 	AbiPath      string
 	Address      string
 	Function     string
@@ -110,14 +108,30 @@ func New(config *Config) (*Evm, error) {
 	}).Info("generate all bees")
 
 	if evm.config.Typ == "deploy" {
-		compileResult, err = evm.bees[0].client.Compile(evm.config.ContractPath)
+		client, err := NewClient(evm.config.JsonRpc)
 		if err != nil {
 			return nil, err
 		}
-		parsedAbi, err := abi.JSON(bytes.NewReader([]byte(compileResult.Abi[0])))
+		compileResult, err = client.Compile(evm.config.ContractPath)
 		if err != nil {
 			return nil, err
 		}
+		var parseAbi abi.ABI
+		for idx, compileAbi := range compileResult.Abi {
+			if strings.Contains(compileResult.Names[idx], evm.config.ContractName) {
+				parseAbi, err = abi.JSON(bytes.NewReader([]byte(compileAbi)))
+				if err != nil {
+					return nil, err
+				}
+				compileResult = &eth.CompileResult{
+					Abi:   []string{compileResult.Abi[idx]},
+					Bin:   []string{compileResult.Bin[idx]},
+					Names: []string{compileResult.Names[idx]},
+				}
+				break
+			}
+		}
+		contractAbi = &parseAbi
 		if len(evm.config.Args) != 0 {
 			argSplits := strings.Split(evm.config.Args, "^")
 			var argArr []interface{}
@@ -139,7 +153,6 @@ func New(config *Config) (*Evm, error) {
 				return nil, err
 			}
 		}
-		contractAbi = &parsedAbi
 	}
 	if evm.config.Typ == "invoke" {
 		address = evm.config.Address
@@ -340,58 +353,14 @@ func (evm *Evm) calTps(meta0 *pb.ChainMeta) error {
 	return nil
 }
 
-func NewClient(config *Config) (*eth.EthRPC, *ecdsa.PrivateKey, error) {
+func NewClient(jsonRpc string) (*eth.EthRPC, error) {
 	key, err := crypto.GenerateKey()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	address := crypto.PubkeyToAddress(key.PublicKey).Hex()
-	client, err := eth.New(config.JsonRpc, key)
+	client, err := eth.New(jsonRpc, key)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	err = TransferFromAdmin(config, address, "1")
-	if err != nil {
-		return nil, nil, err
-	}
-	return client, key, nil
-}
-
-func TransferFromAdmin(config *Config, address string, amount string) error {
-	pk, addr, err := repo.Node1Priv()
-	if err != nil {
-		return err
-	}
-	node0 := &rpcx.NodeInfo{Addr: config.Grpc}
-	client, err := rpcx.New(
-		rpcx.WithNodesInfo(node0),
-		rpcx.WithPrivateKey(pk),
-	)
-	if err != nil {
-		return err
-	}
-	data := &pb.TransactionData{
-		Amount: amount + "000000000000000000",
-	}
-	payload, err := data.Marshal()
-	if err != nil {
-		return err
-	}
-	tx := &pb.BxhTransaction{
-		From:      addr,
-		To:        types.NewAddressByStr(address),
-		Timestamp: time.Now().UnixNano(),
-		Payload:   payload,
-	}
-	ret, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:  addr.String(),
-		Nonce: atomic.AddUint64(&nonce, 1),
-	})
-	if err != nil {
-		return err
-	}
-	if ret.Status != pb.Receipt_SUCCESS {
-		return fmt.Errorf(string(ret.Ret))
-	}
-	return nil
+	return client, nil
 }
