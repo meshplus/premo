@@ -980,6 +980,11 @@ github.com/meshplus/go-bitxhub-client v1.4.1-0.20221012054205-0b8107431a97/go.mo
 github.com/meshplus/go-eth-client v0.0.0-20220830102229-0afb75e8d780 h1:eAZ42AnZrjWVwitp3rhGOCWYaRVs1ReYbVIuPHharuQ=
 github.com/meshplus/go-eth-client v0.0.0-20220830102229-0afb75e8d780/go.mod h1:c4cV2gnfvOhjaPSkD6YpP7jO7f69ot863jh2eO7EKdE=
 github.com/meshplus/go-eth-client v0.0.0-20221017092952-e141b4e34e76/go.mod h1:c4cV2gnfvOhjaPSkD6YpP7jO7f69ot863jh2eO7EKdE=
+github.com/meshplus/go-eth-client v0.0.0-20221019055910-a534cc91e220/go.mod h1:c4cV2gnfvOhjaPSkD6YpP7jO7f69ot863jh2eO7EKdE=
+github.com/meshplus/go-eth-client v0.0.0-20221019065103-c70a33e4c558/go.mod h1:c4cV2gnfvOhjaPSkD6YpP7jO7f69ot863jh2eO7EKdE=
+github.com/meshplus/go-eth-client v0.0.0-20221019070221-ec37756f5101 h1:KyH189GkSZ/vPI+JuLz4Gp3QCzHyDeQyg37EZNapBVw=
+github.com/meshplus/go-eth-client v0.0.0-20221019070221-ec37756f5101/go.mod h1:c4cV2gnfvOhjaPSkD6YpP7jO7f69ot863jh2eO7EKdE=
+github.com/meshplus/go-eth-client v0.0.0-20221019070643-24eb295a73cc/go.mod h1:c4cV2gnfvOhjaPSkD6YpP7jO7f69ot863jh2eO7EKdE=
 github.com/meshplus/go-lightp2p v0.0.0-20200817105923-6b3aee40fa54/go.mod h1:G89UJaeqCQFxFdp8wzy1AdKfMtDEhpySau0pjDNeeaw=
 github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b/go.mod h1:01TrycV0kFyexm33Z7vhZRXopbI8J3TDReVlkTgMUxE=
 github.com/miekg/dns v1.0.14/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
