@@ -10,7 +10,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	eth "github.com/meshplus/go-eth-client"
@@ -354,11 +353,7 @@ func (evm *Evm) calTps(meta0 *pb.ChainMeta) error {
 }
 
 func NewClient(jsonRpc string) (*eth.EthRPC, error) {
-	key, err := crypto.GenerateKey()
-	if err != nil {
-		return nil, err
-	}
-	client, err := eth.New(jsonRpc, key)
+	client, err := eth.New(jsonRpc)
 	if err != nil {
 		return nil, err
 	}

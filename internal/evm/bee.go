@@ -7,24 +7,30 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/ethereum/go-ethereum/crypto"
+
 	"github.com/sirupsen/logrus"
 
 	eth "github.com/meshplus/go-eth-client"
 )
 
 type Bee struct {
-	typ     string
-	tps     int
-	jsonRpc string
-	ctx     context.Context
+	typ    string
+	tps    int
+	client *eth.EthRPC
+	ctx    context.Context
 }
 
 func NewBee(config *Config) (*Bee, error) {
+	client, err := eth.New(config.JsonRpc)
+	if err != nil {
+		return nil, err
+	}
 	return &Bee{
-		typ:     config.Typ,
-		jsonRpc: config.JsonRpc,
-		tps:     config.TPS / config.Concurrent,
-		ctx:     config.Ctx,
+		typ:    config.Typ,
+		client: client,
+		tps:    config.TPS / config.Concurrent,
+		ctx:    config.Ctx,
 	}, nil
 }
 
@@ -76,11 +82,11 @@ func (b *Bee) DeployContract(nonce int64) error {
 	if compileResult == nil {
 		return fmt.Errorf("no compile result")
 	}
-	client, err := NewClient(b.jsonRpc)
+	key, err := crypto.GenerateKey()
 	if err != nil {
 		return err
 	}
-	_, err = client.Deploy(compileResult, args, eth.WithNonce(big.NewInt(nonce)))
+	_, err = b.client.Deploy(key, compileResult, args, eth.WithNonce(big.NewInt(nonce)))
 	if err != nil {
 		return err
 	}
@@ -88,11 +94,11 @@ func (b *Bee) DeployContract(nonce int64) error {
 }
 
 func (b *Bee) Invoke(nonce int64) error {
-	client, err := NewClient(b.jsonRpc)
+	key, err := crypto.GenerateKey()
 	if err != nil {
 		return err
 	}
-	_, err = client.Invoke(contractAbi, address, function, args, eth.WithTxNonce(uint64(nonce)))
+	_, err = b.client.Invoke(key, contractAbi, address, function, args, eth.WithTxNonce(uint64(nonce)))
 	if err != nil {
 		return err
 	}

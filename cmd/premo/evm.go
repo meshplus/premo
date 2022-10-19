@@ -92,7 +92,7 @@ func evmBenchmark(ctx *cli.Context) error {
 	if len(split) != 2 {
 		return err
 	}
-	grpc := split[0] + ":60011"
+	grpc := split[0] + ":6001" + string(addr[len(addr)-1])
 	c, cancelFunc := context.WithCancel(context.Background())
 	config := &evm.Config{
 		Concurrent:   concurrent,
