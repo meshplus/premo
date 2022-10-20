@@ -977,13 +977,7 @@ github.com/meshplus/eth-kit v0.0.0-20221011053504-8e067cb076ae h1:CSWCu/LzyaBz2j
 github.com/meshplus/eth-kit v0.0.0-20221011053504-8e067cb076ae/go.mod h1:7Uf2QyUOCFCHjg4zXr3ZtjKesdPubptdr4IK0KiQBHY=
 github.com/meshplus/go-bitxhub-client v1.4.1-0.20221012054205-0b8107431a97 h1:4Zubnawdck46tiZe+tUEfW3QA2dfX1aOjLMkmhF4PgQ=
 github.com/meshplus/go-bitxhub-client v1.4.1-0.20221012054205-0b8107431a97/go.mod h1:t7i1wnzwIhBiA9zoz/Cyj4dtjeBhqIs4xM1cQZJOzKM=
-github.com/meshplus/go-eth-client v0.0.0-20220830102229-0afb75e8d780 h1:eAZ42AnZrjWVwitp3rhGOCWYaRVs1ReYbVIuPHharuQ=
-github.com/meshplus/go-eth-client v0.0.0-20220830102229-0afb75e8d780/go.mod h1:c4cV2gnfvOhjaPSkD6YpP7jO7f69ot863jh2eO7EKdE=
-github.com/meshplus/go-eth-client v0.0.0-20221017092952-e141b4e34e76/go.mod h1:c4cV2gnfvOhjaPSkD6YpP7jO7f69ot863jh2eO7EKdE=
-github.com/meshplus/go-eth-client v0.0.0-20221019055910-a534cc91e220/go.mod h1:c4cV2gnfvOhjaPSkD6YpP7jO7f69ot863jh2eO7EKdE=
-github.com/meshplus/go-eth-client v0.0.0-20221019065103-c70a33e4c558/go.mod h1:c4cV2gnfvOhjaPSkD6YpP7jO7f69ot863jh2eO7EKdE=
-github.com/meshplus/go-eth-client v0.0.0-20221019070221-ec37756f5101 h1:KyH189GkSZ/vPI+JuLz4Gp3QCzHyDeQyg37EZNapBVw=
-github.com/meshplus/go-eth-client v0.0.0-20221019070221-ec37756f5101/go.mod h1:c4cV2gnfvOhjaPSkD6YpP7jO7f69ot863jh2eO7EKdE=
+github.com/meshplus/go-eth-client v0.0.0-20221019070643-24eb295a73cc h1:YflUwOKkuAuva4/3LcKg+ZkiXi5BxBCS4l7KZ2tDydo=
 github.com/meshplus/go-eth-client v0.0.0-20221019070643-24eb295a73cc/go.mod h1:c4cV2gnfvOhjaPSkD6YpP7jO7f69ot863jh2eO7EKdE=
 github.com/meshplus/go-lightp2p v0.0.0-20200817105923-6b3aee40fa54/go.mod h1:G89UJaeqCQFxFdp8wzy1AdKfMtDEhpySau0pjDNeeaw=
 github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b/go.mod h1:01TrycV0kFyexm33Z7vhZRXopbI8J3TDReVlkTgMUxE=
@@ -2003,8 +1997,6 @@ google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa h1:I0YcKz0I7OAhddo
 google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa/go.mod h1:5CzLGKJ67TSI2B9POpiiyGha0AjJvZIUgRMt1dSmuhc=
 google.golang.org/grpc v1.33.0 h1:IBKSUNL2uBS2DkJBncPP+TwT0sp9tgA8A75NjHt6umg=
 google.golang.org/grpc v1.33.0/go.mod h1:fr5YgcSWrqhRRxogOsw7RzIpsmvOZ6IcH4kBYTpR3n0=
-google.golang.org/grpc v1.33.1 h1:DGeFlSan2f+WEtCERJ4J9GJWk15TxUi8QGagfI87Xyc=
-google.golang.org/grpc v1.33.1/go.mod h1:fr5YgcSWrqhRRxogOsw7RzIpsmvOZ6IcH4kBYTpR3n0=
 google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0/go.mod h1:6Kw0yEErY5E/yWrBtf03jp27GLLJujG4z/JK95pnjjw=
 google.golang.org/protobuf v1.21.0/go.mod h1:47Nbq4nVaFHyn7ilMalzfO3qCViNmqZ2kzikPIcrTAo=
 google.golang.org/protobuf v1.22.0/go.mod h1:EGpADcykh3NcUnDUJcl1+ZksZNG86OlYog2l/sGQquU=

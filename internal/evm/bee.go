@@ -2,23 +2,24 @@ package evm
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"fmt"
 	"math/big"
 	"sync/atomic"
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
-
-	"github.com/sirupsen/logrus"
-
 	eth "github.com/meshplus/go-eth-client"
+	"github.com/sirupsen/logrus"
 )
 
 type Bee struct {
 	typ    string
 	tps    int
 	client *eth.EthRPC
+	pk     *ecdsa.PrivateKey
 	ctx    context.Context
+	nonce  int64
 }
 
 func NewBee(config *Config) (*Bee, error) {
@@ -26,11 +27,22 @@ func NewBee(config *Config) (*Bee, error) {
 	if err != nil {
 		return nil, err
 	}
+	pk, err := crypto.GenerateKey()
+	if err != nil {
+		return nil, err
+	}
+	addr := crypto.PubkeyToAddress(pk.PublicKey)
+	nonce, err := client.EthGetTransactionCount(addr, nil)
+	if err != nil {
+		return nil, err
+	}
 	return &Bee{
 		typ:    config.Typ,
 		client: client,
+		pk:     pk,
 		tps:    config.TPS / config.Concurrent,
 		ctx:    config.Ctx,
+		nonce:  int64(nonce),
 	}, nil
 }
 
@@ -40,15 +52,16 @@ func (b *Bee) Start() error {
 		select {
 		case <-ticker.C:
 			for i := 0; i < b.tps; i++ {
-				go func() {
-					err := b.SendTx(0)
+				go func(nonce int64) {
+					err := b.SendTx(nonce)
 					if err != nil {
 						log.WithFields(logrus.Fields{
 							"error": err.Error(),
 						}).Info("Error send evm tx")
 					}
 					atomic.AddInt64(&delayer, 1)
-				}()
+				}(b.nonce)
+				b.nonce = b.nonce + 1
 			}
 		case <-b.ctx.Done():
 			return nil
@@ -82,11 +95,7 @@ func (b *Bee) DeployContract(nonce int64) error {
 	if compileResult == nil {
 		return fmt.Errorf("no compile result")
 	}
-	key, err := crypto.GenerateKey()
-	if err != nil {
-		return err
-	}
-	_, err = b.client.Deploy(key, compileResult, args, eth.WithNonce(big.NewInt(nonce)))
+	_, err := b.client.Deploy(b.pk, compileResult, args, eth.WithNonce(big.NewInt(nonce)))
 	if err != nil {
 		return err
 	}
@@ -94,11 +103,7 @@ func (b *Bee) DeployContract(nonce int64) error {
 }
 
 func (b *Bee) Invoke(nonce int64) error {
-	key, err := crypto.GenerateKey()
-	if err != nil {
-		return err
-	}
-	_, err = b.client.Invoke(key, contractAbi, address, function, args, eth.WithTxNonce(uint64(nonce)))
+	_, err := b.client.Invoke(b.pk, contractAbi, address, function, args, eth.WithTxNonce(uint64(nonce)))
 	if err != nil {
 		return err
 	}
