@@ -3,14 +3,27 @@ package evm
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"sync/atomic"
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
+	crypto2 "github.com/meshplus/bitxhub-kit/crypto"
+	"github.com/meshplus/bitxhub-kit/types"
+	rpcx "github.com/meshplus/go-bitxhub-client"
 	eth "github.com/meshplus/go-eth-client"
+	"github.com/meshplus/go-eth-client/utils"
+	"github.com/meshplus/premo/internal/common"
 	"github.com/sirupsen/logrus"
+)
+
+const (
+	deploy         = "deploy"
+	deployByCode   = "deployByCode"
+	invoke         = "invoke"
+	invokeWithByte = "invokeWithByte"
 )
 
 type Bee struct {
@@ -22,16 +35,21 @@ type Bee struct {
 	nonce  int64
 }
 
-func NewBee(config *Config) (*Bee, error) {
-	client, err := eth.New(config.JsonRpc)
-	if err != nil {
-		return nil, err
-	}
+func NewBee(config *Config, grpcCli *rpcx.ChainClient, adminPk crypto2.PrivateKey, adminFrom *types.Address) (*Bee, error) {
 	pk, err := crypto.GenerateKey()
 	if err != nil {
 		return nil, err
 	}
 	addr := crypto.PubkeyToAddress(pk.PublicKey)
+	if err != nil {
+		return nil, err
+	}
+	err = common.TransferFromAdmin(grpcCli, adminPk, adminFrom, types.NewAddress(addr.Bytes()), "100")
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := eth.New(config.JsonRpc)
 	nonce, err := client.EthGetTransactionCount(addr, nil)
 	if err != nil {
 		return nil, err
@@ -75,27 +93,32 @@ func (b *Bee) Stop() error {
 
 func (b *Bee) SendTx(nonce int64) error {
 	switch b.typ {
-	case "deploy":
-		err := b.DeployContract(nonce)
-		if err != nil {
-			return err
-		}
-	case "invoke":
-		err := b.Invoke(nonce)
-		if err != nil {
-			return err
-		}
+	case deploy:
+		return b.DeployContract(nonce)
+	case deployByCode:
+		return b.DeployContractByCode(nonce)
+	case invoke:
+		fallthrough
+	case invokeWithByte:
+		return b.Invoke(nonce)
 	default:
 		return fmt.Errorf("unexpected type: %v", b.typ)
 	}
-	return nil
 }
 
 func (b *Bee) DeployContract(nonce int64) error {
 	if compileResult == nil {
 		return fmt.Errorf("no compile result")
 	}
-	_, err := b.client.Deploy(b.pk, compileResult, args, eth.WithNonce(big.NewInt(nonce)))
+	_, err := b.client.Deploy(b.pk, compileResult, args, eth.WithNonce(uint64(nonce)))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (b *Bee) DeployContractByCode(nonce int64) error {
+	_, _, err := b.client.DeployByCode(b.pk, contractAbi, code, args, eth.WithNonce(uint64(nonce)))
 	if err != nil {
 		return err
 	}
@@ -103,7 +126,53 @@ func (b *Bee) DeployContract(nonce int64) error {
 }
 
 func (b *Bee) Invoke(nonce int64) error {
-	_, err := b.client.Invoke(b.pk, contractAbi, address, function, args, eth.WithTxNonce(uint64(nonce)))
+	var err error
+	if function == "publish" {
+		type creditPackage struct {
+			Credit   *big.Int
+			Quantity uint8
+			Duration *big.Int
+		}
+		type signStruct struct {
+			HashedMessage [32]byte
+			V             uint8
+			R             [32]byte
+			S             [32]byte
+		}
+
+		type publishStruct struct {
+			DataId      *big.Int
+			Publisher   string
+			Prices      []creditPackage
+			AuthList    []*big.Int
+			SharingMode uint8
+			Extra       string
+			Sign        signStruct
+		}
+		input := publishStruct{
+			DataId:    big.NewInt(nonce + 111301),
+			Publisher: crypto.PubkeyToAddress(b.pk.PublicKey).String(),
+			Prices: []creditPackage{{
+				Credit:   big.NewInt(10),
+				Quantity: 0,
+				Duration: big.NewInt(1000),
+			}},
+			AuthList:    nil,
+			SharingMode: 0,
+			Extra:       "",
+		}
+
+		//log.Errorf("dataId:%d, bee:%s", nonce, crypto.PubkeyToAddress(b.pk.PublicKey))
+		inputBytes, err := json.Marshal(input)
+		if err != nil {
+			return err
+		}
+		args, err = utils.DecodeBytes(abiEvent, "publish", inputBytes)
+		if err != nil {
+			return err
+		}
+	}
+	_, err = b.client.Invoke(b.pk, &contractAbi, address, function, args, eth.WithNonce(uint64(nonce)))
 	if err != nil {
 		return err
 	}

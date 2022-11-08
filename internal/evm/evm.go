@@ -3,12 +3,19 @@ package evm
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"math/big"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/meshplus/bitxhub-kit/crypto/asym"
+	"github.com/meshplus/go-eth-client/utils"
+	"github.com/meshplus/premo/internal/common"
 
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
@@ -21,13 +28,14 @@ const MaxBlockSize = 2048
 
 var log = logrus.New()
 var lock = sync.Mutex{}
-var nonce = uint64(0)
 var maxDelay int64
 var counter int64
 var delayer int64
 
 var compileResult *eth.CompileResult
-var contractAbi *abi.ABI
+var contractAbi abi.ABI
+var abiEvent *utils.AbiEvent
+var code string
 var function string
 var address string
 var args []interface{}
@@ -40,6 +48,7 @@ type Config struct {
 	ContractPath string
 	ContractName string
 	AbiPath      string
+	CodePath     string
 	Address      string
 	Function     string
 	Args         string
@@ -75,11 +84,20 @@ func New(config *Config) (*Evm, error) {
 		rpcx.WithLogger(log),
 		rpcx.WithPrivateKey(pk),
 	)
-	nonce, err = client.GetPendingNonceByAccount(addr.String())
+	adminPk, err := asym.RestorePrivateKey(config.KeyPath, repo.KeyPassword)
 	if err != nil {
 		return nil, err
 	}
-	nonce = nonce - 1
+
+	adminFrom, err := adminPk.PublicKey().Address()
+	if err != nil {
+		return nil, err
+	}
+
+	common.AdminNonce, err = client.GetPendingNonceByAccount(addr.String())
+	if err != nil {
+		return nil, err
+	}
 	evm.client = client
 
 	evm.bees = make([]*Bee, 0, config.Concurrent)
@@ -88,7 +106,7 @@ func New(config *Config) (*Evm, error) {
 	for i := 0; i < config.Concurrent; i++ {
 		go func() {
 			defer wg.Done()
-			bee, err := NewBee(config)
+			bee, err := NewBee(config, client, adminPk, adminFrom)
 			if err != nil {
 				log.WithFields(logrus.Fields{
 					"error": err.Error(),
@@ -106,89 +124,216 @@ func New(config *Config) (*Evm, error) {
 		"number": len(evm.bees),
 	}).Info("generate all bees")
 
-	if evm.config.Typ == "deploy" {
-		client, err := NewClient(evm.config.JsonRpc)
-		if err != nil {
+	switch evm.config.Typ {
+	case deploy:
+		if err = evm.prepareDeploy(); err != nil {
 			return nil, err
 		}
-		compileResult, err = client.Compile(evm.config.ContractPath)
-		if err != nil {
+	case deployByCode:
+		if err = evm.prepareDeployByCode(); err != nil {
 			return nil, err
 		}
-		var parseAbi abi.ABI
-		for idx, compileAbi := range compileResult.Abi {
-			if strings.Contains(compileResult.Names[idx], evm.config.ContractName) {
-				parseAbi, err = abi.JSON(bytes.NewReader([]byte(compileAbi)))
-				if err != nil {
-					return nil, err
-				}
-				compileResult = &eth.CompileResult{
-					Abi:   []string{compileResult.Abi[idx]},
-					Bin:   []string{compileResult.Bin[idx]},
-					Names: []string{compileResult.Names[idx]},
-				}
-				break
-			}
+	case invoke:
+		if err = evm.prepareInvoke(); err != nil {
+			return nil, err
 		}
-		contractAbi = &parseAbi
-		if len(evm.config.Args) != 0 {
-			argSplits := strings.Split(evm.config.Args, "^")
-			var argArr []interface{}
-			for _, arg := range argSplits {
-				if strings.Index(arg, "[") == 0 && strings.LastIndex(arg, "]") == len(arg)-1 {
-					if len(arg) == 2 {
-						argArr = append(argArr, make([]string, 0))
-						continue
-					}
-					// deal with slice
-					argSp := strings.Split(arg[1:len(arg)-1], ",")
-					argArr = append(argArr, argSp)
-					continue
-				}
-				argArr = append(argArr, arg)
-			}
-			args, err = eth.Encode(contractAbi, "", argArr...)
-			if err != nil {
-				return nil, err
-			}
+	case invokeWithByte:
+		if err = evm.prepareInvokeWithByte(); err != nil {
+			return nil, err
 		}
+	default:
+		return nil, fmt.Errorf("not support config type:%s", evm.config.Typ)
 	}
-	if evm.config.Typ == "invoke" {
-		address = evm.config.Address
-		if address == "" {
-			return nil, fmt.Errorf("address must be specified")
-		}
-		function = evm.config.Function
-		if function == "" {
-			return nil, fmt.Errorf("function must be specified")
-		}
-		contractAbi, err = eth.LoadAbi(evm.config.AbiPath)
-		if err != nil {
-			return nil, err
-		}
-		if len(evm.config.Args) != 0 {
-			argSplits := strings.Split(evm.config.Args, "^")
-			var argArr []interface{}
-			for _, arg := range argSplits {
-				if strings.Index(arg, "[") == 0 && strings.LastIndex(arg, "]") == len(arg)-1 {
-					if len(arg) == 2 {
-						argArr = append(argArr, make([]string, 0))
-						continue
-					}
-					// deal with slice
-					argSp := strings.Split(arg[1:len(arg)-1], ",")
-					argArr = append(argArr, argSp)
-					continue
-				}
-				argArr = append(argArr, arg)
-			}
-			args, err = eth.Encode(contractAbi, evm.config.Function, argArr...)
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
+
 	return evm, nil
+}
+
+func (evm *Evm) prepareDeploy() error {
+	client, err := NewClient(evm.config.JsonRpc)
+	if err != nil {
+		return err
+	}
+	compileResult, err = client.Compile(evm.config.ContractPath)
+	if err != nil {
+		return err
+	}
+	for idx, compileAbi := range compileResult.Abi {
+		if strings.Contains(compileResult.Names[idx], evm.config.ContractName) {
+			contractAbi, err = abi.JSON(bytes.NewReader([]byte(compileAbi)))
+			if err != nil {
+				return err
+			}
+			compileResult = &eth.CompileResult{
+				Abi:   []string{compileResult.Abi[idx]},
+				Bin:   []string{compileResult.Bin[idx]},
+				Names: []string{compileResult.Names[idx]},
+			}
+			break
+		}
+	}
+	if len(evm.config.Args) != 0 {
+		argSplits := strings.Split(evm.config.Args, "^")
+		var argArr []interface{}
+		for _, arg := range argSplits {
+			if strings.Index(arg, "[") == 0 && strings.LastIndex(arg, "]") == len(arg)-1 {
+				if len(arg) == 2 {
+					argArr = append(argArr, make([]string, 0))
+					continue
+				}
+				// deal with slice
+				argSp := strings.Split(arg[1:len(arg)-1], ",")
+				argArr = append(argArr, argSp)
+				continue
+			}
+			argArr = append(argArr, arg)
+		}
+		args, err = utils.Decode(&contractAbi, "", argArr...)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (evm *Evm) prepareDeployByCode() error {
+	var err error
+	contractAbi, err = utils.LoadAbi(evm.config.AbiPath)
+	if err != nil {
+		return err
+	}
+	abiEvent, err = utils.InitializeParameter(evm.config.AbiPath)
+	if err != nil {
+		return err
+	}
+	data, err := ioutil.ReadFile(evm.config.CodePath)
+	if err != nil {
+		return err
+	}
+	code = string(data)
+	return nil
+}
+
+func (evm *Evm) prepareInvoke() error {
+	var err error
+	address = evm.config.Address
+	if address == "" {
+		return fmt.Errorf("address must be specified")
+	}
+	function = evm.config.Function
+	if function == "" {
+		return fmt.Errorf("function must be specified")
+	}
+	contractAbi, err = utils.LoadAbi(evm.config.AbiPath)
+	if err != nil {
+		return err
+	}
+	if len(evm.config.Args) != 0 {
+		argSplits := strings.Split(evm.config.Args, "^")
+		var argArr []interface{}
+		for _, arg := range argSplits {
+			if strings.Index(arg, "[") == 0 && strings.LastIndex(arg, "]") == len(arg)-1 {
+				if len(arg) == 2 {
+					argArr = append(argArr, make([]string, 0))
+					continue
+				}
+				// deal with slice
+				argSp := strings.Split(arg[1:len(arg)-1], ",")
+				argArr = append(argArr, argSp)
+				continue
+			}
+			argArr = append(argArr, arg)
+		}
+		args, err = utils.Decode(&contractAbi, evm.config.Function, argArr...)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (evm *Evm) prepareInvokeWithByte() error {
+	var err error
+	function = evm.config.Function
+	if function == "" {
+		return fmt.Errorf("function must be specified")
+	}
+	contractAbi, err = utils.LoadAbi(evm.config.AbiPath)
+	if err != nil {
+		return err
+	}
+	abiEvent, err = utils.InitializeParameter(evm.config.AbiPath)
+	if err != nil {
+		return err
+	}
+
+	data, err := ioutil.ReadFile(evm.config.CodePath)
+	if err != nil {
+		return err
+	}
+	code = string(data)
+	address, err = prepareContract(evm.bees, contractAbi, code, abiEvent)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func prepareContract(bees []*Bee, contractAbi abi.ABI, code string, abiEvent *utils.AbiEvent) (string, error) {
+	fmt.Println("deploy contract")
+	contractAddr, num, err := bees[0].client.DeployByCode(bees[0].pk, contractAbi, code, nil)
+	if err != nil {
+		return "", err
+	}
+	bees[0].nonce++
+	fmt.Printf("contract deployed at %s on block %d\n", contractAddr, num)
+	time.Sleep(5 * time.Millisecond)
+
+	fmt.Println("register org")
+
+	orgInput := orgStruct{
+		OrgId: big.NewInt(123),
+		BxmId: "test-123",
+		Extra: "",
+	}
+	bodyBytes1, err := json.Marshal(orgInput)
+	if err != nil {
+		return "", err
+	}
+	input1, err := utils.DecodeBytes(abiEvent, "registerOrg", bodyBytes1)
+	if err != nil {
+		return "", err
+	}
+	_, err = bees[0].client.Invoke(bees[0].pk, &contractAbi, contractAddr, "registerOrg", input1)
+	if err != nil {
+		return "", err
+	}
+	bees[0].nonce++
+
+	for i, bee := range bees {
+		fmt.Printf("register %d user, userAddr:%s\n", i, crypto.PubkeyToAddress(bee.pk.PublicKey).String())
+		userInstance := userInput{
+			User: userStruct{
+				UserAddr: crypto.PubkeyToAddress(bee.pk.PublicKey).String(),
+				OrgId:    big.NewInt(123),
+				Credit:   big.NewInt(1000),
+				Extra:    "",
+			},
+		}
+		bodyBytes2, err := json.Marshal(userInstance)
+		if err != nil {
+			return "", err
+		}
+		input2, err := utils.DecodeBytes(abiEvent, "registerUser", bodyBytes2)
+		if err != nil {
+			return "", err
+		}
+		_, err = bee.client.Invoke(bee.pk, &contractAbi, contractAddr, "registerUser", input2)
+		if err != nil {
+			return "", err
+		}
+		bee.nonce++
+	}
+	return contractAddr, nil
 }
 
 func (evm *Evm) Start() error {

@@ -21,6 +21,7 @@ import (
 	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
+	"github.com/meshplus/premo/internal/common"
 	"github.com/meshplus/premo/internal/repo"
 )
 
@@ -71,7 +72,7 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, config
 	if err != nil {
 		return nil, err
 	}
-	err = TransferFromAdmin(client, adminPk, adminFrom, normalFrom, "100")
+	err = common.TransferFromAdmin(client, adminPk, adminFrom, normalFrom, "100")
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +91,7 @@ func NewBee(tps int, adminPk crypto.PrivateKey, adminFrom *types.Address, config
 		if err != nil {
 			return nil, err
 		}
-		err = TransferFromAdmin(client, adminPk, adminFrom, normalTo, "100")
+		err = common.TransferFromAdmin(client, adminPk, adminFrom, normalTo, "100")
 		if err != nil {
 			return nil, err
 		}
@@ -575,34 +576,4 @@ func (bee *bee) GetChainStatusById(client rpcx.Client, pk crypto.PrivateKey, id 
 		return nil, err
 	}
 	return res, nil
-}
-
-func TransferFromAdmin(client *rpcx.ChainClient, adminPrivKey crypto.PrivateKey, adminFrom *types.Address, address *types.Address, amount string) error {
-	data := &pb.TransactionData{
-		Amount: amount + "000000000000000000",
-	}
-	payload, err := data.Marshal()
-	if err != nil {
-		return err
-	}
-
-	tx := &pb.BxhTransaction{
-		From:      adminFrom,
-		To:        address,
-		Timestamp: time.Now().UnixNano(),
-		Payload:   payload,
-	}
-
-	ret, err := client.SendTransactionWithReceipt(tx, &rpcx.TransactOpts{
-		From:    adminFrom.String(),
-		Nonce:   atomic.AddUint64(&adminNonce, 1) - 1,
-		PrivKey: adminPrivKey,
-	})
-	if err != nil {
-		return err
-	}
-	if ret.Status != pb.Receipt_SUCCESS {
-		return fmt.Errorf(string(ret.Ret))
-	}
-	return nil
 }

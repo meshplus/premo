@@ -44,6 +44,10 @@ var evmCMD = &cli.Command{
 			Usage: "Specify abi path",
 		},
 		&cli.StringFlag{
+			Name:  "code_path",
+			Usage: "Specify abiBin path",
+		},
+		&cli.StringFlag{
 			Name:    "remote_bitxhub_addr",
 			Aliases: []string{"r"},
 			Usage:   "Specify remote bitxhub address",
@@ -55,7 +59,7 @@ var evmCMD = &cli.Command{
 		},
 		&cli.StringFlag{
 			Name:     "type",
-			Usage:    "Specify test type: deploy, invoke",
+			Usage:    "Specify test type: deploy, deployByCode, invoke, invokeWithByte",
 			Required: true,
 		},
 		&cli.StringFlag{
@@ -79,6 +83,7 @@ func evmBenchmark(ctx *cli.Context) error {
 	contractPath := ctx.String("contract_path")
 	strs := strings.Split(contractPath, "/")
 	abiPath := ctx.String("abi_path")
+	codePath := ctx.String("code_path")
 	addr := ctx.String("remote_bitxhub_addr")
 	address := ctx.String("address")
 	typ := ctx.String("type")
@@ -102,6 +107,7 @@ func evmBenchmark(ctx *cli.Context) error {
 		ContractPath: contractPath,
 		ContractName: strs[len(strs)-1],
 		AbiPath:      abiPath,
+		CodePath:     codePath,
 		Address:      address,
 		Function:     function,
 		Args:         args,

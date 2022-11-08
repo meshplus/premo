@@ -1,0 +1,2748 @@
+[
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "_userAddr",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "_dataId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "ApplyData",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "_userAddr",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "_dataId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "AuthorizeData",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "_passId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "Burn",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "orderId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "dataId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "applier",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "enum OrderStorage.orderStatus",
+              "name": "status",
+              "type": "uint8"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "indexed": false,
+          "internalType": "struct OrderStorage.orderInfo",
+          "name": "info",
+          "type": "tuple"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "CreateOrder",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "taskId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "CreateTask",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "dataId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "DeleteData",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "orgId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "DeleteOrg",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "addr",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "DeleteUser",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "orgId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "int256",
+          "name": "depositType",
+          "type": "int256"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "depositId",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "depositData",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "userAddr",
+          "type": "address"
+        }
+      ],
+      "name": "DepositData",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "passId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "enum DataPassStorage.appKeyStatus",
+              "name": "status",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint256",
+              "name": "dataId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "enum DataPassStorage.useLimit",
+              "name": "limit",
+              "type": "uint8"
+            },
+            {
+              "internalType": "int128",
+              "name": "quantity",
+              "type": "int128"
+            },
+            {
+              "internalType": "int256",
+              "name": "applyTime",
+              "type": "int256"
+            },
+            {
+              "internalType": "int256",
+              "name": "applyUseDuration",
+              "type": "int256"
+            },
+            {
+              "internalType": "int256",
+              "name": "validEndTime",
+              "type": "int256"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "indexed": false,
+          "internalType": "struct DataPassStorage.passInfo",
+          "name": "info",
+          "type": "tuple"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "MintDataPass",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "taskId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "taskDataId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "enum TaskStorage.initiatorDataType",
+              "name": "dataType",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint256",
+              "name": "dataId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "needApproval",
+              "type": "bool"
+            },
+            {
+              "internalType": "enum TaskStorage.participantStatus",
+              "name": "status",
+              "type": "uint8"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "indexed": false,
+          "internalType": "struct TaskStorage.participantInfo",
+          "name": "participant",
+          "type": "tuple"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "ParticipantAddData",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "dataId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "uint8",
+              "name": "packageSize",
+              "type": "uint8"
+            },
+            {
+              "internalType": "enum SharingDataStorage.sharingMode",
+              "name": "shareMode",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bool",
+              "name": "isOffline",
+              "type": "bool"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "authList",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "indexed": false,
+          "internalType": "struct SharingDataStorage.dataInfo",
+          "name": "info",
+          "type": "tuple"
+        },
+        {
+          "components": [
+            {
+              "internalType": "int128",
+              "name": "credit",
+              "type": "int128"
+            },
+            {
+              "internalType": "int128",
+              "name": "quantity",
+              "type": "int128"
+            },
+            {
+              "internalType": "int256",
+              "name": "duration",
+              "type": "int256"
+            }
+          ],
+          "indexed": false,
+          "internalType": "struct SharingDataStorage.creditPackage[]",
+          "name": "packages",
+          "type": "tuple[]"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "PublishData",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "orgId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "creator",
+              "type": "address"
+            },
+            {
+              "internalType": "string[]",
+              "name": "bxmIdList",
+              "type": "string[]"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "indexed": false,
+          "internalType": "struct OrgStorage.orgInfo",
+          "name": "org",
+          "type": "tuple"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "RegisterOrg",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "addr",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "RegisterUser",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "_passId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "_from",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "_to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "Transfer",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "passId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "enum DataPassStorage.appKeyStatus",
+              "name": "status",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint256",
+              "name": "dataId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "enum DataPassStorage.useLimit",
+              "name": "limit",
+              "type": "uint8"
+            },
+            {
+              "internalType": "int128",
+              "name": "quantity",
+              "type": "int128"
+            },
+            {
+              "internalType": "int256",
+              "name": "applyTime",
+              "type": "int256"
+            },
+            {
+              "internalType": "int256",
+              "name": "applyUseDuration",
+              "type": "int256"
+            },
+            {
+              "internalType": "int256",
+              "name": "validEndTime",
+              "type": "int256"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "indexed": false,
+          "internalType": "struct DataPassStorage.passInfo",
+          "name": "info",
+          "type": "tuple"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "UpdateDataPass",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "dataId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "UpdateDataStatus",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "orderId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "dataId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "applier",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "enum OrderStorage.orderStatus",
+              "name": "status",
+              "type": "uint8"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "indexed": false,
+          "internalType": "struct OrderStorage.orderInfo",
+          "name": "info",
+          "type": "tuple"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "UpdateOrder",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "orgId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "creator",
+              "type": "address"
+            },
+            {
+              "internalType": "string[]",
+              "name": "bxmIdList",
+              "type": "string[]"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "indexed": false,
+          "internalType": "struct OrgStorage.orgInfo",
+          "name": "org",
+          "type": "tuple"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "UpdateOrg",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "taskId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "taskDataId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "enum TaskStorage.initiatorDataType",
+              "name": "dataType",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint256",
+              "name": "dataId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "needApproval",
+              "type": "bool"
+            },
+            {
+              "internalType": "enum TaskStorage.participantStatus",
+              "name": "status",
+              "type": "uint8"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "indexed": false,
+          "internalType": "struct TaskStorage.participantInfo",
+          "name": "participant",
+          "type": "tuple"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "UpdateParticipant",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "taskId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "UpdateTask",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "addr",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.Operation",
+          "name": "op",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum Structure.DataType",
+          "name": "dt",
+          "type": "uint8"
+        }
+      ],
+      "name": "UpdateUser",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_taskId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_taskDataId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_dataId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "enum TaskStorage.initiatorDataType",
+          "name": "_dataType",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bool",
+          "name": "_needApproval",
+          "type": "bool"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "addData",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_taskId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_taskDataId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "applyApproval",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_userAddr",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_dataId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "int256",
+          "name": "_applyTime",
+          "type": "int256"
+        },
+        {
+          "internalType": "int256",
+          "name": "_applyUseDuration",
+          "type": "int256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_creditIndex",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "_extra",
+          "type": "string"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "applyData",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "_orderId",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_taskId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_taskDataId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "isPass",
+          "type": "bool"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "approval",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_orderId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "_isPass",
+          "type": "bool"
+        },
+        {
+          "components": [
+            {
+              "internalType": "int128",
+              "name": "quantity",
+              "type": "int128"
+            },
+            {
+              "internalType": "int256",
+              "name": "startTime",
+              "type": "int256"
+            },
+            {
+              "internalType": "int256",
+              "name": "endTime",
+              "type": "int256"
+            }
+          ],
+          "internalType": "struct Structure.authorizeOption",
+          "name": "_option",
+          "type": "tuple"
+        },
+        {
+          "internalType": "string",
+          "name": "_extra",
+          "type": "string"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "authorizeData",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "userAddr",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "orgId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "credit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct User.userStruct[]",
+          "name": "_users",
+          "type": "tuple[]"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "batchRegisterUsers",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_passId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "burn",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_taskId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_taskDataId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "configureData",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_taskId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_taskDataId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "confirmDataConfiguration",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_taskId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "_extra",
+          "type": "string"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "createTask",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_dataId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "deleteData",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_orgId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "deleteOrg",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_user",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "deleteUser",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_taskId",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "deploy",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_userAddr",
+          "type": "address"
+        },
+        {
+          "internalType": "int256",
+          "name": "_depositType",
+          "type": "int256"
+        },
+        {
+          "internalType": "string",
+          "name": "_depositId",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_depositData",
+          "type": "string"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "depositData",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_taskId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "_extra",
+          "type": "string"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "execute",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_orderId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getOrder",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "dataId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "applier",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "enum OrderStorage.orderStatus",
+              "name": "status",
+              "type": "uint8"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct OrderStorage.orderInfo",
+          "name": "info",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "_orderIds",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "getOrders",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "dataId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "applier",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "enum OrderStorage.orderStatus",
+              "name": "status",
+              "type": "uint8"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct OrderStorage.orderInfo[]",
+          "name": "orderInfos",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_orgId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getOrg",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "creator",
+              "type": "address"
+            },
+            {
+              "internalType": "string[]",
+              "name": "bxmIdList",
+              "type": "string[]"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct OrgStorage.orgInfo",
+          "name": "info",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "_orgIDs",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "getOrgs",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "creator",
+              "type": "address"
+            },
+            {
+              "internalType": "string[]",
+              "name": "bxmIdList",
+              "type": "string[]"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct OrgStorage.orgInfo[]",
+          "name": "orgInfos",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_user",
+          "type": "address"
+        }
+      ],
+      "name": "getUser",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "orgId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "credit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct UserStorage.userInfo",
+          "name": "info",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address[]",
+          "name": "_users",
+          "type": "address[]"
+        }
+      ],
+      "name": "getUsers",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "orgId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "credit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct UserStorage.userInfo[]",
+          "name": "infos",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_taskId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_taskDataId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "_extra",
+          "type": "string"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "invite",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_dataId",
+          "type": "uint256"
+        }
+      ],
+      "name": "ownerOf",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_dataId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_publisher",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "int128",
+              "name": "credit",
+              "type": "int128"
+            },
+            {
+              "internalType": "int128",
+              "name": "quantity",
+              "type": "int128"
+            },
+            {
+              "internalType": "int256",
+              "name": "duration",
+              "type": "int256"
+            }
+          ],
+          "internalType": "struct SharingDataStorage.creditPackage[]",
+          "name": "_prices",
+          "type": "tuple[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "_authList",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "enum SharingDataStorage.sharingMode",
+          "name": "_mode",
+          "type": "uint8"
+        },
+        {
+          "internalType": "string",
+          "name": "_extra",
+          "type": "string"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "publish",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_passId",
+          "type": "uint256"
+        }
+      ],
+      "name": "queryAppKey",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "enum DataPassStorage.appKeyStatus",
+              "name": "status",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint256",
+              "name": "dataId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "enum DataPassStorage.useLimit",
+              "name": "limit",
+              "type": "uint8"
+            },
+            {
+              "internalType": "int128",
+              "name": "quantity",
+              "type": "int128"
+            },
+            {
+              "internalType": "int256",
+              "name": "applyTime",
+              "type": "int256"
+            },
+            {
+              "internalType": "int256",
+              "name": "applyUseDuration",
+              "type": "int256"
+            },
+            {
+              "internalType": "int256",
+              "name": "validEndTime",
+              "type": "int256"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct DataPassStorage.passInfo",
+          "name": "info",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_dataId",
+          "type": "uint256"
+        }
+      ],
+      "name": "queryData",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "uint8",
+              "name": "packageSize",
+              "type": "uint8"
+            },
+            {
+              "internalType": "enum SharingDataStorage.sharingMode",
+              "name": "shareMode",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bool",
+              "name": "isOffline",
+              "type": "bool"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "authList",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct SharingDataStorage.dataInfo",
+          "name": "info",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_taskId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_taskDataId",
+          "type": "uint256"
+        }
+      ],
+      "name": "queryParticipant",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "enum TaskStorage.initiatorDataType",
+              "name": "dataType",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint256",
+              "name": "dataId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "needApproval",
+              "type": "bool"
+            },
+            {
+              "internalType": "enum TaskStorage.participantStatus",
+              "name": "status",
+              "type": "uint8"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct TaskStorage.participantInfo",
+          "name": "p",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_taskId",
+          "type": "uint256"
+        }
+      ],
+      "name": "queryTask",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "enum TaskStorage.taskStatus",
+              "name": "status",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "taskDataIdList",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint16",
+              "name": "participantsNum",
+              "type": "uint16"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct TaskStorage.taskInfo",
+          "name": "task",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_orgID",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "_bxmId",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_extra",
+          "type": "string"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "registerOrg",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "userAddr",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "orgId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "credit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "string",
+              "name": "extra",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct User.userStruct",
+          "name": "_user",
+          "type": "tuple"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "registerUser",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_taskId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_taskDataId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "isPass",
+          "type": "bool"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "replyInvite",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_dataId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "isOffline",
+          "type": "bool"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "setOfflineStatus",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_passId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_to",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "transfer",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_passId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "_extra",
+          "type": "string"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "updateAppkey",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_orgId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "_extra",
+          "type": "string"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "updateOrg",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_user",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "_extra",
+          "type": "string"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "hashedMessage",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint8",
+              "name": "v",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "r",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "s",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct Structure.sign",
+          "name": "_sign",
+          "type": "tuple"
+        }
+      ],
+      "name": "updateUser",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ]

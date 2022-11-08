@@ -17,6 +17,7 @@ import (
 	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
+	"github.com/meshplus/premo/internal/common"
 	"github.com/meshplus/premo/internal/repo"
 	"github.com/sirupsen/logrus"
 	"github.com/wcharczuk/go-chart/v2"
@@ -32,7 +33,6 @@ const (
 var index1 uint64
 var index2 uint64
 var index3 uint64
-var adminNonce uint64
 var log = logrus.New()
 var To string
 
@@ -140,7 +140,7 @@ func New(config *Config) (*Broker, error) {
 	index3 -= 1
 
 	// query pending nonce for adminKey
-	adminNonce, err = client.GetPendingNonceByAccount(adminFrom.String())
+	common.AdminNonce, err = client.GetPendingNonceByAccount(adminFrom.String())
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +196,7 @@ func New(config *Config) (*Broker, error) {
 		config:     config,
 		bees:       bees,
 		client:     client,
-		adminNonce: adminNonce,
+		adminNonce: common.AdminNonce,
 		ctx:        ctx,
 		cancel:     cancel,
 	}, nil
@@ -413,7 +413,7 @@ func PrepareTo(client *rpcx.ChainClient, config *Config, adminPk crypto.PrivateK
 	if err != nil {
 		return "", err
 	}
-	err = TransferFromAdmin(client, adminPk, adminFrom, from, "100")
+	err = common.TransferFromAdmin(client, adminPk, adminFrom, from, "100")
 	if err != nil {
 		return "", err
 	}
