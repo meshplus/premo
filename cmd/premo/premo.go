@@ -33,6 +33,7 @@ func main() {
 		pierCMD,
 		bitxhubCMD,
 		statusCMD,
+		evmCMD,
 	}
 
 	err := app.Run(os.Args)
