@@ -3,6 +3,7 @@ package bxh_tester
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"
@@ -464,7 +465,7 @@ func (suite *Model19) Test1939_GetReverseNameWithGoodServiceIsSuccess() {
 
 	name, err := suite.GetReverseName(pk, domain)
 	suite.Require().Nil(err)
-	suite.Require().Equal(domain+".hub", name)
+	suite.Require().Contains(name, domain+".hub")
 }
 
 //tc：根据不存在的服务名获取域名，域名获取失败
@@ -474,7 +475,7 @@ func (suite *Model19) Test1940_GetReverseNameWithNoExistServiceIsFail() {
 	domain := randomDomain(10)
 	name, err := suite.GetReverseName(pk, domain)
 	suite.Require().Nil(err)
-	suite.Require().Equal("", name)
+	suite.Require().Equal(0, len(name))
 }
 
 //tc：根据空的服务名获取域名，域名获取失败
@@ -483,7 +484,7 @@ func (suite *Model19) Test1941_GetReverseNameWithEmptyDomainIsFail() {
 	suite.Require().Nil(err)
 	name, err := suite.GetReverseName(pk, "")
 	suite.Require().Nil(err)
-	suite.Require().Equal("", name)
+	suite.Require().Equal(0, len(name))
 }
 
 //tc：根据正确的域名获取服务名，服务名获取成功
@@ -529,7 +530,7 @@ func (suite *Model19) Test1945_DeleteServDomainDataWithGoodDomainIsSuccess() {
 	err = suite.RegisterDomain(pk, domain, Year, constant.ServiceResolverContractAddr.String())
 	suite.Require().Nil(err)
 	sonDomain := randomDomain(3)
-	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, address.String(), constant.ServiceResolverContractAddr.String())
+	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, address.String(), constant.ServiceResolverContractAddr.String(), "")
 	suite.Require().Nil(err)
 
 	err = suite.SetServDomainData(pk, SonDomain(domain, sonDomain), uint64(1), address.String(), domain, "desc", "dids")
@@ -542,7 +543,7 @@ func (suite *Model19) Test1945_DeleteServDomainDataWithGoodDomainIsSuccess() {
 	suite.Require().Nil(err)
 	name, err = suite.GetServiceName(pk, SonDomain(domain, sonDomain))
 	suite.Require().Nil(err)
-	suite.Require().Equal("", name)
+	suite.Require().Equal(0, len(name))
 }
 
 //tc：根据不存在的域名获取删除域名数据，域名数据删除失败
@@ -658,16 +659,21 @@ func (suite *Model19) SetReverse(pk crypto.PrivateKey, domain, service string) e
 	return nil
 }
 
-func (suite *Model19) GetReverseName(pk crypto.PrivateKey, service string) (string, error) {
+func (suite *Model19) GetReverseName(pk crypto.PrivateKey, service string) ([]string, error) {
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.ServiceResolverContractAddr.Address(), "GetReverseName", nil, rpcx.String(service))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if res.Status != pb.Receipt_SUCCESS {
-		return "", fmt.Errorf(string(res.Ret))
+		return nil, fmt.Errorf(string(res.Ret))
 	}
-	return string(res.Ret), nil
+	var domains []string
+	err = json.Unmarshal(res.Ret, &domains)
+	if err != nil {
+		return nil, err
+	}
+	return domains, nil
 }
 
 func (suite *Model19) GetServiceName(pk crypto.PrivateKey, name string) (string, error) {
