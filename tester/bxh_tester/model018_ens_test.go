@@ -26,6 +26,13 @@ type PriceLevel struct {
 	Price5Letter uint64 `json:"price5Letter"`
 }
 
+type ServDomain struct {
+	Name       string `json:"name"`
+	Level      int    `json:"level"`
+	Status     int    `json:"status"`
+	ParentName string `json:"parent_name"`
+}
+
 type Model18 struct {
 	*Snake
 }
@@ -208,7 +215,7 @@ func (suite *Model18) Test1815_AllocateSubDomainWithGoodDomainIsSuccess() {
 	suite.Require().Nil(err)
 
 	sonDomain := randomDomain(3)
-	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, address.String(), constant.ServiceResolverContractAddr.String())
+	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, address.String(), constant.ServiceResolverContractAddr.String(), "")
 	suite.Require().Nil(err)
 }
 
@@ -218,7 +225,7 @@ func (suite *Model18) Test1816_AllocateSubDomainWithNoExistDomainIsFail() {
 	suite.Require().Nil(err)
 	domain := randomDomain(10)
 	sonDomain := randomDomain(3)
-	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, address.String(), constant.ServiceResolverContractAddr.String())
+	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, address.String(), constant.ServiceResolverContractAddr.String(), "")
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "call error: 2140000:The domain must register first")
 }
@@ -228,7 +235,7 @@ func (suite *Model18) Test1817_AllocateSubDomainWithEmptyDomainIsFail() {
 	pk, address, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	sonDomain := randomDomain(3)
-	err = suite.AllocateSubDomain(pk, "", sonDomain, address.String(), constant.ServiceResolverContractAddr.String())
+	err = suite.AllocateSubDomain(pk, "", sonDomain, address.String(), constant.ServiceResolverContractAddr.String(), "")
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "call error: 2140000:The parentDomain name can not be an empty string")
 }
@@ -242,7 +249,7 @@ func (suite *Model18) Test1818_AllocateSubDomainWithGoodSonDomainIsSuccess() {
 	suite.Require().Nil(err)
 
 	sonDomain := randomDomain(3)
-	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, address.String(), constant.ServiceResolverContractAddr.String())
+	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, address.String(), constant.ServiceResolverContractAddr.String(), "")
 	suite.Require().Nil(err)
 }
 
@@ -255,7 +262,7 @@ func (suite *Model18) Test1819_AllocateSubDomainWithEmptySomDomainIsFail() {
 	err = suite.RegisterDomain(pk, domain, Year, constant.ServiceResolverContractAddr.String())
 	suite.Require().Nil(err)
 
-	err = suite.AllocateSubDomain(pk, Domain(domain), "", address.String(), constant.ServiceResolverContractAddr.String())
+	err = suite.AllocateSubDomain(pk, Domain(domain), "", address.String(), constant.ServiceResolverContractAddr.String(), "")
 	suite.Require().NotNil(err)
 	fmt.Println(err.Error())
 }
@@ -269,7 +276,7 @@ func (suite *Model18) Test1820_AllocateSubDomainWithGoodOwnerIsSuccess() {
 	suite.Require().Nil(err)
 
 	sonDomain := randomDomain(3)
-	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, address.String(), constant.ServiceResolverContractAddr.String())
+	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, address.String(), constant.ServiceResolverContractAddr.String(), "")
 	suite.Require().Nil(err)
 }
 
@@ -282,7 +289,7 @@ func (suite *Model18) Test1820_AllocateSubDomainWithErrorOwnerIsFail() {
 	suite.Require().Nil(err)
 
 	sonDomain := randomDomain(3)
-	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, "0x111", constant.ServiceResolverContractAddr.String())
+	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, "0x111", constant.ServiceResolverContractAddr.String(), "")
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "call error: 2140000:The address is not valid")
 }
@@ -296,7 +303,7 @@ func (suite *Model18) Test1821_AllocateSubDomainWithEmptyOwnerIsFail() {
 	suite.Require().Nil(err)
 
 	sonDomain := randomDomain(3)
-	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, "", constant.ServiceResolverContractAddr.String())
+	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, "", constant.ServiceResolverContractAddr.String(), "")
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "call error: 2140000:The address is not valid")
 }
@@ -310,7 +317,7 @@ func (suite *Model18) Test1822_AllocateSubDomainWithGoodResolverIsSuccess() {
 	suite.Require().Nil(err)
 
 	sonDomain := randomDomain(3)
-	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, address.String(), constant.ServiceResolverContractAddr.String())
+	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, address.String(), constant.ServiceResolverContractAddr.String(), "")
 	suite.Require().Nil(err)
 }
 
@@ -323,7 +330,7 @@ func (suite *Model18) Test1823_AllocateSubDomainWithNoExistResolverIsFail() {
 	suite.Require().Nil(err)
 
 	sonDomain := randomDomain(3)
-	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, address.String(), constant.AppchainMgrContractAddr.String())
+	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, address.String(), constant.AppchainMgrContractAddr.String(), "")
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "call error: 2140000:The resolver is not in the list")
 }
@@ -337,7 +344,7 @@ func (suite *Model18) Test1824_AllocateSubDomainWithEmptyResolverIsFail() {
 	suite.Require().Nil(err)
 
 	sonDomain := randomDomain(3)
-	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, address.String(), "")
+	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, address.String(), "", "")
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "call error: 2140000:The resolver is not in the list")
 }
@@ -353,7 +360,7 @@ func (suite *Model18) Test1825_AllocateSubDomainWithErrorCallerIsFail() {
 	pk2, _, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	sonDomain := randomDomain(3)
-	err = suite.AllocateSubDomain(pk2, Domain(domain), sonDomain, address.String(), constant.ServiceResolverContractAddr.String())
+	err = suite.AllocateSubDomain(pk2, Domain(domain), sonDomain, address.String(), constant.ServiceResolverContractAddr.String(), "")
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "call error: 2140000:The domain name does not belong to you")
 }
@@ -367,7 +374,7 @@ func (suite *Model18) Test1826_DeleteSecondDomainWithGoodDomainIsSuccess() {
 	suite.Require().Nil(err)
 
 	sonDomain := randomDomain(3)
-	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, address.String(), constant.ServiceResolverContractAddr.String())
+	err = suite.AllocateSubDomain(pk, Domain(domain), sonDomain, address.String(), constant.ServiceResolverContractAddr.String(), "")
 	suite.Require().Nil(err)
 
 	err = suite.DeleteSecondDomain(pk, SonDomain(domain, sonDomain))
@@ -614,6 +621,16 @@ func (suite *Model18) Test1845_ResolverWithEmptyDomainIsFail() {
 	suite.Require().Equal("call error: 2140000:The domain id must be registered", err.Error())
 }
 
+func (suite *Model18) Test1846_GetAllDomainsIsSuccess() {
+	pk, _, err := repo.KeyPriv()
+	suite.Require().Nil(err)
+	domain := randomDomain(10)
+	err = suite.RegisterDomain(pk, domain, Year, constant.ServiceResolverContractAddr.String())
+	domains, err := suite.GetAllDomains(pk)
+	suite.Require().Nil(err)
+	suite.Require().Greater(len(domains), 1)
+}
+
 const letters = "abcdefghijklmnopqrstuvwxyz"
 const (
 	letterIdxBits = 6
@@ -661,9 +678,16 @@ func (suite *Model18) RenewDomain(pk crypto.PrivateKey, domain string, duration 
 	return nil
 }
 
-func (suite *Snake) AllocateSubDomain(pk crypto.PrivateKey, parentName, sonName, owner, resolver string) error {
+func (suite *Snake) AllocateSubDomain(pk crypto.PrivateKey, parentName, sonName, owner, resolver, serviceName string) error {
 	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.ServiceRegistryContractAddr.Address(), "AllocateSubDomain", nil, rpcx.String(parentName), rpcx.String(sonName), rpcx.String(owner), rpcx.String(resolver))
+	args := []*pb.Arg{
+		rpcx.String(parentName),
+		rpcx.String(sonName),
+		rpcx.String(owner),
+		rpcx.String(resolver),
+		rpcx.String(serviceName),
+	}
+	res, err := client.InvokeBVMContract(constant.ServiceRegistryContractAddr.Address(), "AllocateSubDomain", nil, args...)
 	if err != nil {
 		return err
 	}
@@ -813,6 +837,24 @@ func (suite *Model18) Resolver(pk crypto.PrivateKey, domain string) (string, err
 		return "", fmt.Errorf(string(res.Ret))
 	}
 	return string(res.Ret), nil
+}
+
+func (suite *Model18) GetAllDomains(pk crypto.PrivateKey) ([]ServDomain, error) {
+	client := suite.NewClient(pk)
+	res, err := client.InvokeBVMContract(constant.ServiceRegistryContractAddr.Address(), "GetAllDomains", nil)
+	if err != nil {
+		return nil, err
+	}
+	if res.Status != pb.Receipt_SUCCESS {
+		return nil, fmt.Errorf(string(res.Ret))
+	}
+	fmt.Println(string(res.Ret))
+	var servDomain []ServDomain
+	err = json.Unmarshal(res.Ret, &servDomain)
+	if err != nil {
+		return nil, err
+	}
+	return servDomain, nil
 }
 
 func Domain(domain string) string {
