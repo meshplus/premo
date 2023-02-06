@@ -95,6 +95,9 @@ func genContractTransaction(vmType pb.TransactionData_VMType, pk crypto.PrivateK
 		Payload: data,
 	}
 	payload, err := td.Marshal()
+	if err != nil {
+		return nil, err
+	}
 	tx := &pb.BxhTransaction{
 		From:      from,
 		To:        address,

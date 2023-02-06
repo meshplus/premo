@@ -289,6 +289,7 @@ func (suite *Model11) Test1116_LogoutAuditAdminWithUpdatingNodePassIsSuccess() {
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeNodeContract(UpdateNode, args...)
+	suite.Require().Nil(err)
 	err = suite.LogoutRole(from3.String())
 	suite.Require().Nil(err)
 	err = suite.VotePass(proposal)

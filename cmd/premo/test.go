@@ -151,7 +151,7 @@ func benchmark(ctx *cli.Context) error {
 
 func handleShutdown(node *bitxhub.Broker) {
 	current := time.Now()
-	var stop = make(chan os.Signal)
+	var stop = make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM)
 	signal.Notify(stop, syscall.SIGINT)
 	go func() {

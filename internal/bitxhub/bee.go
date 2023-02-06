@@ -46,6 +46,12 @@ type bee struct {
 	txs           chan *pb.MultiTransaction
 }
 
+const (
+	Interchain = "interchain"
+	Data       = "data"
+	Transfer   = "transfer"
+)
+
 type RegisterResult struct {
 	Extra      []byte `json:"extra"`
 	ProposalID string `json:"proposal_id"`
@@ -127,10 +133,9 @@ func (bee *bee) start() error {
 					return err
 				}
 				return nil
-			},
-				strategy.Wait(1*time.Second))
+			}, strategy.Wait(1*time.Second))
 			if err != nil {
-				log.Error(err)
+				return err
 			}
 		}
 	}
@@ -150,7 +155,7 @@ func (bee *bee) prepareTx(typ string) {
 			txs := make([]*pb.BxhTransaction, 0)
 			for i := 0; i < bee.tps; i++ {
 				nonce = atomic.AddUint64(&bee.nonce, 1) - 1
-				if typ == "interchain" {
+				if typ == Interchain {
 					count = atomic.AddUint64(&bee.count, 1) - 1
 				}
 				tx, err := bee.genTx(typ, nonce, count)
@@ -169,25 +174,25 @@ func (bee *bee) prepareTx(typ string) {
 
 func (bee *bee) genTx(typ string, nonce, count uint64) (*pb.BxhTransaction, error) {
 	switch typ {
-	case "interchain":
+	case Interchain:
 		return bee.genInterchainTx(count, nonce)
-	case "data":
+	case Data:
 		return bee.genBVMTx(nonce)
-	case "transfer":
+	case Transfer:
 		fallthrough
 	default:
-		tx := &pb.BxhTransaction{}
-		privkey, err := asym.GenerateKeyPair(crypto.Secp256k1)
+		privKey, err := asym.GenerateKeyPair(crypto.Secp256k1)
 		if err != nil {
 			return nil, err
 		}
 
-		to, err := privkey.PublicKey().Address()
+		to, err := privKey.PublicKey().Address()
 		if err != nil {
 			return nil, err
 		}
 
-		if tx, err = bee.genTransferTx(to, nonce); err != nil {
+		tx, err := bee.genTransferTx(to, nonce)
+		if err != nil {
 			return nil, err
 		}
 		return tx, nil
@@ -245,6 +250,9 @@ func (bee *bee) prepareToChain(typ, desc string) error {
 		broker = "{\"channel_id\":\"mychannel\",\"chaincode_id\":\"broker\",\"broker_version\":\"1\"}"
 	} else if typ == "Flato V1.0.3" {
 		repoRoot, err := repo.PathRoot()
+		if err != nil {
+			return err
+		}
 		contract, err := ioutil.ReadFile(filepath.Join(repoRoot, "rule.wasm"))
 		if err != nil {
 			return fmt.Errorf("read rule file err %w", err)
@@ -344,6 +352,9 @@ func (bee *bee) prepareChain(typ, desc string) error {
 		broker = "{\"channel_id\":\"mychannel\",\"chaincode_id\":\"broker\",\"broker_version\":\"1\"}"
 	} else if typ == "Flato V1.0.3" {
 		repoRoot, err := repo.PathRoot()
+		if err != nil {
+			return err
+		}
 		contract, err := ioutil.ReadFile(filepath.Join(repoRoot, "rule.wasm"))
 		if err != nil {
 			return fmt.Errorf("read rule file err %w", err)
@@ -476,7 +487,7 @@ func (bee *bee) genInterchainTx(i, nonce uint64) (*pb.BxhTransaction, error) {
 		Nonce:     nonce,
 	}
 	if err := tx.Sign(bee.normalPrivKey); err != nil {
-		log.Error("genInterchainTx sign err: %s", err)
+		log.Errorf("genInterchainTx sign err: %s", err.Error())
 		return nil, err
 	}
 	return tx, nil
@@ -523,9 +534,12 @@ func (bee *bee) VotePass(client rpcx.Client, id string) error {
 	if err != nil {
 		return err
 	}
-	_, err = bee.vote(client, pk1, atomic.AddUint64(&index1, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
+	res, err := bee.vote(client, pk1, atomic.AddUint64(&index1, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
 	if err != nil {
 		return err
+	}
+	if res.Status != pb.Receipt_SUCCESS {
+		return fmt.Errorf("vote err: %s", string(res.Ret))
 	}
 
 	pk2, _, err := repo.Node2Priv()
@@ -536,14 +550,20 @@ func (bee *bee) VotePass(client rpcx.Client, id string) error {
 	if err != nil {
 		return err
 	}
+	if res.Status != pb.Receipt_SUCCESS {
+		return fmt.Errorf("vote err: %s", string(res.Ret))
+	}
 
 	pk3, _, err := repo.Node3Priv()
 	if err != nil {
 		return err
 	}
-	_, err = bee.vote(client, pk3, atomic.AddUint64(&index3, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
+	res, err = bee.vote(client, pk3, atomic.AddUint64(&index3, 1), pb.String(id), pb.String("approve"), pb.String("Appchain Pass"))
 	if err != nil {
 		return err
+	}
+	if res.Status != pb.Receipt_SUCCESS {
+		return fmt.Errorf("vote err: %s", string(res.Ret))
 	}
 	return nil
 }

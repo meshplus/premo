@@ -168,7 +168,7 @@ func New(config *Config) (*Broker, error) {
 				log.Error("New bee: ", err.Error())
 				return
 			}
-			if config.Type == "interchain" {
+			if config.Type == Interchain {
 				if err := bee.prepareChain(bee.config.Appchain, "fabric for law"); err != nil {
 					log.Error(err)
 					return
@@ -371,7 +371,10 @@ func (b *Broker) calTps(current time.Time, meta0 *pb.ChainMeta) error {
 		return err
 	}
 	if b.config.Graph {
-		Graph(b.x, b.tpsY, b.latencyY, b.maxTps, b.maxLatency)
+		err := Graph(b.x, b.tpsY, b.latencyY, b.maxTps, b.maxLatency)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -492,7 +495,7 @@ func PrepareTo(client *rpcx.ChainClient, config *Config, adminPk crypto.PrivateK
 	return from.String(), nil
 }
 
-func Graph(x []time.Time, tpsY []float64, latencyY []float64, maxTps, maxLatency float64) {
+func Graph(x []time.Time, tpsY []float64, latencyY []float64, maxTps, maxLatency float64) error {
 	graph := chart.Chart{
 		XAxis: chart.XAxis{
 			Name: "Time",
@@ -536,7 +539,14 @@ func Graph(x []time.Time, tpsY []float64, latencyY []float64, maxTps, maxLatency
 			},
 		},
 	}
-	f, _ := os.Create("graph.png")
+	f, err := os.Create("graph.png")
+	if err != nil {
+		return err
+	}
 	defer f.Close()
-	graph.Render(chart.PNG, f)
+	err = graph.Render(chart.PNG, f)
+	if err != nil {
+		return err
+	}
+	return nil
 }

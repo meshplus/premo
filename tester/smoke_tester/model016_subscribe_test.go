@@ -77,6 +77,7 @@ func (suite *Model16) Test1602_SubscribeAuditInfoWithIBTPIsSuccess() {
 	suite.Require().Nil(err)
 	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
+	suite.Require().Nil(err)
 	ibtp := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
 		"interchainCharge",

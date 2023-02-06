@@ -626,6 +626,7 @@ func (suite *Model18) Test1846_GetAllDomainsIsSuccess() {
 	suite.Require().Nil(err)
 	domain := randomDomain(10)
 	err = suite.RegisterDomain(pk, domain, Year, constant.ServiceResolverContractAddr.String())
+	suite.Require().Nil(err)
 	domains, err := suite.GetAllDomains(pk)
 	suite.Require().Nil(err)
 	suite.Require().Greater(len(domains), 1)
