@@ -38,13 +38,13 @@ func (suite *Model1) Test0101_GetBlockByHeightIsSuccess() {
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	// first block
-	block, err := client.GetBlock("1", pb.GetBlockRequest_HEIGHT)
+	block, err := client.GetBlock("1", pb.GetBlockRequest_HEIGHT, false)
 	suite.Require().Nil(err)
 	suite.Require().Equal(block.BlockHeader.Number, uint64(1))
 	// current block
 	chainMeta, err := client.GetChainMeta()
 	suite.Require().Nil(err)
-	block, err = client.GetBlock(strconv.Itoa(int(chainMeta.Height)), pb.GetBlockRequest_HEIGHT)
+	block, err = client.GetBlock(strconv.Itoa(int(chainMeta.Height)), pb.GetBlockRequest_HEIGHT, false)
 	suite.Require().Nil(err)
 	suite.Require().Equal(chainMeta.Height, block.BlockHeader.Number)
 }
@@ -57,13 +57,13 @@ func (suite *Model1) Test0102_GetBlockByNonexistentHeightIsFail() {
 	// get current block height
 	chainMeta, err := client.GetChainMeta()
 	suite.Require().Nil(err)
-	_, err = client.GetBlock(strconv.Itoa(int(chainMeta.Height+1)), pb.GetBlockRequest_HEIGHT)
+	_, err = client.GetBlock(strconv.Itoa(int(chainMeta.Height+1)), pb.GetBlockRequest_HEIGHT, false)
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "out of bounds")
-	_, err = client.GetBlock("0", pb.GetBlockRequest_HEIGHT)
+	_, err = client.GetBlock("0", pb.GetBlockRequest_HEIGHT, false)
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "out of bounds")
-	_, err = client.GetBlock("-1", pb.GetBlockRequest_HEIGHT)
+	_, err = client.GetBlock("-1", pb.GetBlockRequest_HEIGHT, false)
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "wrong block number")
 }
@@ -73,10 +73,10 @@ func (suite *Model1) Test0103_GetBlockByWrongHeightIsFail() {
 	pk, _, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-	_, err = client.GetBlock("a", pb.GetBlockRequest_HEIGHT)
+	_, err = client.GetBlock("a", pb.GetBlockRequest_HEIGHT, false)
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "wrong block number")
-	_, err = client.GetBlock("!我@#", pb.GetBlockRequest_HEIGHT)
+	_, err = client.GetBlock("!我@#", pb.GetBlockRequest_HEIGHT, false)
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "wrong block number")
 }
@@ -91,7 +91,7 @@ func (suite *Model1) Test0104_GetBlockByParentHeightIsSuccess() {
 	suite.Require().Nil(err)
 	// parent height
 	h := int(chainMeta.Height - 1)
-	block, err := client.GetBlock(strconv.Itoa(h), pb.GetBlockRequest_HEIGHT)
+	block, err := client.GetBlock(strconv.Itoa(h), pb.GetBlockRequest_HEIGHT, false)
 	suite.Require().Nil(err)
 	suite.Require().Equal(uint64(h), block.BlockHeader.Number)
 }
@@ -104,7 +104,7 @@ func (suite *Model1) Test0105_GetBlockByHashIsSuccess() {
 	// get current chain meta
 	chainMeta, err := client.GetChainMeta()
 	suite.Require().Nil(err)
-	block, err := client.GetBlock(chainMeta.BlockHash.String(), pb.GetBlockRequest_HASH)
+	block, err := client.GetBlock(chainMeta.BlockHash.String(), pb.GetBlockRequest_HASH, false)
 	suite.Require().Nil(err)
 	suite.Require().Equal(chainMeta.BlockHash.String(), block.BlockHash.String())
 }
@@ -114,10 +114,10 @@ func (suite *Model1) Test0106_GetBlockByWrongHashIsFail() {
 	pk, _, err := repo.KeyPriv()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
-	_, err = client.GetBlock(" ", pb.GetBlockRequest_HASH)
+	_, err = client.GetBlock(" ", pb.GetBlockRequest_HASH, false)
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "invalid format of block hash for querying block")
-	_, err = client.GetBlock("0x0000000000000000000000000000000012345678900000000000000000000000", pb.GetBlockRequest_HASH)
+	_, err = client.GetBlock("0x0000000000000000000000000000000012345678900000000000000000000000", pb.GetBlockRequest_HASH, false)
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "not found in DB")
 }
@@ -131,9 +131,9 @@ func (suite *Model1) Test0107_GetBlockByParentHashIsSuccess() {
 	chainMeta, err := client.GetChainMeta()
 	suite.Require().Nil(err)
 	// get parent block
-	parentBlock, err := client.GetBlock(strconv.Itoa(int(chainMeta.Height-1)), pb.GetBlockRequest_HEIGHT)
+	parentBlock, err := client.GetBlock(strconv.Itoa(int(chainMeta.Height-1)), pb.GetBlockRequest_HEIGHT, false)
 	suite.Require().Nil(err)
-	block, err := client.GetBlock(parentBlock.BlockHash.String(), pb.GetBlockRequest_HASH)
+	block, err := client.GetBlock(parentBlock.BlockHash.String(), pb.GetBlockRequest_HASH, false)
 	suite.Require().Nil(err)
 	suite.Require().Equal(chainMeta.Height-1, block.BlockHeader.Number)
 }
@@ -195,7 +195,7 @@ func (suite *Model1) Test0111_GetChainMetaIsSuccess() {
 	chainMeta, err := client.GetChainMeta()
 	suite.Require().Nil(err)
 	suite.Require().True(chainMeta.Height > 0)
-	_, err = client.GetBlock(strconv.Itoa(int(chainMeta.Height+1)), pb.GetBlockRequest_HEIGHT)
+	_, err = client.GetBlock(strconv.Itoa(int(chainMeta.Height+1)), pb.GetBlockRequest_HEIGHT, false)
 	suite.Require().NotNil(err)
 	suite.Require().Contains(err.Error(), "out of bounds")
 }
@@ -211,9 +211,9 @@ func (suite *Model1) Test0112_GetBlocksIsSuccess() {
 	if chainMeta.Height > 10 {
 		start = chainMeta.Height - 10
 	}
-	res, err := client.GetBlocks(start, chainMeta.Height)
+	res, err := client.GetBlocks(start, chainMeta.Height, false)
 	suite.Require().Nil(err)
-	block, err := client.GetBlock(strconv.Itoa(int(start)), pb.GetBlockRequest_HEIGHT)
+	block, err := client.GetBlock(strconv.Itoa(int(start)), pb.GetBlockRequest_HEIGHT, false)
 	suite.Require().Nil(err)
 	suite.Require().Equal(block.BlockHash, res.Blocks[0].BlockHash)
 	suite.Require().Equal(int(chainMeta.Height-start)+1, len(res.Blocks))
@@ -226,7 +226,7 @@ func (suite *Model1) Test0113_GetBlocksByNonexistentRangeIsFail() {
 	client := suite.NewClient(pk)
 	chainMeta, err := client.GetChainMeta()
 	suite.Require().Nil(err)
-	res, err := client.GetBlocks(chainMeta.Height+1, chainMeta.Height+1)
+	res, err := client.GetBlocks(chainMeta.Height+1, chainMeta.Height+1, false)
 	suite.Require().Nil(err)
 	suite.Require().Equal(0, len(res.Blocks))
 }

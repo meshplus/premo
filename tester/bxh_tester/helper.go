@@ -305,7 +305,7 @@ func (suite *Snake) MockContent(funcName string, args [][]byte) []byte {
 
 // MockResult mock a result
 func (suite *Snake) MockResult(data [][]byte) []byte {
-	result := &pb.Result{Data: data}
+	result := &pb.Result{Data: []*pb.ResultRes{{Data: data}}}
 	bytes, _ := result.Marshal()
 	payload := &pb.Payload{
 		Encrypted: false,

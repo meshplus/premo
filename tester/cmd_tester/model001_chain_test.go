@@ -1,6 +1,6 @@
 package cmd_tester
 
-func (suite Snake) Test() {
-	_, err := suite.ExecuteShell("/home/jiuhuche120", "pwd")
+func (suite *Snake) Test() {
+	_, err := suite.ExecuteShell("", "pwd")
 	suite.Require().Nil(err)
 }

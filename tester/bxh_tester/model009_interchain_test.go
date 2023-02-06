@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/big"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gobuffalo/packr/v2"
@@ -21,7 +20,7 @@ const (
 	normalTxGasFee = 1050000000
 	ibtpGasFee     = normalTxGasFee * 10
 	leftFee        = 10
-	gasError       = "insufficeient balance"
+	gasError       = "insufficient balance"
 )
 
 type Model9 struct {
@@ -215,10 +214,9 @@ func (suite *Model9) Test0907_SendIBTPSWithStatusTransactionStatus_BEGIN() {
 		"interchainCharge",
 		[][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
 	)
-	mp1 := &pb.StringUint64Map{Keys: []string{ibtp2.To}, Vals: []uint64{1}}
-	mp2 := &pb.StringUint64Map{Keys: []string{ibtp1.To}, Vals: []uint64{1}}
+	mp1 := &pb.StringUint64Map{Keys: []string{ibtp1.To, ibtp2.To}, Vals: []uint64{1, 1}}
 	ibtp1.Group = mp1
-	ibtp2.Group = mp2
+	ibtp2.Group = mp1
 	err = suite.SendInterchainTx(pk1, ibtp1, payload, proof)
 	suite.Require().Nil(err)
 	err = suite.SendInterchainTx(pk2, ibtp2, payload, proof)
@@ -253,10 +251,9 @@ func (suite *Model9) Test0908_GetOneReceiptFailWithStatusTransactionStatus_BEGIN
 		"interchainCharge",
 		[][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
 	)
-	mp1 := &pb.StringUint64Map{Keys: []string{ibtp2.To}, Vals: []uint64{1}}
-	mp2 := &pb.StringUint64Map{Keys: []string{ibtp1.To}, Vals: []uint64{1}}
+	mp1 := &pb.StringUint64Map{Keys: []string{ibtp1.To, ibtp2.To}, Vals: []uint64{1, 1}}
 	ibtp1.Group = mp1
-	ibtp2.Group = mp2
+	ibtp2.Group = mp1
 	err = suite.SendInterchainTx(pk1, ibtp1, payload, proof)
 	suite.Require().Nil(err)
 	err = suite.SendInterchainTx(pk2, ibtp2, payload, proof)
@@ -301,10 +298,9 @@ func (suite *Model9) Test0909_GetNoAllReceiptBeforeTimeOutWithStatusTransactionS
 		"interchainCharge",
 		[][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
 	)
-	mp1 := &pb.StringUint64Map{Keys: []string{ibtp2.To}, Vals: []uint64{1}}
-	mp2 := &pb.StringUint64Map{Keys: []string{ibtp1.To}, Vals: []uint64{1}}
+	mp1 := &pb.StringUint64Map{Keys: []string{ibtp1.To, ibtp2.To}, Vals: []uint64{1, 1}}
 	ibtp1.Group = mp1
-	ibtp2.Group = mp2
+	ibtp2.Group = mp1
 	err = suite.SendInterchainTx(pk1, ibtp1, payload, proof)
 	suite.Require().Nil(err)
 	err = suite.SendInterchainTx(pk2, ibtp2, payload, proof)
@@ -352,10 +348,9 @@ func (suite *Model9) Test0910_GetAllReceiptSuccessWithStatusTransactionStatus_SU
 		"interchainCharge",
 		[][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
 	)
-	mp1 := &pb.StringUint64Map{Keys: []string{ibtp2.To}, Vals: []uint64{1}}
-	mp2 := &pb.StringUint64Map{Keys: []string{ibtp1.To}, Vals: []uint64{1}}
+	mp1 := &pb.StringUint64Map{Keys: []string{ibtp1.To, ibtp2.To}, Vals: []uint64{1, 1}}
 	ibtp1.Group = mp1
-	ibtp2.Group = mp2
+	ibtp2.Group = mp1
 	err = suite.SendInterchainTx(pk1, ibtp1, payload, proof)
 	suite.Require().Nil(err)
 	err = suite.SendInterchainTx(pk2, ibtp2, payload, proof)
@@ -404,10 +399,9 @@ func (suite *Model9) Test0911_GetAllReceiptFailWithStatusTransactionStatus_FAILU
 		"interchainCharge",
 		[][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
 	)
-	mp1 := &pb.StringUint64Map{Keys: []string{ibtp2.To}, Vals: []uint64{1}}
-	mp2 := &pb.StringUint64Map{Keys: []string{ibtp1.To}, Vals: []uint64{1}}
+	mp1 := &pb.StringUint64Map{Keys: []string{ibtp1.To, ibtp2.To}, Vals: []uint64{1, 1}}
 	ibtp1.Group = mp1
-	ibtp2.Group = mp2
+	ibtp2.Group = mp1
 	err = suite.SendInterchainTx(pk1, ibtp1, payload, proof)
 	suite.Require().Nil(err)
 	err = suite.SendInterchainTx(pk2, ibtp2, payload, proof)
@@ -456,10 +450,9 @@ func (suite *Model9) Test0912_GetAllReceiptTimeOutWithStatusTransactionStatus_RO
 		"interchainCharge",
 		[][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
 	)
-	mp1 := &pb.StringUint64Map{Keys: []string{ibtp2.To}, Vals: []uint64{1}}
-	mp2 := &pb.StringUint64Map{Keys: []string{ibtp1.To}, Vals: []uint64{1}}
+	mp1 := &pb.StringUint64Map{Keys: []string{ibtp1.To, ibtp2.To}, Vals: []uint64{1, 1}}
 	ibtp1.Group = mp1
-	ibtp2.Group = mp2
+	ibtp2.Group = mp1
 	err = suite.SendInterchainTx(pk1, ibtp1, payload, proof)
 	suite.Require().Nil(err)
 	err = suite.SendInterchainTx(pk2, ibtp2, payload, proof)
@@ -586,7 +579,7 @@ func (suite *Model9) Test0913_AccountHaveInsufficientGas() {
 	receipt2, err := client1.SendTransactionWithReceipt(tx2, nil)
 	suite.Require().Nil(err)
 	suite.Require().False(receipt2.IsSuccess())
-	suite.Require().True(strings.Contains(string(receipt2.Ret), gasError))
+	suite.Require().Contains(string(receipt2.Ret), gasError)
 
 	client2 := suite.NewClient(pk2)
 	res2, err := client2.GetAccountBalance(from1.String())

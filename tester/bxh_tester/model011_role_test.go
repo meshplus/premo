@@ -6,7 +6,6 @@ import (
 	"sync/atomic"
 
 	"github.com/meshplus/bitxhub-core/governance"
-
 	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
