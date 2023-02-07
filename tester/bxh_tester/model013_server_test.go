@@ -1209,7 +1209,7 @@ func (suite *Snake) RegisterServer(pk crypto.PrivateKey, chainID, serviceID, nam
 		rpcx.String(chainID),
 		rpcx.String(serviceID),
 		rpcx.String(name),
-		rpcx.String(typ),
+		rpcx.String("CallContract"),
 		rpcx.String("test"),
 		rpcx.Uint64(1),
 		rpcx.String(""),
