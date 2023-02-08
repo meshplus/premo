@@ -62,6 +62,8 @@ func NewServer(remote string, port, poolSize int) (*Server, error) {
 	ibtpIdx := map[string]uint64{}
 	clientPool := make([]*Grpc, poolSize)
 	mutex := sync.Mutex{}
+	wg := sync.WaitGroup{}
+	wg.Add(poolSize)
 	for i := 0; i < poolSize; i++ {
 		go func(i int) {
 			pk, address, err := repo.KeyPriv()
@@ -91,8 +93,10 @@ func NewServer(remote string, port, poolSize int) (*Server, error) {
 			mutex.Lock()
 			ibtpIdx[address.String()] = 1
 			mutex.Unlock()
+			wg.Done()
 		}(i)
 	}
+	wg.Wait()
 	return &Server{
 		remote:     remote,
 		port:       port,
@@ -340,6 +344,7 @@ func (server *Server) getClient() *Grpc {
 func (server *Server) waitConfirm(hash string) {
 	ticker := time.NewTicker(time.Second)
 	for range ticker.C {
+		// not delete sync.Map, because it will block the server
 		_, ok := server.hashMp.Load(hash)
 		if ok {
 			return

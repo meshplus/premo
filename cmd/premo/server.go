@@ -21,6 +21,12 @@ var serverCMD = &cli.Command{
 			Usage:   "Specify server's port",
 			Value:   9999,
 		},
+		&cli.IntFlag{
+			Name:    "pool_size",
+			Aliases: []string{"s"},
+			Usage:   "Specify server's pool size",
+			Value:   10,
+		},
 	},
 	Action: serverBenchmark,
 }
@@ -28,7 +34,8 @@ var serverCMD = &cli.Command{
 func serverBenchmark(ctx *cli.Context) error {
 	remote := ctx.String("remote_bitxhub_addr")
 	port := ctx.Int("port")
-	newServer, err := server.NewServer(remote, port, 10)
+	poolSize := ctx.Int("pool_size")
+	newServer, err := server.NewServer(remote, port, poolSize)
 	if err != nil {
 		return err
 	}
