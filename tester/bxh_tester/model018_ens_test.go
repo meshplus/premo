@@ -264,7 +264,7 @@ func (suite *Model18) Test1819_AllocateSubDomainWithEmptySomDomainIsFail() {
 
 	err = suite.AllocateSubDomain(pk, Domain(domain), "", address.String(), constant.ServiceResolverContractAddr.String(), "")
 	suite.Require().NotNil(err)
-	fmt.Println(err.Error())
+	suite.Require().Equal("call error: 2140000:The sonDomain name can not be an empty string", err.Error())
 }
 
 //tc：根据正确的所有者分配二级域名，域名分配成功
@@ -626,6 +626,7 @@ func (suite *Model18) Test1846_GetAllDomainsIsSuccess() {
 	suite.Require().Nil(err)
 	domain := randomDomain(10)
 	err = suite.RegisterDomain(pk, domain, Year, constant.ServiceResolverContractAddr.String())
+	suite.Require().Nil(err)
 	domains, err := suite.GetAllDomains(pk)
 	suite.Require().Nil(err)
 	suite.Require().Greater(len(domains), 1)
@@ -848,7 +849,6 @@ func (suite *Model18) GetAllDomains(pk crypto.PrivateKey) ([]ServDomain, error) 
 	if res.Status != pb.Receipt_SUCCESS {
 		return nil, fmt.Errorf(string(res.Ret))
 	}
-	fmt.Println(string(res.Ret))
 	var servDomain []ServDomain
 	err = json.Unmarshal(res.Ret, &servDomain)
 	if err != nil {

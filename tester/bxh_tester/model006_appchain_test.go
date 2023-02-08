@@ -596,6 +596,7 @@ func (suite *Model6) Test0634_UpdateAppchainWithNameFieldHaveProposalIsSuccess()
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
+	suite.Require().Nil(err)
 	suite.Require().NotEqual("", result.ProposalID)
 }
 
@@ -619,6 +620,7 @@ func (suite *Model6) Test0635_UpdateAppchainWithTrustRootFieldHaveProposalIsSucc
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
+	suite.Require().Nil(err)
 	suite.Require().NotEqual("", result.ProposalID)
 }
 
@@ -646,6 +648,7 @@ func (suite *Model6) Test0636_UpdateAppchainWithAdminsFieldHaveProposalIsSuccess
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
+	suite.Require().Nil(err)
 	suite.Require().NotEqual("", result.ProposalID)
 }
 
@@ -669,6 +672,7 @@ func (suite *Model6) Test0637_UpdateAppchainWithDescFieldNoProposalIsSuccess() {
 	suite.Require().Equal(pb.Receipt_SUCCESS, res.Status)
 	result := &RegisterResult{}
 	err = json.Unmarshal(res.Ret, result)
+	suite.Require().Nil(err)
 	suite.Require().Equal("", result.ProposalID)
 }
 

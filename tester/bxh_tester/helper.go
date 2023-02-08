@@ -81,6 +81,7 @@ func (suite *Snake) SetupSuite() {
 	suite.SendTransaction(key3)
 	suite.SendTransaction(key4)
 	pk, _, err := repo.KeyPriv()
+	suite.Require().Nil(err)
 	node0 := &rpcx.NodeInfo{Addr: cfg.addrs[0]}
 	client, err := rpcx.New(
 		rpcx.WithNodesInfo(node0),
@@ -137,22 +138,35 @@ func (suite *Snake) Vote(id, info string) error {
 	if err != nil {
 		return err
 	}
-	_, err = suite.vote(key1, atomic.AddUint64(&nonce1, 1), rpcx.String(id), rpcx.String(info), rpcx.String("Vote"))
+	res, err := suite.vote(key1, atomic.AddUint64(&nonce1, 1), rpcx.String(id), rpcx.String(info), rpcx.String("Vote"))
+	if err != nil {
+		return err
+	}
+	if res.Status != pb.Receipt_SUCCESS {
+		return fmt.Errorf("vote err: %s", string(res.Ret))
+	}
 	key2, _, err := repo.Node2Priv()
 	if err != nil {
 		return err
 	}
-	_, err = suite.vote(key2, atomic.AddUint64(&nonce2, 1), rpcx.String(id), rpcx.String(info), rpcx.String("Vote"))
+	res, err = suite.vote(key2, atomic.AddUint64(&nonce2, 1), rpcx.String(id), rpcx.String(info), rpcx.String("Vote"))
+	if err != nil {
+		return err
+	}
+	if res.Status != pb.Receipt_SUCCESS {
+		return fmt.Errorf("vote err: %s", string(res.Ret))
+	}
 	key3, _, err := repo.Node3Priv()
 	if err != nil {
 		return err
 	}
-	_, err = suite.vote(key3, atomic.AddUint64(&nonce3, 1), rpcx.String(id), rpcx.String(info), rpcx.String("Vote"))
-	key4, _, err := repo.Node4Priv()
+	res, err = suite.vote(key3, atomic.AddUint64(&nonce3, 1), rpcx.String(id), rpcx.String(info), rpcx.String("Vote"))
 	if err != nil {
 		return err
 	}
-	_, err = suite.vote(key4, atomic.AddUint64(&nonce4, 1), rpcx.String(id), rpcx.String(info), rpcx.String("Vote"))
+	if res.Status != pb.Receipt_SUCCESS {
+		return fmt.Errorf("vote err: %s", string(res.Ret))
+	}
 	return nil
 }
 
@@ -216,6 +230,7 @@ func (suite *Snake) SendTransaction(pk crypto.PrivateKey) {
 	)
 	suite.Require().Nil(err)
 	from, err := pk.PublicKey().Address()
+	suite.Require().Nil(err)
 	data := &pb.TransactionData{
 		Amount: "1",
 	}
@@ -305,7 +320,7 @@ func (suite *Snake) MockContent(funcName string, args [][]byte) []byte {
 
 // MockResult mock a result
 func (suite *Snake) MockResult(data [][]byte) []byte {
-	result := &pb.Result{Data: data}
+	result := &pb.Result{Data: []*pb.ResultRes{{Data: data}}}
 	bytes, _ := result.Marshal()
 	payload := &pb.Payload{
 		Encrypted: false,

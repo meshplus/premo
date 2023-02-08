@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
-	"math/big"
 	"sync/atomic"
 	"time"
 
@@ -19,11 +18,11 @@ type Bee struct {
 	client *eth.EthRPC
 	pk     *ecdsa.PrivateKey
 	ctx    context.Context
-	nonce  int64
+	nonce  uint64
 }
 
 func NewBee(config *Config) (*Bee, error) {
-	client, err := eth.New(config.JsonRpc)
+	client, err := eth.New(eth.WithUrls([]string{config.JsonRpc}))
 	if err != nil {
 		return nil, err
 	}
@@ -42,68 +41,69 @@ func NewBee(config *Config) (*Bee, error) {
 		pk:     pk,
 		tps:    config.TPS / config.Concurrent,
 		ctx:    config.Ctx,
-		nonce:  int64(nonce),
+		nonce:  nonce,
 	}, nil
 }
 
-func (b *Bee) Start() error {
+func (bee *Bee) Start() error {
 	ticker := time.NewTicker(time.Second)
 	for {
 		select {
 		case <-ticker.C:
-			for i := 0; i < b.tps; i++ {
-				go func(nonce int64) {
-					err := b.SendTx(nonce)
+			for i := 0; i < bee.tps; i++ {
+				go func(nonce uint64) {
+					err := bee.SendTx(nonce)
 					if err != nil {
 						log.WithFields(logrus.Fields{
 							"error": err.Error(),
 						}).Info("Error send evm tx")
 					}
 					atomic.AddInt64(&delayer, 1)
-				}(b.nonce)
-				b.nonce = b.nonce + 1
+				}(bee.nonce)
+				bee.nonce = bee.nonce + 1
 			}
-		case <-b.ctx.Done():
+		case <-bee.ctx.Done():
 			return nil
 		}
 	}
 }
 
-func (b *Bee) Stop() error {
+func (bee *Bee) Stop() error {
 	return nil
 }
 
-func (b *Bee) SendTx(nonce int64) error {
-	switch b.typ {
+func (bee *Bee) SendTx(nonce uint64) error {
+	switch bee.typ {
 	case "deploy":
-		err := b.DeployContract(nonce)
+		err := bee.DeployContract(nonce)
 		if err != nil {
 			return err
 		}
 	case "invoke":
-		err := b.Invoke(nonce)
+		err := bee.Invoke(nonce)
 		if err != nil {
 			return err
 		}
 	default:
-		return fmt.Errorf("unexpected type: %v", b.typ)
+		return fmt.Errorf("unexpected type: %v", bee.typ)
 	}
 	return nil
 }
 
-func (b *Bee) DeployContract(nonce int64) error {
+func (bee *Bee) DeployContract(nonce uint64) error {
 	if compileResult == nil {
 		return fmt.Errorf("no compile result")
 	}
-	_, err := b.client.Deploy(b.pk, compileResult, args, eth.WithNonce(big.NewInt(nonce)))
+	res, err := bee.client.Deploy(bee.pk, compileResult, args, eth.WithNonce(nonce))
 	if err != nil {
 		return err
 	}
+	fmt.Println(res)
 	return nil
 }
 
-func (b *Bee) Invoke(nonce int64) error {
-	_, err := b.client.Invoke(b.pk, contractAbi, address, function, args, eth.WithTxNonce(uint64(nonce)))
+func (bee *Bee) Invoke(nonce uint64) error {
+	_, err := bee.client.Invoke(bee.pk, &contractAbi, address, function, args, eth.WithNonce(nonce))
 	if err != nil {
 		return err
 	}

@@ -50,6 +50,7 @@ func (suite *Model8) Test0801_TXEmptyFromIsFail() {
 //tc：发送交易，to为空，交易发送失败
 func (suite *Model8) Test0802_TXEmptyToIsFail() {
 	pk, from, err := repo.Node2Priv()
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
 		Amount: "1",
@@ -71,6 +72,7 @@ func (suite *Model8) Test0802_TXEmptyToIsFail() {
 //tc：发送交易，from、to为空，交易发送失败
 func (suite *Model8) Test0803_TXEmptyFromAndToIsFail() {
 	pk, _, err := repo.Node2Priv()
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
 		Amount: "1",
@@ -92,6 +94,7 @@ func (suite *Model8) Test0803_TXEmptyFromAndToIsFail() {
 //tc：发送交易，from、to相同，交易发送失败
 func (suite *Model8) Test0804_TXSameFromAndToIsFail() {
 	pk, from, err := repo.Node2Priv()
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
 	data := &pb.TransactionData{
 		Amount: "1",
@@ -264,6 +267,7 @@ func (suite *Model8) Test0811_GetReceiptByWrongHash() {
 	hash, err := client.SendTransaction(tx, &rpcx.TransactOpts{
 		Nonce: nonce,
 	})
+	suite.Require().Nil(err)
 	hash = hash[0:len(hash)-5] + "12345"
 	_, err = client.GetReceipt(hash)
 	suite.Require().NotNil(err)

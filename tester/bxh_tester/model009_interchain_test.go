@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/big"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gobuffalo/packr/v2"
@@ -21,7 +20,7 @@ const (
 	normalTxGasFee = 1050000000
 	ibtpGasFee     = normalTxGasFee * 10
 	leftFee        = 10
-	gasError       = "insufficeient balance"
+	gasError       = "insufficient balance"
 )
 
 type Model9 struct {
@@ -40,6 +39,7 @@ func (suite *Model9) Test0901_SendIBTPWithStatusTransactionStatus_BEGIN() {
 	suite.Require().Nil(err)
 	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
+	suite.Require().Nil(err)
 	ibtp := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
 		"interchainCharge",
@@ -64,6 +64,7 @@ func (suite *Model9) Test0902_GetNoReceiptBeforeTimeOutWithStatusTransactionStat
 	suite.Require().Nil(err)
 	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
+	suite.Require().Nil(err)
 	ibtp := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
 		"interchainCharge",
@@ -91,6 +92,7 @@ func (suite *Model9) Test0903_SendIBTPNoExistChainWithStatusTransactionStatus_BE
 	suite.Require().Nil(err)
 	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
+	suite.Require().Nil(err)
 	ibtp := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
 		"interchainCharge",
@@ -115,6 +117,7 @@ func (suite *Model9) Test0904_GetReceiptSuccessWithStatusTransactionStatus_SUCCE
 	suite.Require().Nil(err)
 	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
+	suite.Require().Nil(err)
 	ibtp := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
 		"interchainCharge",
@@ -143,6 +146,7 @@ func (suite *Model9) Test0905_GetReceiptFailWithStatusTransactionStatus_FAILURE(
 	suite.Require().Nil(err)
 	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
+	suite.Require().Nil(err)
 	ibtp := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
 		"interchainCharge",
@@ -171,6 +175,7 @@ func (suite *Model9) Test0906_GetReceiptAfterTimeOutWithStatusTransactionStatus_
 	suite.Require().Nil(err)
 	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
+	suite.Require().Nil(err)
 	ibtp := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
 		"interchainCharge",
@@ -209,16 +214,16 @@ func (suite *Model9) Test0907_SendIBTPSWithStatusTransactionStatus_BEGIN() {
 	suite.Require().Nil(err)
 	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
+	suite.Require().Nil(err)
 	ibtp1 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	ibtp2 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from3.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
 		"interchainCharge",
 		[][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
 	)
-	mp1 := &pb.StringUint64Map{Keys: []string{ibtp2.To}, Vals: []uint64{1}}
-	mp2 := &pb.StringUint64Map{Keys: []string{ibtp1.To}, Vals: []uint64{1}}
+	mp1 := &pb.StringUint64Map{Keys: []string{ibtp1.To, ibtp2.To}, Vals: []uint64{1, 1}}
 	ibtp1.Group = mp1
-	ibtp2.Group = mp2
+	ibtp2.Group = mp1
 	err = suite.SendInterchainTx(pk1, ibtp1, payload, proof)
 	suite.Require().Nil(err)
 	err = suite.SendInterchainTx(pk2, ibtp2, payload, proof)
@@ -247,16 +252,16 @@ func (suite *Model9) Test0908_GetOneReceiptFailWithStatusTransactionStatus_BEGIN
 	suite.Require().Nil(err)
 	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
+	suite.Require().Nil(err)
 	ibtp1 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	ibtp2 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from3.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
 		"interchainCharge",
 		[][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
 	)
-	mp1 := &pb.StringUint64Map{Keys: []string{ibtp2.To}, Vals: []uint64{1}}
-	mp2 := &pb.StringUint64Map{Keys: []string{ibtp1.To}, Vals: []uint64{1}}
+	mp1 := &pb.StringUint64Map{Keys: []string{ibtp1.To, ibtp2.To}, Vals: []uint64{1, 1}}
 	ibtp1.Group = mp1
-	ibtp2.Group = mp2
+	ibtp2.Group = mp1
 	err = suite.SendInterchainTx(pk1, ibtp1, payload, proof)
 	suite.Require().Nil(err)
 	err = suite.SendInterchainTx(pk2, ibtp2, payload, proof)
@@ -295,16 +300,16 @@ func (suite *Model9) Test0909_GetNoAllReceiptBeforeTimeOutWithStatusTransactionS
 	suite.Require().Nil(err)
 	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
+	suite.Require().Nil(err)
 	ibtp1 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	ibtp2 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from3.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
 		"interchainCharge",
 		[][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
 	)
-	mp1 := &pb.StringUint64Map{Keys: []string{ibtp2.To}, Vals: []uint64{1}}
-	mp2 := &pb.StringUint64Map{Keys: []string{ibtp1.To}, Vals: []uint64{1}}
+	mp1 := &pb.StringUint64Map{Keys: []string{ibtp1.To, ibtp2.To}, Vals: []uint64{1, 1}}
 	ibtp1.Group = mp1
-	ibtp2.Group = mp2
+	ibtp2.Group = mp1
 	err = suite.SendInterchainTx(pk1, ibtp1, payload, proof)
 	suite.Require().Nil(err)
 	err = suite.SendInterchainTx(pk2, ibtp2, payload, proof)
@@ -346,16 +351,16 @@ func (suite *Model9) Test0910_GetAllReceiptSuccessWithStatusTransactionStatus_SU
 	suite.Require().Nil(err)
 	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
+	suite.Require().Nil(err)
 	ibtp1 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	ibtp2 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from3.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
 		"interchainCharge",
 		[][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
 	)
-	mp1 := &pb.StringUint64Map{Keys: []string{ibtp2.To}, Vals: []uint64{1}}
-	mp2 := &pb.StringUint64Map{Keys: []string{ibtp1.To}, Vals: []uint64{1}}
+	mp1 := &pb.StringUint64Map{Keys: []string{ibtp1.To, ibtp2.To}, Vals: []uint64{1, 1}}
 	ibtp1.Group = mp1
-	ibtp2.Group = mp2
+	ibtp2.Group = mp1
 	err = suite.SendInterchainTx(pk1, ibtp1, payload, proof)
 	suite.Require().Nil(err)
 	err = suite.SendInterchainTx(pk2, ibtp2, payload, proof)
@@ -398,16 +403,16 @@ func (suite *Model9) Test0911_GetAllReceiptFailWithStatusTransactionStatus_FAILU
 	suite.Require().Nil(err)
 	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
+	suite.Require().Nil(err)
 	ibtp1 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	ibtp2 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from3.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
 		"interchainCharge",
 		[][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
 	)
-	mp1 := &pb.StringUint64Map{Keys: []string{ibtp2.To}, Vals: []uint64{1}}
-	mp2 := &pb.StringUint64Map{Keys: []string{ibtp1.To}, Vals: []uint64{1}}
+	mp1 := &pb.StringUint64Map{Keys: []string{ibtp1.To, ibtp2.To}, Vals: []uint64{1, 1}}
 	ibtp1.Group = mp1
-	ibtp2.Group = mp2
+	ibtp2.Group = mp1
 	err = suite.SendInterchainTx(pk1, ibtp1, payload, proof)
 	suite.Require().Nil(err)
 	err = suite.SendInterchainTx(pk2, ibtp2, payload, proof)
@@ -450,16 +455,16 @@ func (suite *Model9) Test0912_GetAllReceiptTimeOutWithStatusTransactionStatus_RO
 	suite.Require().Nil(err)
 	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
+	suite.Require().Nil(err)
 	ibtp1 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	ibtp2 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from3.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload := suite.MockContent(
 		"interchainCharge",
 		[][]byte{[]byte("Alice"), []byte("Alice"), []byte("1")},
 	)
-	mp1 := &pb.StringUint64Map{Keys: []string{ibtp2.To}, Vals: []uint64{1}}
-	mp2 := &pb.StringUint64Map{Keys: []string{ibtp1.To}, Vals: []uint64{1}}
+	mp1 := &pb.StringUint64Map{Keys: []string{ibtp1.To, ibtp2.To}, Vals: []uint64{1, 1}}
 	ibtp1.Group = mp1
-	ibtp2.Group = mp2
+	ibtp2.Group = mp1
 	err = suite.SendInterchainTx(pk1, ibtp1, payload, proof)
 	suite.Require().Nil(err)
 	err = suite.SendInterchainTx(pk2, ibtp2, payload, proof)
@@ -532,6 +537,7 @@ func (suite *Model9) Test0913_AccountHaveInsufficientGas() {
 	// mock ibtp1, get successful receipt
 	box := packr.New(repo.ConfigPath, repo.ConfigPath)
 	proof, err := box.Find("proof_fabric")
+	suite.Require().Nil(err)
 	ibtp1 := suite.MockIBTP(1, "1356:"+from1.String()+":mychannel&transfer", "1356:"+from2.String()+":mychannel&transfer", pb.IBTP_INTERCHAIN, proof)
 	payload = suite.MockContent(
 		"interchainCharge",
@@ -552,6 +558,7 @@ func (suite *Model9) Test0913_AccountHaveInsufficientGas() {
 
 	// get interchain to proof ibtp store bitxhub ledger successfully
 	receipt1, err := client1.InvokeBVMContract(constant.InterchainContractAddr.Address(), "GetInterchain", nil, pb.String(ibtp1.From))
+	suite.Require().Nil(err)
 	interchain := &pb.Interchain{}
 	err = interchain.Unmarshal(receipt1.Ret)
 	suite.Require().Nil(err)
@@ -586,7 +593,7 @@ func (suite *Model9) Test0913_AccountHaveInsufficientGas() {
 	receipt2, err := client1.SendTransactionWithReceipt(tx2, nil)
 	suite.Require().Nil(err)
 	suite.Require().False(receipt2.IsSuccess())
-	suite.Require().True(strings.Contains(string(receipt2.Ret), gasError))
+	suite.Require().Contains(string(receipt2.Ret), gasError)
 
 	client2 := suite.NewClient(pk2)
 	res2, err := client2.GetAccountBalance(from1.String())
@@ -599,6 +606,7 @@ func (suite *Model9) Test0913_AccountHaveInsufficientGas() {
 
 	// query interchain, bitxhub had already rollback interchain
 	receipt, err = client2.InvokeBVMContract(constant.InterchainContractAddr.Address(), "GetInterchain", nil, pb.String(ibtp2.From))
+	suite.Require().Nil(err)
 	interchain = &pb.Interchain{}
 	err = interchain.Unmarshal(receipt.Ret)
 	suite.Require().Nil(err)
@@ -647,6 +655,9 @@ func (suite *Model9) GetStatus(txId string) (pb.TransactionStatus, error) {
 		return -1, fmt.Errorf(string(res.Ret))
 	}
 	status, err := strconv.ParseInt(string(res.Ret), 10, 64)
+	if err != nil {
+		return 0, err
+	}
 	return pb.TransactionStatus(status), nil
 }
 

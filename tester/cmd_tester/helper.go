@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/jiuhuche120/spin"
-
 	"github.com/stretchr/testify/suite"
 )
 
@@ -22,7 +21,7 @@ const (
 	DefaultShell = "/bin/bash"
 )
 
-func (suite Snake) ExecuteShell(repo string, args ...string) ([]byte, error) {
+func (suite *Snake) ExecuteShell(repo string, args ...string) ([]byte, error) {
 	var arg []string
 	arg = append(arg, "-c")
 	arg = append(arg, args...)
@@ -66,7 +65,7 @@ func (suite Snake) ExecuteShell(repo string, args ...string) ([]byte, error) {
 	return data1, nil
 }
 
-func (suite Snake) PrintMessage(str string, color uint64) {
+func (suite *Snake) PrintMessage(str string, color uint64) {
 	strs := strings.Split(str, "\n")
 	for i := 0; i < len(strs); i++ {
 		fmt.Printf("\033[%vm%v \033[m\n", color, strs[i])

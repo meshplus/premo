@@ -742,6 +742,7 @@ func (suite *Model12) Test1243_UpdateNvpNodeWithNoRelayAdminIsFail() {
 		rpcx.String(from1),
 	}
 	pk3, _, err := repo.KeyPriv()
+	suite.Require().Nil(err)
 	client := suite.NewClient(pk3)
 	res, err := client.InvokeBVMContract(constant.NodeManagerContractAddr.Address(), UpdateNode, nil, args...)
 	suite.Require().Nil(err)

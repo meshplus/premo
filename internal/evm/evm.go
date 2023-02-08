@@ -12,6 +12,7 @@ import (
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
 	eth "github.com/meshplus/go-eth-client"
+	"github.com/meshplus/go-eth-client/utils"
 	"github.com/meshplus/premo/internal/repo"
 	"github.com/sirupsen/logrus"
 )
@@ -20,13 +21,12 @@ const MaxBlockSize = 2048
 
 var log = logrus.New()
 var lock = sync.Mutex{}
-var nonce = uint64(0)
 var maxDelay int64
 var counter int64
 var delayer int64
 
 var compileResult *eth.CompileResult
-var contractAbi *abi.ABI
+var contractAbi abi.ABI
 var function string
 var address string
 var args []interface{}
@@ -65,7 +65,7 @@ func New(config *Config) (*Evm, error) {
 	evm := new(Evm)
 	evm.config = config
 	node0 := &rpcx.NodeInfo{Addr: config.Grpc}
-	pk, addr, err := repo.Node1Priv()
+	pk, _, err := repo.Node1Priv()
 	if err != nil {
 		return nil, err
 	}
@@ -74,11 +74,9 @@ func New(config *Config) (*Evm, error) {
 		rpcx.WithLogger(log),
 		rpcx.WithPrivateKey(pk),
 	)
-	nonce, err = client.GetPendingNonceByAccount(addr.String())
 	if err != nil {
 		return nil, err
 	}
-	nonce = nonce - 1
 	evm.client = client
 
 	evm.bees = make([]*Bee, 0, config.Concurrent)
@@ -97,7 +95,6 @@ func New(config *Config) (*Evm, error) {
 			lock.Lock()
 			evm.bees = append(evm.bees, bee)
 			lock.Unlock()
-			return
 		}()
 	}
 	wg.Wait()
@@ -129,7 +126,7 @@ func New(config *Config) (*Evm, error) {
 				break
 			}
 		}
-		contractAbi = &parseAbi
+		contractAbi = parseAbi
 		if len(evm.config.Args) != 0 {
 			argSplits := strings.Split(evm.config.Args, "^")
 			var argArr []interface{}
@@ -146,7 +143,7 @@ func New(config *Config) (*Evm, error) {
 				}
 				argArr = append(argArr, arg)
 			}
-			args, err = eth.Encode(contractAbi, "", argArr...)
+			args, err = utils.Decode(&contractAbi, "", argArr...)
 			if err != nil {
 				return nil, err
 			}
@@ -161,7 +158,7 @@ func New(config *Config) (*Evm, error) {
 		if function == "" {
 			return nil, fmt.Errorf("function must be specified")
 		}
-		contractAbi, err = eth.LoadAbi(evm.config.AbiPath)
+		contractAbi, err = utils.LoadAbi(evm.config.AbiPath)
 		if err != nil {
 			return nil, err
 		}
@@ -181,7 +178,7 @@ func New(config *Config) (*Evm, error) {
 				}
 				argArr = append(argArr, arg)
 			}
-			args, err = eth.Encode(contractAbi, evm.config.Function, argArr...)
+			args, err = utils.Decode(&contractAbi, evm.config.Function, argArr...)
 			if err != nil {
 				return nil, err
 			}
@@ -352,7 +349,7 @@ func (evm *Evm) calTps(meta0 *pb.ChainMeta) error {
 }
 
 func NewClient(jsonRpc string) (*eth.EthRPC, error) {
-	client, err := eth.New(jsonRpc)
+	client, err := eth.New(eth.WithUrls([]string{jsonRpc}))
 	if err != nil {
 		return nil, err
 	}

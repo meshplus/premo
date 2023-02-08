@@ -125,7 +125,7 @@ func evmBenchmark(ctx *cli.Context) error {
 }
 
 func handleEvmShutdown(e *evm.Evm) {
-	var stop = make(chan os.Signal)
+	var stop = make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM)
 	signal.Notify(stop, syscall.SIGINT)
 	go func() {

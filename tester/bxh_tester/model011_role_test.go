@@ -6,7 +6,6 @@ import (
 	"sync/atomic"
 
 	"github.com/meshplus/bitxhub-core/governance"
-
 	"github.com/meshplus/bitxhub-model/constant"
 	"github.com/meshplus/bitxhub-model/pb"
 	rpcx "github.com/meshplus/go-bitxhub-client"
@@ -1165,6 +1164,7 @@ func (suite *Model11) Test1173_LogoutAuditAdminWithUpdatingNodePassIsSuccess() {
 		rpcx.String("reason"),
 	}
 	proposal, err := suite.InvokeNodeContract(UpdateNode, args...)
+	suite.Require().Nil(err)
 	err = suite.LogoutRole(from3.String())
 	suite.Require().Nil(err)
 	err = suite.VotePass(proposal)

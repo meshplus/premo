@@ -32,7 +32,7 @@ func main() {
 		testCMD,
 		pierCMD,
 		bitxhubCMD,
-		statusCMD,
+		serverCMD,
 		evmCMD,
 	}
 
