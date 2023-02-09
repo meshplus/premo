@@ -16,7 +16,7 @@ require (
 	github.com/meshplus/bitxhub-kit v1.28.0
 	github.com/meshplus/bitxhub-model v1.28.0
 	github.com/meshplus/go-bitxhub-client v1.28.0
-	github.com/meshplus/go-eth-client v1.28.0
+	github.com/meshplus/go-eth-client v1.28.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.8.1
