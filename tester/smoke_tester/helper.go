@@ -3,6 +3,7 @@ package bxh_tester
 import (
 	"crypto/sha256"
 	"fmt"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -20,6 +21,12 @@ import (
 	"github.com/meshplus/premo/internal/repo"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/suite"
+)
+
+const (
+	approveVote   = "approve"
+	rejectVote    = "reject"
+	ignoreVoteErr = "the current status of the proposal is approve and cannot be voted on"
 )
 
 var cfg = &config{
@@ -121,12 +128,12 @@ func (suite *Snake) NewClient(pk crypto.PrivateKey) *rpcx.ChainClient {
 
 // VotePass vote pass proposal by id with four admin
 func (suite *Snake) VotePass(id string) error {
-	return suite.Vote(id, "approve")
+	return suite.Vote(id, approveVote)
 }
 
 // VoteReject vote reject proposal by id with four admin
 func (suite *Snake) VoteReject(id string) error {
-	return suite.Vote(id, "reject")
+	return suite.Vote(id, rejectVote)
 }
 
 //Vote `vote` proposal by id and info with four admin
@@ -137,6 +144,10 @@ func (suite *Snake) Vote(id, info string) error {
 	}
 	res, err := suite.vote(key1, atomic.AddUint64(&nonce1, 1), rpcx.String(id), rpcx.String(info), rpcx.String("Vote"))
 	if err != nil {
+		// if proposal had been approved, need not vote
+		if strings.Contains(err.Error(), ignoreVoteErr) {
+			return nil
+		}
 		return err
 	}
 	if res.Status != pb.Receipt_SUCCESS {
@@ -148,6 +159,10 @@ func (suite *Snake) Vote(id, info string) error {
 	}
 	res, err = suite.vote(key2, atomic.AddUint64(&nonce2, 1), rpcx.String(id), rpcx.String(info), rpcx.String("Vote"))
 	if err != nil {
+		// if proposal had been approved, need not vote
+		if strings.Contains(err.Error(), ignoreVoteErr) {
+			return nil
+		}
 		return err
 	}
 	if res.Status != pb.Receipt_SUCCESS {
@@ -157,12 +172,20 @@ func (suite *Snake) Vote(id, info string) error {
 	if err != nil {
 		return err
 	}
-	res, err = suite.vote(key3, atomic.AddUint64(&nonce3, 1), rpcx.String(id), rpcx.String(info), rpcx.String("Vote"))
-	if err != nil {
-		return err
-	}
-	if res.Status != pb.Receipt_SUCCESS {
-		return fmt.Errorf("vote err: %s", string(res.Ret))
+
+	// if bxh had received 2 reject vote, proposal status is reject, because this proposal is impossible be approved
+	if info == approveVote {
+		res, err = suite.vote(key3, atomic.AddUint64(&nonce3, 1), rpcx.String(id), rpcx.String(info), rpcx.String("Vote"))
+		if err != nil {
+			// if proposal had been approved, need not vote
+			if strings.Contains(err.Error(), ignoreVoteErr) {
+				return nil
+			}
+			return err
+		}
+		if res.Status != pb.Receipt_SUCCESS {
+			return fmt.Errorf("vote err: %s", string(res.Ret))
+		}
 	}
 	return nil
 }

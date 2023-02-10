@@ -283,8 +283,8 @@ func (suite *Model11) Test1116_LogoutAuditAdminWithUpdatingNodePassIsSuccess() {
 	err = suite.RegisterRole(from3.String(), AuditAdmin, from1.String())
 	suite.Require().Nil(err)
 	args := []*pb.Arg{
-		rpcx.String(from3.String()),
-		rpcx.String(from3.String() + "123"),
+		rpcx.String(from1.String()),
+		rpcx.String(from1.String() + "123"),
 		rpcx.String(from2),
 		rpcx.String("reason"),
 	}
