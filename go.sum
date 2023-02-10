@@ -930,6 +930,7 @@ github.com/meshplus/go-eth-client v1.28.0 h1:vQoSp6vVL/JItar97dNnCsAZeoPWDnUsE30
 github.com/meshplus/go-eth-client v1.28.0/go.mod h1:c6/D0qOSAh2aKFWEvjnu7kOWUHoIAvR/Nsp36EB0pOI=
 github.com/meshplus/go-eth-client v1.28.1-0.20230207012810-7bd925a642b5 h1:WHit2TETMcpmLnZTWNVG3vs+cFj/CI89BCPNM6dHHp0=
 github.com/meshplus/go-eth-client v1.28.1-0.20230207012810-7bd925a642b5/go.mod h1:c6/D0qOSAh2aKFWEvjnu7kOWUHoIAvR/Nsp36EB0pOI=
+github.com/meshplus/go-eth-client v1.28.1 h1:NIAiBqafT9qROHvmJ9Ukw9H0yYtyvrtWWMRAtMrF9t4=
 github.com/meshplus/go-eth-client v1.28.1/go.mod h1:c6/D0qOSAh2aKFWEvjnu7kOWUHoIAvR/Nsp36EB0pOI=
 github.com/meshplus/go-lightp2p v0.0.0-20200817105923-6b3aee40fa54/go.mod h1:G89UJaeqCQFxFdp8wzy1AdKfMtDEhpySau0pjDNeeaw=
 github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b/go.mod h1:01TrycV0kFyexm33Z7vhZRXopbI8J3TDReVlkTgMUxE=
