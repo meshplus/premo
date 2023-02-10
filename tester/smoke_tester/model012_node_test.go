@@ -19,6 +19,7 @@ const (
 	RegisterNode = "RegisterNode"
 	UpdateNode   = "UpdateNode"
 	LogoutNode   = "LogoutNode"
+	newNodeName  = "newNameFrom"
 )
 
 type NodeType string
@@ -229,7 +230,7 @@ func (suite *Model12) Test1212_UpdateNvpNodeWithRelayAdminIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.RegisterNode(from1.String(), "nvpNode", "", 0, from1.String(), from)
 	suite.Require().Nil(err)
-	err = suite.UpdateNode(from1.String(), from1.String(), from)
+	err = suite.UpdateNode(from1.String(), fmt.Sprintf("%s%s", newNodeName, from1.String()), from)
 	suite.Require().Nil(err)
 }
 
@@ -263,7 +264,7 @@ func (suite *Model12) Test1214_UpdateNvpNodeWithAvailableNodeIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.RegisterNode(from1.String(), "nvpNode", "", 0, from1.String(), from)
 	suite.Require().Nil(err)
-	err = suite.UpdateNode(from1.String(), from1.String(), from)
+	err = suite.UpdateNode(from1.String(), fmt.Sprintf("%s%s", newNodeName, from1.String()), from)
 	suite.Require().Nil(err)
 }
 
@@ -277,7 +278,7 @@ func (suite *Model12) Test1215_UpdateNvpNodeWithBindedNodeIsSuccess() {
 	suite.Require().Nil(err)
 	err = suite.NodeToBinded(from1.String(), "nvpNode", "", 0, from1.String(), from)
 	suite.Require().Nil(err)
-	err = suite.UpdateNode(from1.String(), from1.String(), from)
+	err = suite.UpdateNode(from1.String(), fmt.Sprintf("%s%s", newNodeName, from1.String()), from)
 	suite.Require().Nil(err)
 }
 
