@@ -25,7 +25,6 @@ require (
 )
 
 require (
-	github.com/btcsuite/btcd v0.21.0-beta // indirect
 	github.com/bytecodealliance/wasmtime-go v0.37.0 // indirect
 	github.com/cbergoon/merkletree v0.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect

@@ -926,10 +926,6 @@ github.com/meshplus/eth-kit v0.0.0-20221028095005-bdda18e64555 h1:0NQ9VVEzCgIHPb
 github.com/meshplus/eth-kit v0.0.0-20221028095005-bdda18e64555/go.mod h1:L8hBjGF/0W9oHfHgs3HoG/OxWn9cVUKDlAwHBKiiIUY=
 github.com/meshplus/go-bitxhub-client v1.28.0 h1:A9/3uq1RUS+V1L3BLzpJh7uGyz43nEe7mE/153b8tAA=
 github.com/meshplus/go-bitxhub-client v1.28.0/go.mod h1:JkqT07G/omHqlOYUu7y1hWVyW7AjnmRrsGXqXQfWAxA=
-github.com/meshplus/go-eth-client v1.28.0 h1:vQoSp6vVL/JItar97dNnCsAZeoPWDnUsE30pCpsy0ak=
-github.com/meshplus/go-eth-client v1.28.0/go.mod h1:c6/D0qOSAh2aKFWEvjnu7kOWUHoIAvR/Nsp36EB0pOI=
-github.com/meshplus/go-eth-client v1.28.1-0.20230207012810-7bd925a642b5 h1:WHit2TETMcpmLnZTWNVG3vs+cFj/CI89BCPNM6dHHp0=
-github.com/meshplus/go-eth-client v1.28.1-0.20230207012810-7bd925a642b5/go.mod h1:c6/D0qOSAh2aKFWEvjnu7kOWUHoIAvR/Nsp36EB0pOI=
 github.com/meshplus/go-eth-client v1.28.1 h1:NIAiBqafT9qROHvmJ9Ukw9H0yYtyvrtWWMRAtMrF9t4=
 github.com/meshplus/go-eth-client v1.28.1/go.mod h1:c6/D0qOSAh2aKFWEvjnu7kOWUHoIAvR/Nsp36EB0pOI=
 github.com/meshplus/go-lightp2p v0.0.0-20200817105923-6b3aee40fa54/go.mod h1:G89UJaeqCQFxFdp8wzy1AdKfMtDEhpySau0pjDNeeaw=
