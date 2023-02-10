@@ -94,11 +94,10 @@ func (bee *Bee) DeployContract(nonce uint64) error {
 	if compileResult == nil {
 		return fmt.Errorf("no compile result")
 	}
-	res, err := bee.client.Deploy(bee.pk, compileResult, args, eth.WithNonce(nonce))
+	_, err := bee.client.Deploy(bee.pk, compileResult, args, eth.WithNonce(nonce))
 	if err != nil {
 		return err
 	}
-	fmt.Println(res)
 	return nil
 }
 
