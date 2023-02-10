@@ -3,6 +3,7 @@ package bxh_tester
 import (
 	"crypto/sha256"
 	"fmt"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -23,8 +24,9 @@ import (
 )
 
 const (
-	approveVote = "approve"
-	rejectVote  = "reject"
+	approveVote   = "approve"
+	rejectVote    = "reject"
+	ignoreVoteErr = "the current status of the proposal is approve and cannot be voted on"
 )
 
 var cfg = &config{
@@ -142,6 +144,10 @@ func (suite *Snake) Vote(id, info string) error {
 	}
 	res, err := suite.vote(key1, atomic.AddUint64(&nonce1, 1), rpcx.String(id), rpcx.String(info), rpcx.String("Vote"))
 	if err != nil {
+		// if proposal had been approved, need not vote
+		if strings.Contains(err.Error(), ignoreVoteErr) {
+			return nil
+		}
 		return err
 	}
 	if res.Status != pb.Receipt_SUCCESS {
@@ -153,6 +159,10 @@ func (suite *Snake) Vote(id, info string) error {
 	}
 	res, err = suite.vote(key2, atomic.AddUint64(&nonce2, 1), rpcx.String(id), rpcx.String(info), rpcx.String("Vote"))
 	if err != nil {
+		// if proposal had been approved, need not vote
+		if strings.Contains(err.Error(), ignoreVoteErr) {
+			return nil
+		}
 		return err
 	}
 	if res.Status != pb.Receipt_SUCCESS {
@@ -167,6 +177,10 @@ func (suite *Snake) Vote(id, info string) error {
 	if info == approveVote {
 		res, err = suite.vote(key3, atomic.AddUint64(&nonce3, 1), rpcx.String(id), rpcx.String(info), rpcx.String("Vote"))
 		if err != nil {
+			// if proposal had been approved, need not vote
+			if strings.Contains(err.Error(), ignoreVoteErr) {
+				return nil
+			}
 			return err
 		}
 		if res.Status != pb.Receipt_SUCCESS {
