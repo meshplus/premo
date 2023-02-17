@@ -280,7 +280,7 @@ func (b *Broker) listenBlock() {
 			c := float64(cnt)
 			d := float64(dly) / float64(time.Millisecond)
 			md := float64(mDly) / float64(time.Millisecond)
-			log.Infof("current tps is %d, average tx delay is %fms, max tx delay is %fms", cnt, d/c, md)
+			log.Debugf("current tps is %d, average tx delay is %fms, max tx delay is %fms", cnt, d/c, md)
 			if c == 0 {
 				continue
 			}
@@ -328,57 +328,57 @@ func (b *Broker) listenBlock() {
 func (b *Broker) calTps(current time.Time, meta0 *pb.ChainMeta) error {
 	_ = b.Stop(current)
 
-	meta1, err := b.client.GetChainMeta()
-	if err != nil {
-		return err
-	}
-	log.Info("Collecting tps info, please wait...")
-	time.Sleep(20 * time.Second)
-
-	skip := (meta1.Height - meta0.Height) / 8
-	begin := meta0.Height + skip
-	end := meta1.Height - skip
-
-	var (
-		res           *pb.GetTPSResponse
-		totalTps      float32
-		totoalTxCount uint64
-		count         uint64
-		tmpBegin      = begin
-	)
-
-	for tmpBegin < end {
-		if end-tmpBegin > MaxBlockSize {
-			res, err = b.client.GetTPS(tmpBegin, tmpBegin+MaxBlockSize)
-			if err != nil {
-				return err
-			}
-			log.Infof("the TPS from block %d to %d is %f", tmpBegin, tmpBegin+MaxBlockSize, res.Tps)
-		} else {
-			res, err = b.client.GetTPS(tmpBegin, end)
-			if err != nil {
-				return err
-			}
-			log.Infof("the TPS from block %d to %d is %f", tmpBegin, end, res.Tps)
-		}
-		totalTps += res.Tps
-		totoalTxCount += res.TxCount
-		count++
-		tmpBegin = tmpBegin + MaxBlockSize
-	}
-
-	log.Infof("the total TPS from block %d to %d is %f, totoal txCount:%d",
-		begin, end, totalTps/float32(count), totoalTxCount)
-	err = b.client.Stop()
-	if err != nil {
-		return err
-	}
-	if b.config.Graph {
-		err := Graph(b.x, b.tpsY, b.latencyY, b.maxTps, b.maxLatency)
-		if err != nil {
-			return err
-		}
-	}
+	//meta1, err := b.client.GetChainMeta()
+	//if err != nil {
+	//	return err
+	//}
+	//log.Info("Collecting tps info, please wait...")
+	//time.Sleep(20 * time.Second)
+	//
+	//skip := (meta1.Height - meta0.Height) / 8
+	//begin := meta0.Height + skip
+	//end := meta1.Height - skip
+	//
+	//var (
+	//	res           *pb.GetTPSResponse
+	//	totalTps      float32
+	//	totoalTxCount uint64
+	//	count         uint64
+	//	tmpBegin      = begin
+	//)
+	//
+	//for tmpBegin < end {
+	//	if end-tmpBegin > MaxBlockSize {
+	//		res, err = b.client.GetTPS(tmpBegin, tmpBegin+MaxBlockSize)
+	//		if err != nil {
+	//			return err
+	//		}
+	//		log.Infof("the TPS from block %d to %d is %f", tmpBegin, tmpBegin+MaxBlockSize, res.Tps)
+	//	} else {
+	//		res, err = b.client.GetTPS(tmpBegin, end)
+	//		if err != nil {
+	//			return err
+	//		}
+	//		log.Infof("the TPS from block %d to %d is %f", tmpBegin, end, res.Tps)
+	//	}
+	//	totalTps += res.Tps
+	//	totoalTxCount += res.TxCount
+	//	count++
+	//	tmpBegin = tmpBegin + MaxBlockSize
+	//}
+	//
+	//log.Infof("the total TPS from block %d to %d is %f, totoal txCount:%d",
+	//	begin, end, totalTps/float32(count), totoalTxCount)
+	//err = b.client.Stop()
+	//if err != nil {
+	//	return err
+	//}
+	//if b.config.Graph {
+	//	err := Graph(b.x, b.tpsY, b.latencyY, b.maxTps, b.maxLatency)
+	//	if err != nil {
+	//		return err
+	//	}
+	//}
 	return nil
 }
 
