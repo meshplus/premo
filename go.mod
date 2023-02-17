@@ -14,8 +14,8 @@ require (
 	github.com/looplab/fsm v0.3.0
 	github.com/meshplus/bitxhub-core v1.28.0
 	github.com/meshplus/bitxhub-kit v1.28.0
-	github.com/meshplus/bitxhub-model v1.28.0
-	github.com/meshplus/go-bitxhub-client v1.28.0
+	github.com/meshplus/bitxhub-model v1.28.1-0.20230217062351-1c181ad1c804
+	github.com/meshplus/go-bitxhub-client v1.28.1-0.20230217070410-119ed183f0f2
 	github.com/meshplus/go-eth-client v1.28.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/sirupsen/logrus v1.8.1
@@ -122,6 +122,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/golang/protobuf => github.com/golang/protobuf v1.4.0
-
-replace google.golang.org/grpc => google.golang.org/grpc v1.33.0
+replace (
+	github.com/golang/protobuf => github.com/golang/protobuf v1.4.0
+	google.golang.org/grpc => google.golang.org/grpc v1.33.0
+)

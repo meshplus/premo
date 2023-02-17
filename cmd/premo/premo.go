@@ -34,6 +34,7 @@ func main() {
 		bitxhubCMD,
 		serverCMD,
 		evmCMD,
+		calBxhTpsCMD,
 	}
 
 	err := app.Run(os.Args)

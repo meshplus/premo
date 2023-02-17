@@ -340,32 +340,35 @@ func (b *Broker) calTps(current time.Time, meta0 *pb.ChainMeta) error {
 	end := meta1.Height - skip
 
 	var (
-		tps      uint64
-		totalTps uint64
-		count    uint64
-		tmpBegin = begin
+		res           *pb.GetTPSResponse
+		totalTps      float32
+		totoalTxCount uint64
+		count         uint64
+		tmpBegin      = begin
 	)
 
 	for tmpBegin < end {
 		if end-tmpBegin > MaxBlockSize {
-			tps, err = b.client.GetTPS(tmpBegin, tmpBegin+MaxBlockSize)
+			res, err = b.client.GetTPS(tmpBegin, tmpBegin+MaxBlockSize)
 			if err != nil {
 				return err
 			}
-			log.Infof("the TPS from block %d to %d is %d", tmpBegin, tmpBegin+MaxBlockSize, tps)
+			log.Infof("the TPS from block %d to %d is %f", tmpBegin, tmpBegin+MaxBlockSize, res.Tps)
 		} else {
-			tps, err = b.client.GetTPS(tmpBegin, end)
+			res, err = b.client.GetTPS(tmpBegin, end)
 			if err != nil {
 				return err
 			}
-			log.Infof("the TPS from block %d to %d is %d", tmpBegin, end, tps)
+			log.Infof("the TPS from block %d to %d is %f", tmpBegin, end, res.Tps)
 		}
-		totalTps += tps
+		totalTps += res.Tps
+		totoalTxCount += res.TxCount
 		count++
 		tmpBegin = tmpBegin + MaxBlockSize
 	}
 
-	log.Infof("the total TPS from block %d to %d is %d", begin, end, totalTps/count)
+	log.Infof("the total TPS from block %d to %d is %f, totoal txCount:%d",
+		begin, end, totalTps/float32(count), totoalTxCount)
 	err = b.client.Stop()
 	if err != nil {
 		return err
