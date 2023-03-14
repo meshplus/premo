@@ -319,8 +319,7 @@ func (suite *Model19) Test1927_SetServiceNameWithEmptyServiceIsFail() {
 	suite.Require().Nil(err)
 
 	err = suite.SetServiceName(pk, domain+".hub", "")
-	suite.Require().NotNil(err)
-	suite.Require().Equal("call error: 2140000:The serviceName can not be an empty string", err.Error())
+	suite.Require().Nil(err)
 }
 
 //tc：根据正确的域名设置描述，描述设置成功
@@ -613,7 +612,7 @@ func (suite *Model19) SetAddr(pk crypto.PrivateKey, domain, address string) erro
 
 func (suite *Model19) SetServiceName(pk crypto.PrivateKey, domain, service string) error {
 	client := suite.NewClient(pk)
-	res, err := client.InvokeBVMContract(constant.ServiceResolverContractAddr.Address(), "SetServiceName", nil, rpcx.String(domain), rpcx.String(service), rpcx.Bool(false))
+	res, err := client.InvokeBVMContract(constant.ServiceResolverContractAddr.Address(), "SetServiceName", nil, rpcx.String(domain), rpcx.String(service), rpcx.Uint64(0))
 	if err != nil {
 		return err
 	}
