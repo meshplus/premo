@@ -34,6 +34,7 @@ func main() {
 		bitxhubCMD,
 		appchainCMD,
 		interchainCMD,
+		serverCMD,
 		statusCMD,
 	}
 

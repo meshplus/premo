@@ -26,7 +26,7 @@ func (suite *Model4) Test0411_LegerSet() {
 	suite.Require().Equal("1", string(res.Ret))
 }
 
-func (suite Model4) Test0412_LegerSetWithValueLoss() {
+func (suite *Model4) Test0412_LegerSetWithValueLoss() {
 	address := suite.deployLedgerContract()
 
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
@@ -37,7 +37,7 @@ func (suite Model4) Test0412_LegerSetWithValueLoss() {
 	suite.Require().Contains(string(res.Ret), "Missing 1 argument(s)")
 }
 
-func (suite Model4) Test0413_LegerSetWithKVLoss() {
+func (suite *Model4) Test0413_LegerSetWithKVLoss() {
 	address := suite.deployLedgerContract()
 
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
@@ -48,7 +48,7 @@ func (suite Model4) Test0413_LegerSetWithKVLoss() {
 	suite.Require().Contains(string(res.Ret), "Missing 2 argument(s)")
 }
 
-func (suite Model4) Test0414_LegerSetWithErrorMethod() {
+func (suite *Model4) Test0414_LegerSetWithErrorMethod() {
 	address := suite.deployLedgerContract()
 
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
@@ -145,7 +145,7 @@ func (suite *Model4) Test0420_SetAliceGetNil() {
 	suite.Require().Contains(string(res.Ret), "Missing 2 argument(s)")
 }
 
-func (suite Model4) Test0421_SetAliceGetAliceRepeat() {
+func (suite *Model4) Test0421_SetAliceGetAliceRepeat() {
 	address := suite.deployLedgerContract()
 
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)

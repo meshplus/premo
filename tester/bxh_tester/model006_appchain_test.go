@@ -45,7 +45,7 @@ func (suite *Model6) Test0602_RegisterAppchain() {
 }
 
 //tc:应用链处于注册中状态，注册应用链
-func (suite Model6) Test0603_RegisterAppchainWithRegisting() {
+func (suite *Model6) Test0603_RegisterAppchainWithRegisting() {
 	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
 	suite.Require().Nil(err)
 	pubAddress, err := pk.PublicKey().Address()
@@ -343,7 +343,7 @@ func (suite *Model6) Test0612_ActivateAppchainWithRegisting() {
 }
 
 //tc:应用链状态已注册，激活应用链
-func (suite Model6) Test0613_ActivateAppchainWithAvailable() {
+func (suite *Model6) Test0613_ActivateAppchainWithAvailable() {
 	pk, _, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -422,7 +422,7 @@ func (suite *Model6) Test0616_ActivateAppchain() {
 }
 
 //tc:应用链处于注销中状态，激活应用链
-func (suite Model6) Test0617_ActivateAppchainWithLogouting() {
+func (suite *Model6) Test0617_ActivateAppchainWithLogouting() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -442,7 +442,7 @@ func (suite Model6) Test0617_ActivateAppchainWithLogouting() {
 }
 
 //tc:应用链处于注销状态，激活应用链
-func (suite Model6) Test0618_ActivateAppchainWithUnavailable() {
+func (suite *Model6) Test0618_ActivateAppchainWithUnavailable() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -578,7 +578,7 @@ func (suite *Model6) Test0622_UpdateAppchainWithUpdating() {
 }
 
 //tc:应用链处于冻结中的状态，更新应用链
-func (suite Model6) Test0623_UpdateAppchainWithFreezing() {
+func (suite *Model6) Test0623_UpdateAppchainWithFreezing() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -610,7 +610,7 @@ func (suite Model6) Test0623_UpdateAppchainWithFreezing() {
 }
 
 //tc:应用链处于冻结的状态，更新应用链
-func (suite Model6) Test0624_UpdateAppchainWithFrozen() {
+func (suite *Model6) Test0624_UpdateAppchainWithFrozen() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -640,7 +640,7 @@ func (suite Model6) Test0624_UpdateAppchainWithFrozen() {
 }
 
 //tc:应用链处于注销中状态，更新应用链
-func (suite Model6) Test0625_UpdateAppchainWithWithLogouting() {
+func (suite *Model6) Test0625_UpdateAppchainWithWithLogouting() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -672,7 +672,7 @@ func (suite Model6) Test0625_UpdateAppchainWithWithLogouting() {
 }
 
 //tc:应用链处于注销状态，更新应用链
-func (suite Model6) Test0626_UpdateAppchainWithUnavailable() {
+func (suite *Model6) Test0626_UpdateAppchainWithUnavailable() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -762,7 +762,7 @@ func (suite *Model6) Test0629_FreezeAppchain() {
 }
 
 //tc:应用链处于更新中的状态，冻结应用链
-func (suite Model6) Test0630_FreezeAppchainWithUpdating() {
+func (suite *Model6) Test0630_FreezeAppchainWithUpdating() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 	client := suite.NewClient(pk)
@@ -832,7 +832,7 @@ func (suite *Model6) Test0632_FreezeAppchainWithFrozen() {
 }
 
 //tc:应用链处于注销中状态，冻结应用链
-func (suite Model6) Test0633_FreezeAppchainWithWithLogouting() {
+func (suite *Model6) Test0633_FreezeAppchainWithWithLogouting() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -852,7 +852,7 @@ func (suite Model6) Test0633_FreezeAppchainWithWithLogouting() {
 }
 
 //tc:应用链处于注销状态，冻结应用链
-func (suite Model6) Test0634_FreezeAppchainWithUnavailable() {
+func (suite *Model6) Test0634_FreezeAppchainWithUnavailable() {
 	pk, ChainID, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -902,7 +902,7 @@ func (suite *Model6) Test0635_LogoutAppchainWithRegisting() {
 }
 
 //tc:应用链状态已注册，注销应用链
-func (suite Model6) Test0636_LogoutAppchain() {
+func (suite *Model6) Test0636_LogoutAppchain() {
 	pk, _, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -1000,7 +1000,7 @@ func (suite *Model6) Test0640_LogoutAppchainWithLogouting() {
 }
 
 //tc:应用链处于注销状态，注销应用链
-func (suite Model6) Test0641_LogoutAppchainWithUnavailable() {
+func (suite *Model6) Test0641_LogoutAppchainWithUnavailable() {
 	pk, _, err := suite.RegisterAppchain()
 	suite.Require().Nil(err)
 
@@ -1137,7 +1137,7 @@ func (suite *Model6) freezeAppchain(pk crypto.PrivateKey) error {
 	return nil
 }
 
-func (suite Model6) updateAppchain(pk crypto.PrivateKey, args ...*pb.Arg) error {
+func (suite *Model6) updateAppchain(pk crypto.PrivateKey, args ...*pb.Arg) error {
 	client := suite.NewClient(pk)
 	res, err := client.InvokeBVMContract(constant.AppchainMgrContractAddr.Address(), "UpdateAppchain", nil, args...)
 	if err != nil {

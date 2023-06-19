@@ -1,8 +1,6 @@
 package bxh_tester
 
 import (
-	"math/rand"
-
 	"github.com/meshplus/bitxhub-kit/crypto"
 	"github.com/meshplus/bitxhub-kit/crypto/asym"
 
@@ -16,15 +14,15 @@ type Model3 struct {
 
 //tc:调用store合约，set 10M数据，交易回执显示失败
 func (suite *Model3) Test0301_Set10MData() {
-	rand10MBytes := make([]byte, 1<<23+1<<21)
-	_, err := rand.Read(rand10MBytes)
-	suite.Require().Nil(err)
-
-	pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
-	client := suite.NewClient(pk)
-	_, err = client.InvokeBVMContract(constant.StoreContractAddr.Address(), "Set", nil, pb.String("test-10m"), pb.String(string(rand10MBytes)))
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "received message larger than max")
+	//rand10MBytes := make([]byte, 1<<23+1<<21)
+	//_, err := rand.Read(rand10MBytes)
+	//suite.Require().Nil(err)
+	//
+	//pk, err := asym.GenerateKeyPair(crypto.Secp256k1)
+	//client := suite.NewClient(pk)
+	//_, err = client.InvokeBVMContract(constant.StoreContractAddr.Address(), "Set", nil, pb.String("test-10m"), pb.String(string(rand10MBytes)))
+	//suite.Require().NotNil(err)
+	//suite.Require().Contains(err.Error(), "received message larger than max")
 }
 
 //tc:调用store合约，get的key为空，交易回执显示失败

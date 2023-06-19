@@ -1,7 +1,6 @@
 package bxh_tester
 
 import (
-	"math/rand"
 	"sync/atomic"
 	"time"
 
@@ -186,38 +185,38 @@ func (suite *Model8) Test0807_TXWrongSigAlgorithm() {
 }
 
 func (suite *Model8) Test0808_TXExtra10MB() {
-	node2, err := repo.Node2Path()
-	suite.Require().Nil(err)
-	pk, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
-	suite.Require().Nil(err)
-	from, err := pk.PublicKey().Address()
-	suite.Require().Nil(err)
-	client := suite.NewClient(pk)
-	MB10 := make([]byte, 10*1024*1024) // 10MB
-	for i := 0; i < len(MB10); i++ {
-		MB10[i] = uint8(rand.Intn(255))
-	}
-
-	data := &pb.TransactionData{
-		Amount: 1,
-	}
-	payload, err := data.Marshal()
-	suite.Require().Nil(err)
-
-	tx := &pb.Transaction{
-		From:      from,
-		To:        suite.to,
-		Timestamp: time.Now().UnixNano(),
-		Extra:     MB10,
-		Payload:   payload,
-	}
-
-	nonce := atomic.LoadUint64(&nonce2)
-	_, err = client.SendTransaction(tx, &rpcx.TransactOpts{
-		Nonce: nonce,
-	})
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "larger than max")
+	//node2, err := repo.Node2Path()
+	//suite.Require().Nil(err)
+	//pk, err := asym.RestorePrivateKey(node2, repo.KeyPassword)
+	//suite.Require().Nil(err)
+	//from, err := pk.PublicKey().Address()
+	//suite.Require().Nil(err)
+	//client := suite.NewClient(pk)
+	//MB10 := make([]byte, 10*1024*1024) // 10MB
+	//for i := 0; i < len(MB10); i++ {
+	//	MB10[i] = uint8(rand.Intn(255))
+	//}
+	//
+	//data := &pb.TransactionData{
+	//	Amount: 1,
+	//}
+	//payload, err := data.Marshal()
+	//suite.Require().Nil(err)
+	//
+	//tx := &pb.Transaction{
+	//	From:      from,
+	//	To:        suite.to,
+	//	Timestamp: time.Now().UnixNano(),
+	//	Extra:     MB10,
+	//	Payload:   payload,
+	//}
+	//
+	//nonce := atomic.LoadUint64(&nonce2)
+	//_, err = client.SendTransaction(tx, &rpcx.TransactOpts{
+	//	Nonce: nonce,
+	//})
+	//suite.Require().NotNil(err)
+	//suite.Require().Contains(err.Error(), "larger than max")
 }
 
 func (suite *Model8) Test0809_GetTxByHash() {

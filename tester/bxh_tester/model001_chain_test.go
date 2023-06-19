@@ -25,7 +25,7 @@ type Model1 struct {
 	*Snake
 }
 
-func (suite Model1) sendTransaction() {
+func (suite *Model1) sendTransaction() {
 	data := &pb.TransactionData{
 		Amount: 1,
 	}

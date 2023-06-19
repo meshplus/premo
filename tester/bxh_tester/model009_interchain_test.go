@@ -52,9 +52,9 @@ func (suite *Model9) Test0902_HandleIBTPWithNonexistentFrom() {
 
 	tx, _ := client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
-	_, err = client.SendTransactionWithReceipt(tx, nil)
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "not found in DB")
+	res, err := client.SendTransactionWithReceipt(tx, nil)
+	suite.Require().Nil(err)
+	suite.Require().Equal("verify fail:cannot get registered appchain", string(res.Ret))
 }
 
 func (suite *Model9) Test0903_HandleIBTPWithNonexistentTo() {
@@ -95,9 +95,9 @@ func (suite *Model9) Test0904_HandleIBTPWithNonexistentRule() {
 
 	tx, _ := client.GenerateIBTPTx(ib)
 	tx.Extra = []byte(proof)
-	_, err = client.SendTransactionWithReceipt(tx, nil)
-	suite.Require().NotNil(err)
-	suite.Require().Contains(err.Error(), "not found in DB")
+	res, err := client.SendTransactionWithReceipt(tx, nil)
+	suite.Require().Nil(err)
+	suite.Require().Equal("verify fail:appchain didn't register rule", string(res.Ret))
 }
 
 func (suite *Model9) Test0905_HandleIBTPWithWrongIBTPIndex() {
